@@ -1,0 +1,16 @@
+# Protección para uploads de programa
+<Files "*.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Permitir solo archivos de imagen
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Prevenir ejecución de scripts
+Options -ExecCGI
+AddHandler cgi-script .php .pl .py .jsp .asp .sh .cgi
+Options -Indexes
