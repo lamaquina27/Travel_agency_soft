@@ -497,7 +497,8 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
             'condiciones_generales' => $precios_original['condiciones_generales'],
             'movilidad_reducida' => $precios_original['movilidad_reducida'],
             'info_pasaporte' => $precios_original['info_pasaporte'],
-            'info_seguros' => $precios_original['info_seguros']
+            'info_seguros' => $precios_original['info_seguros'],
+            'mostrar_precio' => $precios_original['mostrar_precio']
         ];
         
         $nuevo_precio_id = $this->db->insert('programa_precios', $nuevo_precio_data);

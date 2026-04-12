@@ -100,7 +100,8 @@ class ProgramaPreciosAPI {
                 'condiciones_generales' => trim($_POST['condiciones_generales'] ?? ''),
                 'movilidad_reducida' => isset($_POST['movilidad_reducida']) ? 1 : 0,
                 'info_pasaporte' => trim($_POST['info_pasaporte'] ?? ''),
-                'info_seguros' => trim($_POST['info_seguros'] ?? '')
+                'info_seguros' => trim($_POST['info_seguros'] ?? ''),
+                'mostrar_precio' => isset($_POST['mostrar_precio']) && ($_POST['mostrar_precio'] === '0' || $_POST['mostrar_precio'] === 'false') ? 0 : 1
             ];
             
             error_log("📝 Datos de precios a guardar: " . print_r($preciosData, true));
