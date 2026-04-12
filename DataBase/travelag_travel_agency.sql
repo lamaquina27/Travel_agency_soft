@@ -1544,6 +1544,7 @@ CREATE TABLE `programa_precios` (
   `movilidad_reducida` tinyint(1) DEFAULT 0,
   `info_pasaporte` text DEFAULT NULL,
   `info_seguros` text DEFAULT NULL,
+  `mostrar_precio` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
