@@ -193,6 +193,8 @@ foreach ($dias as &$dia) {
         "SELECT * FROM programa_precios WHERE solicitud_id = ?", 
         [$programa_id]
     );
+    //Cambio para mostrar los precios o esconderlos
+    $mostrar_precios = $precios && (!isset($precios['mostrar_precio']) || (int)$precios['mostrar_precio'] === 1);
     
     // Preparar datos para el mapa
     $puntos_mapa = [];
@@ -303,14 +305,7 @@ function formatAccommodationType($tipo) {
     return $tipos[$tipo] ?? ucfirst($tipo);
 }
 
-// Datos para el template
-$titulo_programa = $programa['titulo_programa'] ?: 'Viaje a ' . $programa['destino'];
-$nombre_viajero = trim($programa['nombre_viajero'] . ' ' . $programa['apellido_viajero']);
-$imagen_portada = $programa['foto_portada'] ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_dias = $duracion_dias; 
-$num_pasajeros = $programa['numero_pasajeros'];
-
-// Calcular duración
+// Calcular duración-------------------- También se movió para evitar error de no inicialización
 // Calcular duración real basada en los días del programa
 $duracion_dias = 0;
 foreach ($dias as $dia) {
@@ -322,6 +317,15 @@ foreach ($dias as $dia) {
 if ($duracion_dias == 0) {
     $duracion_dias = count($dias);
 }
+
+// Datos para el template
+$titulo_programa = $programa['titulo_programa'] ?: 'Viaje a ' . $programa['destino'];
+$nombre_viajero = trim($programa['nombre_viajero'] . ' ' . $programa['apellido_viajero']);
+$imagen_portada = $programa['foto_portada'] ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
+$num_dias = $duracion_dias; 
+$num_pasajeros = $programa['numero_pasajeros'];
+
+
 
 // Calcular fechas basado en fecha de llegada + días del programa
 $fecha_inicio_formatted = '';
@@ -3854,7 +3858,9 @@ body {
                 <li><a href="#overview">Resumen</a></li>
                 <li><a href="#map">Mapa</a></li>
                 <li><a href="#itinerary">Itinerario</a></li>
-                <li><a href="#pricing">Precios</a></li>
+                <?php if ($mostrar_precios): ?>
+                    <li><a href="#pricing">Precios</a></li>
+                <?php endif; ?>
             </ul>
         </div>
     </nav>
@@ -4350,13 +4356,14 @@ body {
         </section>
 
         <!-- Pricing Section -->
-        <?php if ($precios): ?>
+        <?php if ($mostrar_precios): ?>
         <section id="pricing" class="pricing-section">
             <div class="pricing-content">
                 <div class="pricing-header">
                     <h2>Información de Precios</h2>
                     <p>Desglose detallado de la inversión de tu viaje</p>
                 </div>
+                
                 
                 <!-- Precio Principal - NUEVA ESTRUCTURA -->
                 <div class="price-main-card">

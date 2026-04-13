@@ -3203,6 +3203,89 @@ textarea.form-control {
 .drag-helper.show {
     opacity: 1;
 }
+
+
+/* Estilos del toggle para mostrar o esconder precio*/
+.price-visibility-setting {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    border: 1px solid #e7edf3;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 14px;
+    margin-top: 12px;
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.setting-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2d3d;
+    margin: 0;
+}
+
+.setting-subtitle {
+    font-size: 13px;
+    color: #6b7a90;
+    line-height: 1.4;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 58px;
+    height: 32px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: #d7dee7;
+    border-radius: 50px;
+    transition: all .28s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.12);
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 4px;
+    top: 4px;
+    background: #fff;
+    border-radius: 50%;
+    transition: all .28s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,.18);
+}
+
+.switch input:checked + .slider {
+    background: var(--primary-color);
+}
+
+.switch input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.switch input:focus + .slider {
+    box-shadow: 0 0 0 4px rgba(47,128,237,.12);
+}
+
     </style>
 </head>
 
@@ -3686,6 +3769,36 @@ textarea.form-control {
                                             <span id="calculo-detalle"></span>
                                         </small>
                                     </div>
+
+                                    <!-- Selector de Precio visible o invisible -->
+                                    <div class="price-visibility-setting">
+                                        <div class="setting-info">
+                                            <label for="mostrar-precio-toggle" class="setting-title">
+                                                Mostrar precios en el itinerario
+                                            </label>
+                                            <small class="setting-subtitle">
+                                                Activa o desactiva la visualización pública de precios.
+                                            </small>
+                                        </div>
+
+                                        <div class="toggle-wrapper">
+                                            <input type="hidden" name="mostrar_precio" value="0">
+
+                                            <label class="switch">
+                                                <input
+                                                    type="checkbox"
+                                                    name="mostrar_precio"
+                                                    id="mostrar-precio-toggle"
+                                                    value="1"
+                                                    checked
+                                                >
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+    
+
                                     
                                     <div class="form-group">
                                         <label class="form-label">Noches incluidas</label>
@@ -5389,6 +5502,7 @@ async function cargarPreciosPrograma() {
                 form.querySelector('[name="cantidad_ninos"]').value = data.cantidad_ninos || 0;
                 
                 form.querySelector('[name="precio_total"]').value = data.precio_total || '';
+                form.querySelector('#mostrar-precio-toggle').checked = parseInt(data.mostrar_precio ?? 1) === 1;
                 form.querySelector('[name="noches_incluidas"]').value = data.noches_incluidas || '';
                 form.querySelector('[name="precio_incluye"]').value = data.precio_incluye || '';
                 form.querySelector('[name="precio_no_incluye"]').value = data.precio_no_incluye || '';

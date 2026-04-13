@@ -71,6 +71,13 @@ try {
     exit;
 }
 
+// Calcular duración del viaje----------------Esto lo moví de posición para solucionar error
+$duracion_dias = 0;
+foreach ($dias as $dia) {
+    $duracion_estancia = intval($dia['duracion_estancia']) ?: 1;
+    $duracion_dias += $duracion_estancia;
+}
+
 // Preparar datos para la vista
 $titulo_programa = $programa['titulo_programa'] ?: 'Mi Viaje a ' . $programa['destino'];
 $nombre_viajero = trim($programa['nombre_viajero'] . ' ' . $programa['apellido_viajero']);
@@ -79,12 +86,7 @@ $destino = $programa['destino'];
 $num_dias = $duracion_dias; // Usar la duración calculada en lugar del conteo
 $num_pasajeros = $programa['numero_pasajeros'];
 
-// Calcular duración del viaje
-$duracion_dias = 0;
-foreach ($dias as $dia) {
-    $duracion_estancia = intval($dia['duracion_estancia']) ?: 1;
-    $duracion_dias += $duracion_estancia;
-}
+
 
 // Si no hay días en el programa, usar el conteo de días
 if ($duracion_dias == 0) {
@@ -108,6 +110,10 @@ if ($programa['fecha_llegada']) {
 // URL única para compartir
 $share_token = md5($programa_id . 'travel_preview_' . date('Y-m-d'));
 $share_url = APP_URL . '/preview?id=' . $programa_id . '&token=' . $share_token;
+
+
+//Inicialización standar para evitar error por no inicialización
+$is_public_access = $is_public_access ?? false;
 
 
 ?>
@@ -932,10 +938,18 @@ body {
                     <i class="fas fa-shield-alt"></i>
                     <span>Viaje seguro e inolvidable</span>
                 </div>
-                <?php if ($precios && $precios['precio_por_persona']): ?>
+                <!-- Cambios por el selector de mostrar precio -->
+                <?php
+                $mostrar_precios = $precios && (!isset($precios['mostrar_precio']) || (int)$precios['mostrar_precio'] === 1);
+                ?>
+
+                <?php if ($mostrar_precios && !empty($precios['precio_adulto'])): ?>
                 <div class="summary-item">
                     <i class="fas fa-tag"></i>
-                    <span>Desde <?= number_format($precios['precio_por_persona'], 0) ?> <?= $precios['moneda'] ?> por persona</span>
+                    <span>
+                        Desde <?= number_format((float)$precios['precio_adulto'], 0) ?>
+                        <?= htmlspecialchars($precios['moneda'] ?? '') ?> por adulto
+                    </span>
                 </div>
                 <?php endif; ?>
             </div>
