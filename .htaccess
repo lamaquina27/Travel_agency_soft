@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /
+RewriteBase /travel_agency/
 
 <FilesMatch "\.(env|sql|log|bak)$">
     Require all denied
