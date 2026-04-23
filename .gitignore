@@ -1,0 +1,35 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs y debug
+logs/
+debug/
+*.log
+error_log
+
+# Archivos comprimidos
+*.zip
+
+# Dumps de datos locales (NO van en Git — contienen datos reales)
+*.dump.sql
+*_backup.sql
+*_export.sql
+database/travel_agency*.sql
+
+# Los archivos de estructura SÍ van en Git:
+# database/schema.sql              ✅
+# database/migrations/*.sql        ✅
+# database/*_tables.sql            ✅
+
+# Dependencias
+node_modules/
+vendor/
+
+# Configuración local (NUNCA commitear credenciales)
+.env
+.htaccess
+
+# Uploads (imágenes subidas por usuarios — no van en Git)
+assets/uploads/
+

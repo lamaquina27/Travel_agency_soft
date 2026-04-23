@@ -1,0 +1,65 @@
+/* ====================================================================
+   ESTILOS PARA UBICACION SEARCH WIDGET
+   ==================================================================== */
+
+.ubicacion-suggestions {
+    /* Ya definido en el JS, pero aquí por si necesitas sobrescribir */
+}
+
+.suggestion-item:last-child {
+    border-bottom: none !important;
+}
+
+.ubicacion-preview {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Spinner para loading */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #4299e1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Estilo para inputs con widget */
+.ubicacion-input-wrapper {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.ubicacion-input-wrapper input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.ubicacion-input-wrapper input:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
