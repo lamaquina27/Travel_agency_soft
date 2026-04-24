@@ -143,9 +143,10 @@ class ProgramaDiasAPI {
             }
 
             $programa = $this->db->fetch(
-                "SELECT id FROM programa_solicitudes WHERE id = ? AND user_id = ? AND agencia_id = ?", 
+                "SELECT id, fecha_llegada FROM programa_solicitudes WHERE id = ? AND user_id = ? AND agencia_id = ?", 
                 [$programaId, $user_id, $agencia_id]
             );
+
             
             if (!$programa) {
                 throw new Exception('Programa no encontrado o sin permisos');
@@ -159,6 +160,32 @@ class ProgramaDiasAPI {
                 [$programaId]
             );
             
+            // 1. Convertimos la fecha de llegada a un objeto DateTime de PHP para poder hacer cálculos matemáticos con ella
+            $fecha_base = new DateTime($programa['fecha_llegada']);
+            
+            // 2. Este acumulador llevará la cuenta de cuántos días debemos sumar a la fecha base
+            $dias_acumulados = 0;
+            
+            // 3. Recorremos cada día. Usamos "&" (referencia) para poder modificar el array original directamente
+            foreach ($dias as &$dia) {
+                // Clonamos la fecha base para que no se nos altere la original en cada vuelta del ciclo
+                $fecha_dia = clone $fecha_base;
+                
+                // Si ya pasaron días (es decir, a partir del día 2), le sumamos el acumulador
+                if ($dias_acumulados > 0) {
+                    $fecha_dia->modify("+{$dias_acumulados} days");
+                }
+                
+                // 4. Inyectamos la nueva fecha ya formateada dentro del día actual
+                $dia['fecha_calculada'] = $fecha_dia->format('Y-m-d');
+                
+                // 5. Preparamos el terreno para el SIGUIENTE día: sumamos la duración de la estancia actual al acumulador
+                $dias_acumulados += (int)$dia['duracion_estancia'];
+            }
+            // Por buenas prácticas en PHP, rompemos la referencia del último elemento
+            unset($dia);
+
+
             return [
                 'success' => true,
                 'data' => $dias
