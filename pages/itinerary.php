@@ -62,6 +62,39 @@ try {
         "SELECT *, COALESCE(duracion_estancia, 1) as duracion_estancia FROM programa_dias WHERE solicitud_id = ? ORDER BY dia_numero ASC", 
         [$programa_id]
     );
+
+    //---Conversión de días a fechas
+    $fecha_base = !empty($programa['fecha_llegada']) ? new DateTime($programa['fecha_llegada']) : null;
+    $dias_acumulados = 0;
+
+    foreach ($dias as &$dia) {
+        if ($fecha_base) {
+            $fecha_dia = clone $fecha_base;
+
+            if ($dias_acumulados > 0) {
+                $fecha_dia->modify("+{$dias_acumulados} days");
+            }
+
+            $dia['fecha_calculada'] = $fecha_dia->format('Y-m-d');
+
+            $duracion = intval($dia['duracion_estancia'] ?? 1);
+            $fecha_fin_dia = clone $fecha_dia;
+
+            if ($duracion > 1) {
+                $fecha_fin_dia->modify('+' . ($duracion - 1) . ' days');
+            }
+
+            $dia['fecha_fin_calculada'] = $fecha_fin_dia->format('Y-m-d');
+        }
+
+        $dias_acumulados += intval($dia['duracion_estancia'] ?? 1);
+    }
+
+    unset($dia);
+
+
+
+
     // Cargar ubicaciones secundarias para cada día
 foreach ($dias as &$dia) {
     $dia['ubicaciones_secundarias'] = $db->fetchAll(
@@ -1151,6 +1184,41 @@ body {
             font-weight: 500;
             border: 1px solid #e9ecef;
             margin-left: 10px;
+        }
+
+        /* Aquí nuevos estilos de fechas exactas*/
+
+        .day-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0 18px;
+        }
+
+        .day-meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-size: 0.86rem;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .day-meta-pill-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.22);
+        }
+
+        .day-meta-pill i {
+            font-size: 0.85rem;
         }
         
         /* ========================================
@@ -3444,18 +3512,45 @@ body {
                     
                     <div class="day-content">
                         <div class="day-header">
+                            <!---------Aquí cambiamos para visualizar adecuadamente las fechas exactas------>
                             <h3 class="day-title">
                                 <?= $rangoTexto ?>: <?= htmlspecialchars($dia['titulo']) ?>
-                                <?php if ($duracion > 1): ?>
-                                    <span class="duration-indicator"><?= $duracionTexto ?></span>
-                                <?php endif; ?>
                             </h3>
-                            <div class="day-location">
-                                <?php if ($duracion > 1): ?>
-                                <div class="duration-badge" style="margin-bottom: 15px; display: inline-block;">
-                                    <i class="fas fa-calendar-alt"></i> Estancia de <?= $duracion ?> días
+
+                            <?php
+                            $fechaInicioDia = $dia['fecha_calculada'] ?? null;
+                            $fechaFinDia = $dia['fecha_fin_calculada'] ?? null;
+                            ?>
+
+                            <?php if ($duracion > 1 || !empty($fechaInicioDia)): ?>
+                                <div class="day-meta-row">
+                                    <?php if (!empty($fechaInicioDia)): ?>
+                                        <span class="day-meta-pill">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <?php if ($duracion > 1 && !empty($fechaFinDia)): ?>
+                                                <?= date('d/m/Y', strtotime($fechaInicioDia)) ?> - <?= date('d/m/Y', strtotime($fechaFinDia)) ?>
+                                            <?php else: ?>
+                                                <?= date('d/m/Y', strtotime($fechaInicioDia)) ?>
+                                            <?php endif; ?>
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if ($duracion > 1): ?>
+                                        <span class="day-meta-pill">
+                                            <?= $duracion ?> días
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if ($duracion > 1): ?>
+                                        <span class="day-meta-pill day-meta-pill-primary">
+                                            <i class="fas fa-bed"></i>
+                                            Estancia de <?= $duracion ?> días
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
-                                <?php endif; ?>
+                            <?php endif; ?>
+
+                            <div class="day-location">
                                 
                                 <!-- Todas las Ubicaciones Unificadas -->
                                 <div class="secondary-locations-new">

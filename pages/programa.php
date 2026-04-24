@@ -7797,18 +7797,36 @@ function renderizarDetalleDia(diaId) {
     }
 
     const duracion = parseInt(dia.duracion_estancia) || 1;
-    const diaNumero = dia.dia_numero || 1;
-    const diaFinal = diaNumero + duracion - 1;
+    //const diaNumero = dia.dia_numero || 1;
+    //const diaFinal = diaNumero + duracion - 1;
+    //const rangoTexto = duracion === 1 
+    //    ? `Día ${diaNumero}` 
+    //   : `Días ${diaNumero}-${diaFinal}`;
+    //const fechaDia = dia.fecha_dia ? new Date(dia.fecha_dia).toLocaleDateString('es-ES') : null;
+    //  ----------------------------------------Esto se cambia para poder calcular día en fecha
+    const diasOrdenados = [...diasPrograma].sort((a, b) => (a.dia_numero || 0) - (b.dia_numero || 0));
+
+    let diaActual = 1;
+    for (const d of diasOrdenados) {
+        if (d.id == dia.id) break;
+        diaActual += parseInt(d.duracion_estancia) || 1;
+    }
+
+    const diaFinal = diaActual + duracion - 1;
 
     const rangoTexto = duracion === 1 
-        ? `Día ${diaNumero}` 
-        : `Días ${diaNumero}-${diaFinal}`;
+        ? `Día ${diaActual}` 
+        : `Días ${diaActual}-${diaFinal}`;
+
+    
 
     const duracionTexto = duracion > 1 ? ` (${duracion} días)` : '';
     const titulo = dia.titulo || 'Día sin título';
     const descripcion = dia.descripcion || '';
     const ubicacion = dia.ubicacion || 'Sin ubicación especificada';
-    const fechaDia = dia.fecha_dia ? new Date(dia.fecha_dia).toLocaleDateString('es-ES') : null;
+    const fechaDia = dia.fecha_calculada 
+        ? new Date(dia.fecha_calculada + 'T00:00:00').toLocaleDateString('es-ES') 
+        : null;
 
     detailContainer.innerHTML = `
         <div class="day-detail-header">
