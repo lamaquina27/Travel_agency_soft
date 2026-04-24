@@ -56,8 +56,8 @@ class ConfigManager {
             
             // ✅ Asignar valores de la agencia a la configuración
             self::$config = [
-                'company_name' => self::$agenciaData['company_name'] ?? 'Travel Agency',
-                'logo_url' => self::$agenciaData['logo_url'] ?? '',
+                'company_name' => self::$agenciaData['company_name'] ?? 'Travel Soft',
+                'logo_url' => self::$agenciaData['logo_url'] ?? '\assets\uploads\logo Travel Soft.png',
                 'admin_primary_color' => self::$agenciaData['admin_primary_color'] ?? '#e53e3e',
                 'admin_secondary_color' => self::$agenciaData['admin_secondary_color'] ?? '#fd746c',
                 'agent_primary_color' => self::$agenciaData['agent_primary_color'] ?? '#667eea',
@@ -78,8 +78,8 @@ class ConfigManager {
     
     private static function getDefaultConfig() {
         return [
-            'company_name' => 'Travel Agency',
-            'logo_url' => '',
+            'company_name' => 'Travel Soft',
+            'logo_url' => '\assets\uploads\logo Travel Soft.png',
             'background_image' => '',
             'admin_primary_color' => '#e53e3e',
             'admin_secondary_color' => '#fd746c',
@@ -113,7 +113,7 @@ class ConfigManager {
         if (!self::$config) {
             self::init();
         }
-        $nombre = self::$config['company_name'] ?? 'Travel Agency';
+        $nombre = self::$config['company_name'] ?? 'Travel Soft';
         error_log("🏢 getCompanyName() retorna: " . $nombre);
         return $nombre;
     }
@@ -123,7 +123,7 @@ class ConfigManager {
             self::init();
         }
         $logo = self::$config['logo_url'] ?? '';
-        error_log("🖼️ getLogo() retorna: " . ($logo ?: '(vacío - se usarán iniciales)'));
+        error_log("🖼️ getLogo() retorna: " . ($logo ?: '\assets\uploads\logo Travel Soft.png'));
         return $logo;
     }
     

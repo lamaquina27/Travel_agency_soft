@@ -412,6 +412,40 @@ $secondaryColor = '#1976D2'; // Azul más oscuro
                 gap: 4px;
             }
         }
+
+
+        .company-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 25px;
+        }
+
+        .login-logo {
+            max-width: 150px;
+            max-height: 80px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .company-logo-text {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            letter-spacing: -0.5px;
+            margin-bottom: 0;
+        }
+
+
+        .welcome-logo {
+            max-width: 360px;
+            max-height: 180px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            filter: brightness(0) invert(1);
+        }
+
     </style>
 </head>
 <body>
@@ -419,6 +453,9 @@ $secondaryColor = '#1976D2'; // Azul más oscuro
         <!-- Panel izquierdo - Bienvenida -->
         <div class="welcome-panel">
             <div class="welcome-content">
+                <?php if (!empty($logo)): ?>
+                    <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($companyName) ?>" class="welcome-logo">
+                <?php endif; ?>
                 <h1><span data-translate="welcome_title">Bienvenido a</span><br><?= htmlspecialchars($companyName) ?></h1>
                 <div class="welcome-divider"></div>
                 <p class="welcome-description" data-translate="welcome_description">
@@ -430,7 +467,9 @@ $secondaryColor = '#1976D2'; // Azul más oscuro
         <!-- Panel derecho - Formulario -->
         <div class="form-panel">
             <div class="form-header">
-                <div class="company-logo-text"><?= htmlspecialchars($companyName) ?></div>
+                <div class="company-brand">
+                    <!-- Cambio para nombre  -->
+                </div>
                 <h2 class="form-title">Iniciar Sesión</h2>
             </div>
 
