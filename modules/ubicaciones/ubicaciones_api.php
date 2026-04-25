@@ -14,117 +14,124 @@ require_once dirname(__DIR__, 2) . '/config/app.php';
 App::init();
 App::requireLogin();
 
-class UbicacionesAPI {
+class UbicacionesAPI
+{
     private $db;
     private $agencia_id;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         try {
             $this->db = Database::getInstance();
             $this->agencia_id = $_SESSION['agencia_id'] ?? null;
-            
+
             if (!$this->agencia_id) {
                 throw new Exception('Usuario sin agencia asignada');
             }
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             $this->sendError('Error de conexión: ' . $e->getMessage());
         }
     }
-    
-    public function handleRequest() {
+
+    public function handleRequest()
+    {
         ob_clean();
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
-        
+
         $action = $_GET['action'] ?? $_POST['action'] ?? '';
-        
+
         try {
             error_log("=== UBICACIONES API ===");
             error_log("Action: " . $action);
-            
-            switch($action) {
+
+            switch ($action) {
                 case 'search':
                     $query = $_GET['q'] ?? $_POST['q'] ?? '';
                     $result = $this->searchUbicaciones($query);
                     break;
-                    
+
                 case 'save':
                     $data = json_decode(file_get_contents('php://input'), true);
                     $result = $this->saveUbicacion($data);
                     break;
-                    
+
                 case 'increment':
                     $id = $_POST['id'] ?? null;
                     $result = $this->incrementUsoCount($id);
                     break;
-                    
+
                 case 'get':
                     $id = $_GET['id'] ?? null;
                     $result = $this->getUbicacion($id);
                     break;
-                    
+
                 default:
                     throw new Exception('Acción no válida');
             }
-            
+
             echo json_encode($result, JSON_UNESCAPED_UNICODE);
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             error_log("UbicacionesAPI Error: " . $e->getMessage());
             $this->sendError($e->getMessage());
         }
-        
+
         exit;
     }
-    
-    private function sendError($message) {
+
+    private function sendError($message)
+    {
         ob_clean();
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
-            'success' => false, 
+            'success' => false,
             'error' => $message
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
-    
+
     /**
      * BÚSQUEDA HÍBRIDA: Local + Externa
      */
-private function searchUbicaciones($query) {
-    if (empty($query) || strlen($query) < 3) {
-        return ['success' => true, 'data' => [], 'source' => 'none'];
-    }
-
-    try {
-        // Primero intenta con Nominatim
-        $results = $this->searchNominatim($query);
-        error_log("Nominatim encontró: " . count($results) . " resultados");
-
-        // Si Nominatim no encuentra nada, usar Geoapify como respaldo
-        if (empty($results)) {
-            error_log("Nominatim sin resultados para '$query', usando Geoapify...");
-            $results = $this->searchGeoapify($query);
-            error_log("Geoapify encontró: " . count($results) . " resultados");
+    private function searchUbicaciones($query)
+    {
+        if (empty($query) || strlen($query) < 3) {
+            return ['success' => true, 'data' => [], 'source' => 'none'];
         }
 
-        if (empty($results)) {
-            error_log("Nominatim sin resultados para '$query', usando Google...");
-            $results = $this->searchGoogle($query);
-        }
+        try {
 
-        return [
-            'success' => true,
-            'data'    => $results,
-            'count'   => count($results)
-        ];
-    } catch(Exception $e) {
-        throw new Exception('Error en búsqueda: ' . $e->getMessage());
+            //primero busca en Nominatim de busquedas pasadas
+            $results = $this->searchNominatim($query);
+            error_log("Nominatim local encontró: " . count($results) . " resultados");
+
+            //---------------En caso de que nominatim  no encuentre o no supere un puntaje minimo busca en geoapify--------------------
+            if (empty($results) || $results[0]['puntaje'] <= 80) {
+                error_log("Nominatim sin resultados para '$query', usando Geoapify...");
+                $results = $this->searchGeoapify($query);
+                error_log("Geoapify encontró: " . count($results) . " resultados");
+            }
+            //---------------En caso de que nominatim o geoapify no encuentren o no superen un puntaje minimo busca en google----------
+            if (empty($results) || $results[0]['puntaje'] <= 80) {
+                error_log("Nominatim sin resultados para '$query', usando Google...");
+                $results = $this->searchGoogle($query);
+            }
+
+            return [
+                'success' => true,
+                'data' => $results,
+                'count' => count($results)
+            ];
+        } catch (Exception $e) {
+            throw new Exception('Error en búsqueda: ' . $e->getMessage());
+        }
     }
-}
     /**
      * Búsqueda en base de datos local
      */
-    private function searchLocal($query) {
+    private function searchLocal($query)
+    {
         try {
             // Usar FULLTEXT search si está disponible
             $sql = "SELECT 
@@ -150,16 +157,16 @@ private function searchUbicaciones($query) {
                         agencia_id DESC,
                         created_at DESC
                     LIMIT 10";
-            
+
             $searchTerm = "%{$query}%";
-            
+
             $results = $this->db->fetchAll($sql, [
                 $this->agencia_id,
                 $query,
                 $searchTerm,
                 $searchTerm
             ]);
-            
+
             // Formatear resultados para el frontend
             $formatted = [];
             foreach ($results as $result) {
@@ -168,27 +175,28 @@ private function searchUbicaciones($query) {
                     'display_name' => $result['nombre_completo'],
                     'name' => $result['nombre'],
                     'type' => $result['tipo'],
-                    'lat' => (float)$result['latitud'],
-                    'lon' => (float)$result['longitud'],
+                    'lat' => (float) $result['latitud'],
+                    'lon' => (float) $result['longitud'],
                     'country' => $result['pais'],
                     'region' => $result['region'],
                     'source' => 'local',
                     'uso_count' => $result['uso_count']
                 ];
             }
-            
+
             return $formatted;
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             error_log("Error en búsqueda local: " . $e->getMessage());
             return [];
         }
     }
-    
+
     /**
      * Búsqueda en API externa (Nominatim)
      */
-    private function searchNominatim($query) {
+    private function searchNominatim($query)
+    {
         try {
             // DESPUÉS
             $url = "https://nominatim.openstreetmap.org/search?" . http_build_query([
@@ -200,7 +208,7 @@ private function searchUbicaciones($query) {
                 'extratags' => 1,
                 'namedetails' => 1
             ]);
-            
+
             // Segunda búsqueda con contexto de hotel si no trae resultados
             $urlHotel = "https://nominatim.openstreetmap.org/search?" . http_build_query([
                 'format' => 'json',
@@ -209,134 +217,166 @@ private function searchUbicaciones($query) {
                 'addressdetails' => 1,
                 'accept-language' => 'es,en;q=0.9',
             ]);
-            
+
             $options = [
                 'http' => [
                     'header' => "User-Agent: TravelAgency/1.0\r\n",
                     'timeout' => 5
                 ]
             ];
-            
+
             $context = stream_context_create($options);
             $response = @file_get_contents($url, false, $context);
-            
+
             if ($response === false) {
                 error_log("Error al conectar con Nominatim");
                 return [];
             }
-            
+
             $data = json_decode($response, true);
-            
+
             if (!$data || !is_array($data)) {
                 return [];
             }
-            
+
             // Formatear y guardar resultados relevantes
             $formatted = [];
             foreach ($data as $item) {
                 $nombre = explode(',', $item['display_name'] ?? '')[0];
-                
+                //variable para comparar nombre exacto
+                $nombre_exacto = $item['namedetails']['name'] ?? $nombre;
+                $puntaje = 0;
                 // Saltar resultados cuyo nombre principal tenga caracteres no latinos (chino, tailandés, árabe, etc.)
                 if (!preg_match('/^[\p{Latin}\p{N}\s\-\.\,\(\)\'\/]+$/u', trim($nombre))) {
                     continue;
                 }
-                
-                $ubicacion = $this->formatNominatimResult($item);
+                //-------------------Comparativas de texto para asignar puntaje ----------------
+                if (strcasecmp($nombre_exacto, $query) == 0) {
+                    $puntaje = 100;
+                } elseif (stripos($nombre, $query) !== false) {
+                    $puntaje = 90;
+                } elseif (levenshtein($nombre_exacto, $query) > 0 && levenshtein($nombre_exacto, $query) <= 5) {
+                    $puntaje = 80;
+                } else {
+                    $puntaje = 0;
+                }
+
+                $ubicacion = $this->formatNominatimResult($item, $puntaje);
                 $this->saveUbicacionAsync($ubicacion);
                 $formatted[] = $ubicacion;
             }
-            
+            //----------------Funcion para organizar el arreglo de ubicaciones, de mayor puntaje a menor ----------------------
+            usort($formatted, function ($a, $b) {
+                return $b['puntaje'] <=> $a['puntaje'];
+            });
+
             return $formatted;
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             error_log("Error en búsqueda Nominatim: " . $e->getMessage());
             return [];
         }
     }
-    
-    private function searchGeoapify($query) {
-    try {
-        $apiKey = $_ENV['GEOAPIFY_API_KEY'] ?? '';
 
-        if (empty($apiKey)) {
-            error_log("GEOAPIFY_API_KEY no configurado");
-            return [];
-        }
+    private function searchGeoapify($query)
+    {
+        try {
+            $apiKey = $_ENV['GEOAPIFY_API_KEY'] ?? '';
 
-        $url = "https://api.geoapify.com/v1/geocode/search?" . http_build_query([
-            'text'   => $query,
-            'apiKey' => $apiKey,
-            'limit'  => 10,
-            'lang'   => 'es',
-            'format' => 'json',
-        ]);
-
-        $options = [
-            'http' => [
-                'header'  => "User-Agent: TravelAgency/1.0\r\n",
-                'timeout' => 8
-            ]
-        ];
-
-        $context  = stream_context_create($options);
-        $response = @file_get_contents($url, false, $context);
-
-        if ($response === false) {
-            error_log("Error al conectar con Geoapify");
-            return [];
-        }
-
-        $data = json_decode($response, true);
-
-        if (!$data || !isset($data['results'])) {
-            return [];
-        }
-
-        $formatted = [];
-        foreach ($data['results'] as $item) {
-            $nombre = $item['name'] ?? $item['address_line1'] ?? '';
-
-            // Filtrar nombres con caracteres no latinos
-            if (!empty($nombre) && !preg_match('/^[\p{Latin}\p{N}\s\-\.\,\(\)\'\/]+$/u', $nombre)) {
-                continue;
+            if (empty($apiKey)) {
+                error_log("GEOAPIFY_API_KEY no configurado");
+                return [];
             }
 
-            $partes = array_filter([
-                $item['name']    ?? null,
-                $item['street']  ?? null,
-                $item['city']    ?? null,
-                $item['state']   ?? null,
-                $item['country'] ?? null,
+            $url = "https://api.geoapify.com/v1/geocode/search?" . http_build_query([
+                'text' => $query,
+                'apiKey' => $apiKey,
+                'limit' => 10,
+                'lang' => 'es',
+                'format' => 'json',
             ]);
-            $displayName = implode(', ', $partes);
 
-            $ubicacion = [
-                'id'           => null,
-                'display_name' => $displayName ?: $nombre,
-                'name'         => $nombre,
-                'type'         => $this->mapOsmType($item['result_type'] ?? 'other'),
-                'lat'          => (float)($item['lat'] ?? 0),
-                'lon'          => (float)($item['lon'] ?? 0),
-                'country'      => $item['country']  ?? null,
-                'region'       => $item['state']    ?? null,
-                'place_id'     => $item['place_id'] ?? null,
-                'osm_type'     => 'geoapify',
-                'source'       => 'geoapify'
+            $options = [
+                'http' => [
+                    'header' => "User-Agent: TravelAgency/1.0\r\n",
+                    'timeout' => 8
+                ]
             ];
 
-            $this->saveUbicacionAsync($ubicacion);
-            $formatted[] = $ubicacion;
+            $context = stream_context_create($options);
+            $response = @file_get_contents($url, false, $context);
+
+            if ($response === false) {
+                error_log("Error al conectar con Geoapify");
+                return [];
+            }
+
+            $data = json_decode($response, true);
+
+            if (!$data || !isset($data['results'])) {
+                return [];
+            }
+
+            $formatted = [];
+            foreach ($data['results'] as $item) {
+                $nombre = $item['name'] ?? $item['address_line1'] ?? '';
+                $puntaje = 0;
+                // Filtrar nombres con caracteres no latinos
+                if (!empty($nombre) && !preg_match('/^[\p{Latin}\p{N}\s\-\.\,\(\)\'\/]+$/u', $nombre)) {
+                    continue;
+                }
+                //-------------------Comparativas de texto para asignar puntaje ----------------
+                if (strcasecmp($nombre, $query) == 0) {
+                    $puntaje = 100;
+                } elseif (stripos($nombre, $query) !== false) {
+                    $puntaje = 90;
+                } elseif (levenshtein($nombre, $query) > 0 && levenshtein($nombre, $query) <= 5) {
+                    $puntaje = 80;
+                } else {
+                    $puntaje = 0;
+                }
+                $partes = array_filter([
+                    $item['name'] ?? null,
+                    $item['street'] ?? null,
+                    $item['city'] ?? null,
+                    $item['state'] ?? null,
+                    $item['country'] ?? null,
+                ]);
+                $displayName = implode(', ', $partes);
+
+                $ubicacion = [
+                    'id' => null,
+                    'display_name' => $displayName ?: $nombre,
+                    'name' => $nombre,
+                    'puntaje' => $puntaje,
+                    'type' => $this->mapOsmType($item['result_type'] ?? 'other'),
+                    'lat' => (float) ($item['lat'] ?? 0),
+                    'lon' => (float) ($item['lon'] ?? 0),
+                    'country' => $item['country'] ?? null,
+                    'region' => $item['state'] ?? null,
+                    'place_id' => $item['place_id'] ?? null,
+                    'osm_type' => 'geoapify',
+                    'source' => 'geoapify'
+                ];
+
+                $this->saveUbicacionAsync($ubicacion);
+
+                $formatted[] = $ubicacion;
+            }
+            //----------------Funcion para organizar el arreglo de ubicaciones, de mayor puntaje a menor ----------------------
+            usort($formatted, function ($a, $b) {
+                return $b['puntaje'] <=> $a['puntaje'];
+            });
+            return $formatted;
+
+        } catch (Exception $e) {
+            error_log("Error en búsqueda Geoapify: " . $e->getMessage());
+            return [];
         }
-
-        return $formatted;
-
-    } catch(Exception $e) {
-        error_log("Error en búsqueda Geoapify: " . $e->getMessage());
-        return [];
     }
-}
-    
-private function searchGoogle($query) {
+
+    private function searchGoogle($query)
+    {
         try {
             $apiKey = $_ENV['GOOGLE_PLACES_API_KEY'] ?? '';
 
@@ -346,19 +386,19 @@ private function searchGoogle($query) {
             }
 
             $url = "https://maps.googleapis.com/maps/api/place/textsearch/json?" . http_build_query([
-                'query'    => $query,
-                'key'      => $apiKey,
+                'query' => $query,
+                'key' => $apiKey,
                 'language' => 'es',
             ]);
 
             $options = [
                 'http' => [
-                    'header'  => "User-Agent: TravelAgency/1.0\r\n",
+                    'header' => "User-Agent: TravelAgency/1.0\r\n",
                     'timeout' => 8
                 ]
             ];
 
-            $context  = stream_context_create($options);
+            $context = stream_context_create($options);
             $response = @file_get_contents($url, false, $context);
 
             if ($response === false) {
@@ -376,15 +416,24 @@ private function searchGoogle($query) {
             $formatted = [];
             foreach ($data['results'] as $item) {
                 $nombre = $item['name'] ?? '';
-
+                $puntaje = 0;
                 if (!empty($nombre) && !preg_match('/^[\p{Latin}\p{N}\s\-\.\,\(\)\'\/\&]+$/u', $nombre)) {
                     continue;
                 }
-
+                //-------------------Comparativas de texto para asignar puntaje ----------------
+                if (strcasecmp($nombre, $query) == 0) {
+                    $puntaje = 100;
+                } elseif (stripos($nombre, $query) !== false) {
+                    $puntaje = 90;
+                } elseif (levenshtein($nombre, $query) > 0 && levenshtein($nombre, $query) <= 5) {
+                    $puntaje = 80;
+                } else {
+                    $puntaje = 0;
+                }
                 $lat = $item['geometry']['location']['lat'] ?? 0;
                 $lon = $item['geometry']['location']['lng'] ?? 0;
 
-                $pais   = null;
+                $pais = null;
                 $region = null;
                 foreach ($item['address_components'] ?? [] as $comp) {
                     if (in_array('country', $comp['types']))
@@ -394,48 +443,54 @@ private function searchGoogle($query) {
                 }
 
                 $ubicacion = [
-                    'id'           => null,
+                    'id' => null,
                     'display_name' => $item['formatted_address'] ?? $nombre,
-                    'name'         => $nombre,
-                    'type'         => $this->mapOsmType($item['types'][0] ?? 'other'),
-                    'lat'          => (float)$lat,
-                    'lon'          => (float)$lon,
-                    'country'      => $pais,
-                    'region'       => $region,
-                    'place_id'     => $item['place_id'] ?? null,
-                    'osm_type'     => 'google',
-                    'source'       => 'google'
+                    'name' => $nombre,
+                    'puntaje' => $puntaje,
+                    'type' => $this->mapOsmType($item['types'][0] ?? 'other'),
+                    'lat' => (float) $lat,
+                    'lon' => (float) $lon,
+                    'country' => $pais,
+                    'region' => $region,
+                    'place_id' => $item['place_id'] ?? null,
+                    'osm_type' => 'google',
+                    'source' => 'google'
                 ];
 
                 $this->saveUbicacionAsync($ubicacion);
                 $formatted[] = $ubicacion;
             }
-
+            //----------------Funcion para organizar el arreglo de ubicaciones, de mayor puntaje a menor ----------------------
+            usort($formatted, function ($a, $b) {
+                return $b['puntaje'] <=> $a['puntaje'];
+            });
             return $formatted;
 
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             error_log("Error en búsqueda Google Places: " . $e->getMessage());
             return [];
         }
     }
-    
+
     /**
      * Formatear resultado de Nominatim
      */
-    private function formatNominatimResult($item) {
+    private function formatNominatimResult($item, $puntaje)
+    {
         $address = $item['address'] ?? [];
-        
+
         // Limpiar display_name: quedarse solo con partes en caracteres latinos
         $displayName = $item['display_name'] ?? '';
         $cleanName = $this->cleanDisplayName($displayName);
-        
+
         return [
             'id' => null,
             'display_name' => $cleanName,
+            'puntaje' => $puntaje,
             'name' => $this->extractName($item),
             'type' => $this->mapOsmType($item['type'] ?? 'other'),
-            'lat' => (float)($item['lat'] ?? 0),
-            'lon' => (float)($item['lon'] ?? 0),
+            'lat' => (float) ($item['lat'] ?? 0),
+            'lon' => (float) ($item['lon'] ?? 0),
             'country' => $address['country'] ?? null,
             'region' => $address['state'] ?? $address['region'] ?? null,
             'place_id' => $item['place_id'] ?? null,
@@ -443,12 +498,13 @@ private function searchGoogle($query) {
             'source' => 'nominatim'
         ];
     }
-    
-    private function cleanDisplayName($displayName) {
+
+    private function cleanDisplayName($displayName)
+    {
         // Dividir por comas y filtrar partes que tengan caracteres no latinos
         $parts = explode(',', $displayName);
         $cleanParts = [];
-        
+
         foreach ($parts as $part) {
             $part = trim($part);
             // Si la parte contiene solo caracteres latinos, números, espacios y puntuación básica, la conserva
@@ -456,29 +512,31 @@ private function searchGoogle($query) {
                 $cleanParts[] = $part;
             }
         }
-        
+
         // Si quedaron partes limpias, unirlas
         if (!empty($cleanParts)) {
             return implode(', ', $cleanParts);
         }
-        
+
         // Si todo era caracteres no latinos, devolver solo el nombre del país/región en inglés si existe
         return $displayName; // fallback al original
     }
-    
+
     /**
      * Extraer nombre principal de resultado
      */
-    private function extractName($item) {
+    private function extractName($item)
+    {
         $displayName = $item['display_name'] ?? '';
         $parts = explode(',', $displayName);
         return trim($parts[0] ?? $displayName);
     }
-    
+
     /**
      * Mapear tipo de OSM a tipo de sistema
      */
-    private function mapOsmType($osmType) {
+    private function mapOsmType($osmType)
+    {
         $mapping = [
             'city' => 'ciudad',
             'town' => 'ciudad',
@@ -501,14 +559,15 @@ private function searchGoogle($query) {
             'region' => 'region',
             'country' => 'pais'
         ];
-        
+
         return $mapping[$osmType] ?? 'otro';
     }
-    
+
     /**
      * Guardar ubicación en BD (asíncrono, no bloquea la respuesta)
      */
-    private function saveUbicacionAsync($ubicacion) {
+    private function saveUbicacionAsync($ubicacion)
+    {
         try {
             // Verificar si ya existe
             $exists = $this->db->fetch(
@@ -518,7 +577,7 @@ private function searchGoogle($query) {
                  LIMIT 1",
                 [$ubicacion['lat'], $ubicacion['lon'], $this->agencia_id]
             );
-            
+
             if ($exists) {
                 // Ya existe, solo incrementar uso
                 $this->db->query(
@@ -529,7 +588,7 @@ private function searchGoogle($query) {
                 );
                 return;
             }
-            
+
             // No existe, insertar como global (agencia_id = NULL)
             $data = [
                 'nombre' => $ubicacion['name'],
@@ -544,24 +603,25 @@ private function searchGoogle($query) {
                 'agencia_id' => null, // Global
                 'uso_count' => 1
             ];
-            
+
             $this->db->insert('ubicaciones_principales', $data);
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             // No fallar, solo loguear
             error_log("Error guardando ubicación async: " . $e->getMessage());
         }
     }
-    
+
     /**
      * Guardar ubicación manualmente (cuando usuario la usa)
      */
-    private function saveUbicacion($data) {
+    private function saveUbicacion($data)
+    {
         try {
             if (empty($data['nombre']) || empty($data['lat']) || empty($data['lon'])) {
                 throw new Exception('Datos incompletos');
             }
-            
+
             // Verificar si ya existe
             $exists = $this->db->fetch(
                 "SELECT id FROM ubicaciones_principales 
@@ -570,7 +630,7 @@ private function searchGoogle($query) {
                  LIMIT 1",
                 [$data['lat'], $data['lon'], $this->agencia_id]
             );
-            
+
             if ($exists) {
                 // Ya existe, incrementar uso
                 $this->incrementUsoCount($exists['id']);
@@ -580,7 +640,7 @@ private function searchGoogle($query) {
                     'action' => 'updated'
                 ];
             }
-            
+
             // Insertar nueva ubicación específica de agencia
             $insertData = [
                 'nombre' => $data['nombre'],
@@ -595,68 +655,70 @@ private function searchGoogle($query) {
                 'agencia_id' => $this->agencia_id,
                 'uso_count' => 1
             ];
-            
+
             $id = $this->db->insert('ubicaciones_principales', $insertData);
-            
+
             return [
                 'success' => true,
                 'id' => $id,
                 'action' => 'created'
             ];
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             throw new Exception('Error guardando ubicación: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Incrementar contador de uso
      */
-    private function incrementUsoCount($id) {
+    private function incrementUsoCount($id)
+    {
         try {
             if (!$id) {
                 throw new Exception('ID requerido');
             }
-            
+
             $this->db->query(
                 "UPDATE ubicaciones_principales 
                  SET uso_count = uso_count + 1 
                  WHERE id = ? AND (agencia_id = ? OR agencia_id IS NULL)",
                 [$id, $this->agencia_id]
             );
-            
+
             return ['success' => true];
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             throw new Exception('Error incrementando uso: ' . $e->getMessage());
         }
     }
-    
+
     /**
      * Obtener detalles de una ubicación
      */
-    private function getUbicacion($id) {
+    private function getUbicacion($id)
+    {
         try {
             if (!$id) {
                 throw new Exception('ID requerido');
             }
-            
+
             $ubicacion = $this->db->fetch(
                 "SELECT * FROM ubicaciones_principales 
                  WHERE id = ? AND (agencia_id = ? OR agencia_id IS NULL)",
                 [$id, $this->agencia_id]
             );
-            
+
             if (!$ubicacion) {
                 throw new Exception('Ubicación no encontrada');
             }
-            
+
             return [
                 'success' => true,
                 'data' => $ubicacion
             ];
-            
-        } catch(Exception $e) {
+
+        } catch (Exception $e) {
             throw new Exception('Error obteniendo ubicación: ' . $e->getMessage());
         }
     }
