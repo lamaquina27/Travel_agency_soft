@@ -71,6 +71,17 @@ class BibliotecaAPI {
                         $result['data']['ubicaciones_secundarias'] = $ubicaciones_secundarias;
                         error_log("Ubicaciones secundarias cargadas: " . count($ubicaciones_secundarias));
                     }
+
+                    // AGREGAR: Cargar acomodaciones para alojamientos
+                    if ($_GET['type'] === 'alojamientos' && isset($result['data']['id'])) {
+                        $acomodaciones = $this->db->fetchAll(
+                            "SELECT id, tipo_acomodacion, acomodacion 
+                            FROM acomodaciones 
+                            WHERE hotel_id = ?",
+                            [$result['data']['id']]
+                        );
+                        $result['data']['acomodaciones'] = $acomodaciones;
+                    }
                     break;
 
                 case 'get_ubicaciones_secundarias':
@@ -221,6 +232,11 @@ private function createResource($type) {
         if ($type === 'dias') {
             $this->processUbicacionesSecundarias($id, $_POST);
         }
+
+        // PROCESAR ACOMODACIONES (SOLO PARA ALOJAMIENTOS)
+        if ($type === 'alojamientos') {
+            $this->processAcomodaciones($id, $_POST);
+        }
         
         // AHORA procesar imágenes con el ID válido
         $imageUrls = $this->processImages($type, $id);
@@ -286,6 +302,11 @@ private function updateResource($type) {
         // PROCESAR UBICACIONES SECUNDARIAS (SOLO PARA DÍAS)
         if ($type === 'dias') {
             $this->processUbicacionesSecundarias($id, $_POST);
+        }
+
+        // PROCESAR ACOMODACIONES (SOLO PARA ALOJAMIENTOS)
+        if ($type === 'alojamientos') {
+            $this->processAcomodaciones($id, $_POST);
         }
         
         // Procesar imágenes nuevas
@@ -679,6 +700,36 @@ private function uploadImage($file, $type, $resourceId, $field) {
             // No lanzamos excepción para no interrumpir el flujo principal
         }
     }
+    private function processAcomodaciones($hotelId, $postData) {
+        try {
+            error_log("=== PROCESANDO ACOMODACIONES ===");
+            
+            // 1. Limpiar las viejas acomodaciones del hotel (Borrar y reescribir)
+            $this->db->query("DELETE FROM acomodaciones WHERE hotel_id = ?", [$hotelId]);
+            
+            // 2. Insertar las nuevas (El frontend enviará arreglos 'tipos_acomodacion' y 'valores_acomodacion')
+            if (isset($postData['tipos_acomodacion']) && is_array($postData['tipos_acomodacion'])) {
+                $tipos = $postData['tipos_acomodacion'];
+                $valores = $postData['valores_acomodacion'] ?? [];
+                
+                foreach ($tipos as $index => $tipo) {
+                    $tipo = trim($tipo);
+                    $valor = isset($valores[$index]) ? intval($valores[$index]) : 1;
+                    
+                    if (!empty($tipo)) {
+                        $this->db->insert('acomodaciones', [
+                            'hotel_id' => $hotelId,
+                            'tipo_acomodacion' => $tipo,
+                            'acomodacion' => $valor
+                        ]);
+                    }
+                }
+            }
+        } catch(Exception $e) {
+            error_log("❌ Error procesando acomodaciones: " . $e->getMessage());
+        }
+    }
+
 /**
      * Obtener la plantilla de precios de la agencia
      */
