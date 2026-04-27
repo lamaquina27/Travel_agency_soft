@@ -269,7 +269,7 @@ class BibliotecaAPI
                 error_log("Update result for images: " . $updateResult);
             }
 
-            return ['success' => true, 'id' => $id, 'message' => 'Recurso creado correctamente'];
+            return ['success' => true, 'id' => $id, 'message' => 'Recurso creado correctamente', 'data' => $data];
 
         } catch (Exception $e) {
             error_log("Create error: " . $e->getMessage());
