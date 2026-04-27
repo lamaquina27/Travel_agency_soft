@@ -105,13 +105,9 @@ class UbicacionesAPI
         try {
 
             //primero busca en Nominatim de busquedas pasadas
-            $results = $this->searchLocal($query);
+            $results = $this->searchNominatim($query);
             error_log("Nominatim local encontró: " . count($results) . " resultados");
-            if (empty($results) || $results[0]['puntaje'] <= 80) {
-                error_log("BD local sin resultados para '$query', usando Nominatim...");
-                $results = $this->searchNominatim($query);
-                error_log("Nominatim encontró: " . count($results) . " resultados");
-            }
+
             //---------------En caso de que nominatim  no encuentre o no supere un puntaje minimo busca en geoapify--------------------
             if (empty($results) || $results[0]['puntaje'] <= 80) {
                 error_log("Nominatim sin resultados para '$query', usando Geoapify...");
