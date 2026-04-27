@@ -153,12 +153,17 @@ foreach ($dias as &$dia) {
                 pds.alojamiento_tipo as tipo_alojamiento,
                 pds.alojamiento_categoria as categoria_alojamiento,
                 pds.alojamiento_imagen as alojamiento_imagen_principal,
-                pds.alojamiento_sitio_web
-                
-            FROM programa_dias_servicios pds
-            WHERE pds.programa_dia_id = ?
-            ORDER BY pds.orden ASC, pds.es_alternativa ASC, pds.orden_alternativa ASC", 
-            [$dia['id']]
+                pds.alojamiento_sitio_web,
+                pds.acomodacion_id,
+                a.tipo_acomodacion AS acomodacion_nombre,
+                a.descripcion AS acomodacion_descripcion,
+                a.acomodacion AS acomodacion_capacidad
+
+                FROM programa_dias_servicios pds
+                LEFT JOIN acomodaciones a ON pds.acomodacion_id = a.id
+                WHERE pds.programa_dia_id = ?
+                ORDER BY pds.orden ASC, pds.es_alternativa ASC, pds.orden_alternativa ASC", 
+                [$dia['id']]
         );
         
         // Organizar servicios por orden secuencial
@@ -295,7 +300,14 @@ function formatAccommodationType($tipo) {
 
 // Datos para el template
 $titulo_programa = $programa['titulo_programa'] ?: 'Viaje a ' . $programa['destino'];
-$nombre_viajero = trim($programa['nombre_viajero'] . ' ' . $programa['apellido_viajero']);
+$nombre_viajero = trim(
+    ($programa['nombre'] ?? $programa['nombre_viajero'] ?? '') . ' ' .
+    ($programa['apellido'] ?? $programa['apellido_viajero'] ?? '')
+);
+
+if ($nombre_viajero === '') {
+    $nombre_viajero = 'tu viaje';
+}
 // Normalizar imagen: extraer solo el path si es URL absoluta y reconstruir
 // con APP_URL local. Funciona con BD del hosting o local sin cambios.
 $_foto_raw = $programa['foto_portada'] ?? '';
@@ -3280,6 +3292,32 @@ body {
     display: block !important;
     overflow: visible !important;
 }
+
+
+/*Clases de acomodaciones */
+.accommodation-detail {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 6px 0 8px 0;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: rgba(52, 152, 219, 0.10);
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.accommodation-detail i {
+    font-size: 12px;
+}
+
+.accommodation-detail.muted {
+    background: rgba(107, 114, 128, 0.10);
+    color: #6b7280;
+}
+
+
     </style>
 </head>
 
@@ -3714,6 +3752,25 @@ body {
                                                         </span>
                                                     <?php endif; ?>
                                                 </h4>
+                                                <?php if ($servicio['tipo_servicio'] === 'alojamiento' && !empty($servicio['acomodacion_nombre'])): ?>
+                                                    <div class="accommodation-detail">
+                                                        <i class="fas fa-bed"></i>
+                                                        <span>
+                                                            <?= htmlspecialchars($servicio['acomodacion_nombre']) ?>
+                                                            <?php if (!empty($servicio['acomodacion_capacidad'])): ?>
+                                                                · <?= (int)$servicio['acomodacion_capacidad'] ?> pax
+                                                            <?php endif; ?>
+                                                            <?php if (!empty($servicio['acomodacion_descripcion'])): ?>
+                                                                · <?= htmlspecialchars($servicio['acomodacion_descripcion']) ?>
+                                                            <?php endif; ?>
+                                                        </span>
+                                                    </div>
+                                                <?php elseif ($servicio['tipo_servicio'] === 'alojamiento'): ?>
+                                                    <div class="accommodation-detail muted">
+                                                        <i class="fas fa-bed"></i>
+                                                        <span>Acomodación por definir</span>
+                                                    </div>
+                                                <?php endif; ?>
                                                 
                                                 <!-- ✅ HOTEL: Imagen a la izquierda del texto -->
                                                 <?php if ($servicio['tipo_servicio'] == 'alojamiento'): ?>

@@ -75,9 +75,10 @@ class BibliotecaAPI {
                     // AGREGAR: Cargar acomodaciones para alojamientos
                     if ($_GET['type'] === 'alojamientos' && isset($result['data']['id'])) {
                         $acomodaciones = $this->db->fetchAll(
-                            "SELECT id, tipo_acomodacion, acomodacion 
-                            FROM acomodaciones 
-                            WHERE hotel_id = ?",
+                            "SELECT id, tipo_acomodacion, descripcion, acomodacion 
+                             FROM acomodaciones 
+                             WHERE hotel_id = ?
+                             ORDER BY acomodacion ASC, tipo_acomodacion ASC",
                             [$result['data']['id']]
                         );
                         $result['data']['acomodaciones'] = $acomodaciones;
@@ -87,6 +88,17 @@ class BibliotecaAPI {
                 case 'get_ubicaciones_secundarias':
                     $result = $this->getUbicacionesSecundarias($_GET['dia_id']);
                     break;
+
+                case 'get_acomodaciones':
+                    $hotel_id = (int)($_GET['hotel_id'] ?? $_POST['hotel_id'] ?? 0);
+                    $result = $this->getAcomodaciones($hotel_id);
+                    break;
+
+                case 'create_acomodacion':
+                    $result = $this->createAcomodacion();
+                    break;
+
+
                 case 'get_plantilla_precios':
                     $result = $this->getPlantillaPrecios();
                     break;
@@ -728,6 +740,121 @@ private function uploadImage($file, $type, $resourceId, $field) {
         } catch(Exception $e) {
             error_log("❌ Error procesando acomodaciones: " . $e->getMessage());
         }
+    }
+
+
+    private function getAcomodaciones($hotelId) {
+        $hotelId = (int)$hotelId;
+
+        if ($hotelId <= 0) {
+            throw new Exception('ID de alojamiento requerido');
+        }
+
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $hotel = $this->db->fetch(
+            "SELECT id FROM biblioteca_alojamientos 
+             WHERE id = ? 
+             AND agencia_id = ?",
+             [$hotelId, $agencia_id]
+        );
+
+        if (!$hotel) {
+            throw new Exception('Alojamiento no encontrado o sin permisos');
+        }
+
+        $acomodaciones = $this->db->fetchAll(
+            "SELECT id, tipo_acomodacion, descripcion, acomodacion
+            FROM acomodaciones
+            WHERE hotel_id = ?
+            ORDER BY acomodacion ASC, tipo_acomodacion ASC",
+            [$hotelId]
+        );
+
+        return [
+            'success' => true,
+            'data' => $acomodaciones
+        ];
+    }
+
+    private function createAcomodacion() {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $hotel_id = (int)($_POST['hotel_id'] ?? 0);
+        $tipo_acomodacion = trim($_POST['tipo_acomodacion'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        $acomodacion = (int)($_POST['acomodacion'] ?? 1);
+
+        if ($hotel_id <= 0) {
+            throw new Exception('ID de alojamiento requerido');
+        }
+
+        if ($tipo_acomodacion === '') {
+            throw new Exception('El tipo de acomodación es obligatorio');
+        }
+
+        if ($acomodacion < 1) {
+            $acomodacion = 1;
+        }
+
+        $hotel = $this->db->fetch(
+            "SELECT id FROM biblioteca_alojamientos 
+             WHERE id = ? 
+             AND agencia_id = ?",
+             [$hotel_id, $agencia_id]
+        );
+
+        if (!$hotel) {
+            throw new Exception('Alojamiento no encontrado o sin permisos');
+        }
+
+        $existente = $this->db->fetch(
+            "SELECT id, tipo_acomodacion, descripcion, acomodacion
+            FROM acomodaciones
+            WHERE hotel_id = ?
+            AND tipo_acomodacion = ?
+            AND acomodacion = ?
+            LIMIT 1",
+            [$hotel_id, $tipo_acomodacion, $acomodacion]
+        );
+
+        if ($existente) {
+            return [
+                'success' => true,
+                'already_exists' => true,
+                'data' => $existente,
+                'message' => 'La acomodación ya existía para este alojamiento'
+            ];
+        }
+
+        $id = $this->db->insert('acomodaciones', [
+            'hotel_id' => $hotel_id,
+            'tipo_acomodacion' => $tipo_acomodacion,
+            'descripcion' => $descripcion ?: null,
+            'acomodacion' => $acomodacion
+        ]);
+
+        $acomodacionData = $this->db->fetch(
+            "SELECT id, tipo_acomodacion, descripcion, acomodacion
+            FROM acomodaciones
+            WHERE id = ?",
+            [$id]
+        );
+
+        return [
+            'success' => true,
+            'id' => $id,
+            'data' => $acomodacionData,
+            'message' => 'Acomodación creada correctamente'
+        ];
     }
 
 /**

@@ -2418,7 +2418,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         
         .modal-header {
             padding: 30px 30px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-color);
             color: white;
             display: flex;
             justify-content: space-between;
@@ -4077,6 +4077,100 @@ textarea.form-control {
 }
 
 
+
+.acomodaciones-selector-wrapper {
+    margin-top: 18px;
+}
+
+.acomodaciones-selector-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--shadow-sm, 0 4px 12px rgba(15, 23, 42, 0.06));
+}
+
+.acomodaciones-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.acomodaciones-selector-header h4 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.acomodaciones-selector-header h4 i {
+    color: var(--primary-color);
+}
+
+.acomodaciones-selector-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+#modal-crear-acomodacion-programa.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10050 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+}
+
+#modal-crear-acomodacion-programa .modal-content {
+    background: var(--card-bg, #fff);
+    border-radius: 18px;
+    width: min(560px, 94vw);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#modal-editar-alojamiento.modal{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:rgba(15,23,42,.45);
+    z-index:10001;
+}
+
+.readonly-hotel-box {
+    background: var(--bg-light, #f8fafc);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.readonly-hotel-box span {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.btn-acomodacion {
+    background: color-mix(in srgb, var(--primary-color) 12%, white) !important;
+    color: var(--primary-color) !important;
+}
+
+
+
     </style>
 
 
@@ -5062,6 +5156,26 @@ textarea.form-control {
                 <div id="servicios-grid" class="biblioteca-grid">
                     <!-- Los servicios de la biblioteca se cargarán aquí -->
                 </div>
+                <div id="acomodaciones-selector-wrapper" class="acomodaciones-selector-wrapper" style="display: none;">
+                    <div class="acomodaciones-selector-card">
+                        <div class="acomodaciones-selector-header">
+                            <div>
+                                <h4><i class="fas fa-bed"></i> Acomodación</h4>
+                                <p>Opcional. Puedes agregar el alojamiento sin acomodación y definirla después.</p>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="abrirCrearAcomodacionDesdePrograma()">
+                                <i class="fas fa-plus"></i> Nueva acomodación
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Seleccionar acomodación</label>
+                            <select id="select-acomodacion-servicio" class="form-control">
+                                <option value="">Sin acomodación por ahora</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="cerrarModalServicios()">
@@ -5073,6 +5187,89 @@ textarea.form-control {
             </div>
         </div>
     </div>
+
+    
+
+    <!-- Modal para agregar Acomodación) -->
+     <div id="modal-editar-alojamiento" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:560px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-bed"></i> Acomodación del alojamiento</h3>
+                <button class="close-modal" onclick="cerrarModalEditarAlojamiento()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="edit-alojamiento-id">
+
+                <div class="form-group">
+                    <label class="form-label">Alojamiento</label>
+                    <div id="edit-alojamiento-nombre-display" class="readonly-hotel-box">
+                        Hotel seleccionado
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Acomodación</label>
+                    <div style="display:flex; gap:10px;">
+                        <select id="edit-alojamiento-acomodacion" class="form-control">
+                            <option value="">Sin acomodación</option>
+                        </select>
+
+                        <button type="button" class="btn btn-secondary" onclick="abrirCrearAcomodacionDesdeEditor()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <small class="form-text text-muted">
+                        Puedes dejarlo sin acomodación y definirla después.
+                    </small>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalEditarAlojamiento()">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarEdicionAlojamiento()">
+                    <i class="fas fa-save"></i> Guardar acomodación
+                </button>
+            </div>
+        </div>
+</div>
+
+<div id="modal-crear-acomodacion-programa" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 560px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-bed"></i> Nueva acomodación</h3>
+            <button type="button" class="close-modal" onclick="cerrarCrearAcomodacionDesdePrograma()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <p class="form-text text-muted">
+                Esta acomodación se guardará en la biblioteca del alojamiento seleccionado.
+            </p>
+
+            <div class="form-group">
+                <label class="form-label">Tipo de acomodación</label>
+                <input type="text" id="nueva-acomodacion-tipo" class="form-control" placeholder="Ej: Habitación doble">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción <small>(opcional)</small></label>
+                <input type="text" id="nueva-acomodacion-descripcion" class="form-control" placeholder="Ej: 1 cama doble o 2 sencillas">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Capacidad</label>
+                <input type="number" id="nueva-acomodacion-capacidad" class="form-control" min="1" value="1">
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarCrearAcomodacionDesdePrograma()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="guardarNuevaAcomodacionDesdePrograma()">
+                <i class="fas fa-save"></i> Guardar acomodación
+            </button>
+        </div>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <!-- Scripts -->
@@ -5625,6 +5822,8 @@ let selectedDiaId = null;
 let selectedServicioId = null;
 let currentDiaId = null;
 let currentTipoServicio = null;
+let selectedAcomodacionId = null;
+let acomodacionesHotelActual = [];
 let isAddingAlternative = false;
 let alternativeParentId = null;
 let diasPrograma = [];
@@ -5633,6 +5832,7 @@ let viajerosSeleccionados = <?= json_encode($form_data['viajeros_asociados'] ?? 
 let titularTambienViaja = viajerosSeleccionados.some(v => titularId && parseInt(v.id) === parseInt(titularId));
 let titularData = <?= json_encode($form_data['titular_data'] ?? null, JSON_UNESCAPED_UNICODE) ?>;
 let telefonoInputInstance = null;
+let alojamientoEditando = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Iniciando programa.php...');
@@ -7819,6 +8019,7 @@ async function abrirModalServicios(tipoServicio, titulo = null) {
         btnAgregar.disabled = true;
     }
     
+    resetAcomodacionesSelector();
     modal.style.display = 'block';
     await cargarServiciosBiblioteca(tipoServicio);
 }
@@ -8017,6 +8218,12 @@ function seleccionarServicio(servicioId) {
         item.classList.add('selected');
         selectedServicioId = servicioId;
         document.getElementById('btn-agregar-servicio').disabled = false;
+
+        if (currentTipoServicio === 'alojamiento' && !isAddingAlternative) {
+            cargarAcomodacionesDelHotel(servicioId);
+        } else {
+            resetAcomodacionesSelector();
+        }
         
         // Scroll suave hacia el elemento seleccionado
         item.scrollIntoView({ 
@@ -8024,6 +8231,169 @@ function seleccionarServicio(servicioId) {
             block: 'nearest',
             inline: 'nearest'
         });
+    }
+}
+
+function resetAcomodacionesSelector() {
+    selectedAcomodacionId = null;
+    acomodacionesHotelActual = [];
+
+    const wrapper = document.getElementById('acomodaciones-selector-wrapper');
+    const select = document.getElementById('select-acomodacion-servicio');
+
+    if (wrapper) wrapper.style.display = 'none';
+
+    if (select) {
+        select.innerHTML = '<option value="">Sin acomodación por ahora</option>';
+        select.value = '';
+    }
+}
+
+async function cargarAcomodacionesDelHotel(hotelId) {
+    const wrapper = document.getElementById('acomodaciones-selector-wrapper');
+    const select = document.getElementById('select-acomodacion-servicio');
+
+    if (!wrapper || !select) return;
+
+    wrapper.style.display = 'block';
+    select.innerHTML = '<option value="">Cargando acomodaciones...</option>';
+    selectedAcomodacionId = null;
+
+    try {
+        const response = await fetch(`<?= APP_URL ?>/modules/biblioteca/api.php?action=get_acomodaciones&hotel_id=${hotelId}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            select.innerHTML = '<option value="">Sin acomodación por ahora</option>';
+            showAlert(result.message || 'No se pudieron cargar las acomodaciones', 'error');
+            return;
+        }
+
+        acomodacionesHotelActual = result.data || [];
+
+        select.innerHTML = '<option value="">Sin acomodación por ahora</option>';
+
+        acomodacionesHotelActual.forEach(acomodacion => {
+            const label = formatearAcomodacionLabel(acomodacion);
+            select.innerHTML += `<option value="${acomodacion.id}">${escapeHtml(label)}</option>`;
+        });
+
+        select.onchange = function() {
+            selectedAcomodacionId = this.value ? parseInt(this.value) : null;
+        };
+
+    } catch (error) {
+        console.error('Error cargando acomodaciones:', error);
+        select.innerHTML = '<option value="">Sin acomodación por ahora</option>';
+        showAlert('Error de conexión cargando acomodaciones', 'error');
+    }
+}
+
+function formatearAcomodacionLabel(acomodacion) {
+    const tipo = acomodacion.tipo_acomodacion || 'Acomodación';
+    const capacidad = acomodacion.acomodacion ? `${acomodacion.acomodacion} pax` : '';
+    const descripcion = acomodacion.descripcion ? ` · ${acomodacion.descripcion}` : '';
+
+    return `${tipo}${capacidad ? ` (${capacidad})` : ''}${descripcion}`;
+}
+
+function abrirCrearAcomodacionDesdePrograma() {
+    if (!selectedServicioId || currentTipoServicio !== 'alojamiento') {
+        showAlert('Primero selecciona un alojamiento', 'error');
+        return;
+    }
+
+    setInputValue('nueva-acomodacion-tipo', '');
+    setInputValue('nueva-acomodacion-descripcion', '');
+    setInputValue('nueva-acomodacion-capacidad', '1');
+
+    const modal = document.getElementById('modal-crear-acomodacion-programa');
+    if (modal) modal.style.display = 'flex';
+}
+
+function cerrarCrearAcomodacionDesdePrograma() {
+    const modal = document.getElementById('modal-crear-acomodacion-programa');
+
+    if (modal) {
+        modal.style.display = 'none';
+        delete modal.dataset.origen;
+        delete modal.dataset.hotelId;
+    }
+}
+
+async function guardarNuevaAcomodacionDesdePrograma() {
+    const tipo = getInputValue('nueva-acomodacion-tipo');
+    const descripcion = getInputValue('nueva-acomodacion-descripcion');
+    const capacidad = parseInt(getInputValue('nueva-acomodacion-capacidad') || 1);
+
+    const modalAcomodacion = document.getElementById('modal-crear-acomodacion-programa');
+    const hotelId = modalAcomodacion?.dataset?.hotelId || selectedServicioId;
+
+    if (!hotelId) {
+        showAlert('Primero selecciona un alojamiento', 'error');
+        return;
+    }
+
+    if (!tipo) {
+        showAlert('El tipo de acomodación es obligatorio', 'error');
+        return;
+    }
+
+    if (!capacidad || capacidad < 1) {
+        showAlert('La capacidad debe ser mínimo 1', 'error');
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('action', 'create_acomodacion');
+        formData.append('hotel_id', hotelId);
+        formData.append('tipo_acomodacion', tipo);
+        formData.append('descripcion', descripcion);
+        formData.append('acomodacion', capacidad);
+
+        const response = await fetch('<?= APP_URL ?>/modules/biblioteca/api.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            console.error('Error real creando acomodación:', result);
+            showAlert(result.message || result.error || 'No se pudo crear la acomodación', 'error');
+            return;
+        }
+
+        const nueva = result.data;
+        cerrarCrearAcomodacionDesdePrograma();
+
+        if (alojamientoEditando) {
+            await cargarAcomodacionesEditor(alojamientoEditando);
+
+            if (nueva && nueva.id) {
+                const selectEditor = document.getElementById('edit-alojamiento-acomodacion');
+                if (selectEditor) {
+                    selectEditor.value = nueva.id;
+                }
+            }
+        } else {
+            await cargarAcomodacionesDelHotel(hotelId);
+
+            if (nueva && nueva.id) {
+                const select = document.getElementById('select-acomodacion-servicio');
+                if (select) {
+                    select.value = nueva.id;
+                    selectedAcomodacionId = parseInt(nueva.id);
+                }
+            }
+        }
+
+        showAlert('Acomodación creada y seleccionada', 'success');
+
+    } catch (error) {
+        console.error('Error creando acomodación:', error);
+        showAlert('Error de conexión creando acomodación', 'error');
     }
 }
 
@@ -8057,6 +8427,10 @@ async function agregarServicioSeleccionado() {
                 tipo_servicio: currentTipoServicio,
                 biblioteca_item_id: selectedServicioId
             };
+
+            if (currentTipoServicio === 'alojamiento' && selectedAcomodacionId) {
+                requestData.acomodacion_id = selectedAcomodacionId;
+            }
         }
 
         console.log('📝 Enviando:', requestData);
@@ -9720,6 +10094,15 @@ function renderizarServicioConAlternativas(servicio) {
                     <button class="btn-add-alternative" onclick="abrirModalAlternativa(${servicio.id}, '${servicio.tipo_servicio}')" title="Agregar alternativa">
                         <i class="fas fa-plus-circle"></i>
                     </button>
+
+                    ${servicio.tipo_servicio === 'alojamiento' ? `
+                    <button type="button"
+                            class="service-action-btn btn-acomodacion-inline"
+                            title="Gestionar acomodación"
+                            onclick="abrirEditorAlojamiento(${servicio.id})">
+                        <i class="fas fa-bed"></i>
+                    </button>
+                ` : ''}
                     
                     <!-- Botón de edición solo para actividades -->
                     ${servicio.tipo_servicio === 'actividad' ? `
@@ -9734,6 +10117,7 @@ function renderizarServicioConAlternativas(servicio) {
                     </button>
                 </div>
             </div>
+
             
             <!-- Alternativas -->
             ${hasAlternatives ? `
@@ -11730,6 +12114,153 @@ function seleccionarUbicacion(itemId, tipo, lat, lon, displayName) {
 }
 
 console.log('✅ Funciones de edición de días y actividades cargadas');
+
+//Rditor acomodacion
+async function abrirEditorAlojamiento(servicioId) {
+    const servicio = buscarServicioEnDias(servicioId);
+
+    if (!servicio) {
+        showAlert('No se encontró el alojamiento', 'error');
+        return;
+    }
+
+    alojamientoEditando = servicio;
+
+    setInputValue('edit-alojamiento-id', servicio.id);
+
+    const nombreHotel = servicio.nombre || servicio.nombre_servicio || 'Alojamiento seleccionado';
+    const display = document.getElementById('edit-alojamiento-nombre-display');
+
+    if (display) {
+        display.innerHTML = `
+            <strong>${escapeHtml(nombreHotel)}</strong>
+            ${servicio.ubicacion || servicio.ubicacion_servicio ? `
+                <span>${escapeHtml(servicio.ubicacion || servicio.ubicacion_servicio)}</span>
+            ` : ''}
+        `;
+    }
+
+    await cargarAcomodacionesEditor(servicio);
+
+    const modal = document.getElementById('modal-editar-alojamiento');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarModalEditarAlojamiento() {
+    document.getElementById('modal-editar-alojamiento').style.display = 'none';
+    alojamientoEditando = null;
+}
+
+function buscarServicioEnDias(servicioId) {
+    for (const dia of diasPrograma) {
+        const servicios = dia.servicios || [];
+        const encontrado = servicios.find(s => parseInt(s.id) === parseInt(servicioId));
+        if (encontrado) return encontrado;
+    }
+    return null;
+}
+
+async function cargarAcomodacionesEditor(servicio) {
+    const hotelId = servicio.biblioteca_item_id;
+    const select = document.getElementById('edit-alojamiento-acomodacion');
+
+    select.innerHTML = '<option value="">Cargando...</option>';
+
+    try {
+        const response = await fetch(`<?= APP_URL ?>/modules/biblioteca/api.php?action=get_acomodaciones&hotel_id=${hotelId}`);
+        const result = await response.json();
+
+        select.innerHTML = '<option value="">Sin acomodación</option>';
+
+        if (result.success) {
+            result.data.forEach(item => {
+                const label = formatearAcomodacionLabel(item);
+                select.innerHTML += `<option value="${item.id}">${escapeHtml(label)}</option>`;
+            });
+
+            if (servicio.acomodacion_id) {
+                select.value = servicio.acomodacion_id;
+            }
+        }
+
+    } catch (error) {
+        console.error(error);
+        select.innerHTML = '<option value="">Sin acomodación</option>';
+    }
+}
+
+async function guardarEdicionAlojamiento() {
+    if (!alojamientoEditando) return;
+
+    try {
+        const payload = {
+            action: 'update',
+            servicio_id: alojamientoEditando.id,
+            nombre_servicio: alojamientoEditando.nombre || alojamientoEditando.nombre_servicio || 'Alojamiento',
+            descripcion_servicio: alojamientoEditando.descripcion || alojamientoEditando.descripcion_servicio || 'Alojamiento',
+            ubicacion_servicio: alojamientoEditando.ubicacion || alojamientoEditando.ubicacion_servicio || '',
+            acomodacion_id: getInputValue('edit-alojamiento-acomodacion') || null
+        };
+
+        const response = await fetch('<?= APP_URL ?>/modules/programa/servicios_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showAlert(result.message || result.error || 'No se pudo actualizar la acomodación', 'error');
+            return;
+        }
+
+        showAlert('Acomodación actualizada correctamente', 'success');
+        cerrarModalEditarAlojamiento();
+
+        if (selectedDayId) {
+            await cargarServiciosDia(selectedDayId);
+        }
+
+    } catch (error) {
+        console.error(error);
+        showAlert('Error de conexión', 'error');
+    }
+}
+
+function abrirCrearAcomodacionDesdeEditor() {
+    console.log('alojamientoEditando:', alojamientoEditando);
+
+    const hotelId = alojamientoEditando?.biblioteca_item_id || alojamientoEditando?.biblioteca_id || alojamientoEditando?.hotel_id;
+
+    if (!hotelId) {
+        showAlert('No se encontró el ID del alojamiento de biblioteca', 'error');
+        return;
+    }
+
+    selectedServicioId = hotelId;
+    currentTipoServicio = 'alojamiento';
+
+    setInputValue('nueva-acomodacion-tipo', '');
+    setInputValue('nueva-acomodacion-descripcion', '');
+    setInputValue('nueva-acomodacion-capacidad', '1');
+
+    const modal = document.getElementById('modal-crear-acomodacion-programa');
+
+    if (modal) {
+        modal.dataset.origen = 'editor';
+        modal.dataset.hotelId = hotelId;
+
+        const modalEditor = document.getElementById('modal-editar-alojamiento');
+        if (modalEditor) {
+            modalEditor.style.display = 'none';
+        }
+
+        modal.style.display = 'flex';
+    }
+}
 
 </script>
 </body>
