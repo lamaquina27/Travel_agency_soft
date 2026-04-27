@@ -3673,7 +3673,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                     lon: lo,
                                 })
                             });
-                            c
+
                         } catch (err) {
                             console.error('Error al guardar ubicación:', err);
                         }
