@@ -1091,6 +1091,19 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
             if (!$programa) {
                 throw new Exception('Programa no encontrado');
             }
+            //--Había un bug al no seleccionar de nuevo a los viajeros. se solucionó con este bloque
+            //------------------------ Obtener viajeros vinculados a esta solicitud
+            $viajeros = $this->db->fetchAll(
+                "SELECT v.*
+                FROM viajeros_solicitud vs
+                INNER JOIN viajeros v ON vs.viajero_id = v.id
+                WHERE vs.solicitud_id = ? AND v.agencia_id = ?
+                ORDER BY v.nombre ASC, v.apellido ASC",
+                [$id, $agencia_id]
+            );
+
+            $programa['viajeros'] = $viajeros;
+            $programa['viajeros_ids'] = array_column($viajeros, 'id');
             
             return [
                 'success' => true,

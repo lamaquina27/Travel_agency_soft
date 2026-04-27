@@ -40,6 +40,9 @@ class ViajerosAPI {
                 case 'list':
                     $result = $this->listViajeros();
                     break;
+                case 'find_by_document':
+                    $result = $this->findByDocument();
+                    break;
                 case 'update':
                     $result = $this->updateViajero();
                     break;
@@ -70,12 +73,35 @@ class ViajerosAPI {
             throw new Exception('El nombre, apellido, documento y fecha de nacimiento son obligatorios.');
         }
 
+        //Agrego esto para funcionamiento de busqueda y predicción
+        $tipo_documento = intval($_POST['tipo_documento'] ?? 1);
+        $numero_documento = trim($_POST['numero_documento']);
+
+        $existente = $this->db->fetch(
+            "SELECT *
+            FROM viajeros
+            WHERE agencia_id = ?
+            AND tipo_documento = ?
+            AND numero_documento = ?
+            LIMIT 1",
+            [$agencia_id, $tipo_documento, $numero_documento]
+        );
+
+        if ($existente) {
+            return [
+                'success' => true,
+                'message' => 'El viajero ya existía en esta agencia',
+                'already_exists' => true,
+                'data' => $existente
+            ];
+        }
+
         $data = [
             'agencia_id' => $agencia_id,
             'nombre' => trim($_POST['nombre']),
             'apellido' => trim($_POST['apellido']),
-            'tipo_documento' => intval($_POST['tipo_documento'] ?? 1),
-            'numero_documento' => trim($_POST['numero_documento']),
+            'tipo_documento' => $tipo_documento,
+            'numero_documento' => $numero_documento,
             'mail' => trim($_POST['mail'] ?? ''),
             'telefono' => trim($_POST['telefono'] ?? ''),
             'pais_nacimiento' => trim($_POST['pais_nacimiento'] ?? ''),
@@ -106,6 +132,36 @@ class ViajerosAPI {
         return [
             'success' => true,
             'data' => $viajeros
+        ];
+    }
+
+    private function findByDocument() {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Sesión inválida.');
+        }
+
+        $tipo_documento = intval($_POST['tipo_documento'] ?? $_GET['tipo_documento'] ?? 0);
+        $numero_documento = trim($_POST['numero_documento'] ?? $_GET['numero_documento'] ?? '');
+
+        if (!$tipo_documento || empty($numero_documento)) {
+            throw new Exception('Tipo y número de documento son obligatorios para buscar.');
+        }
+
+        $viajero = $this->db->fetch(
+            "SELECT *
+            FROM viajeros
+            WHERE agencia_id = ?
+            AND tipo_documento = ?
+            AND numero_documento = ?
+            LIMIT 1",
+            [$agencia_id, $tipo_documento, $numero_documento]
+        );
+
+        return [
+            'success' => true,
+            'found' => !empty($viajero),
+            'data' => $viajero ?: null
         ];
     }
 

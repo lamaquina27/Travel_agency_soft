@@ -36,7 +36,10 @@ $form_data = [
     'program_title' => '',
     'language' => 'es',
     'request_id' => '',
-    'cover_image' => ''
+    'cover_image' => '',
+    'titular_id' => null,
+    'viajeros' => [],
+    'viajeros_ids' => []
 ];
 
 if ($is_editing) {
@@ -56,19 +59,52 @@ if ($is_editing) {
             "SELECT * FROM programa_personalizacion WHERE solicitud_id = ?", 
             [$programa_id]
         );
+
+        $viajeros_asociados = $db->fetchAll(
+            "SELECT v.*
+            FROM viajeros_solicitud vs
+            INNER JOIN viajeros v ON vs.viajero_id = v.id
+            WHERE vs.solicitud_id = ?
+            ORDER BY v.nombre ASC, v.apellido ASC",
+            [$programa_id]
+        );
+
+        $titular_data = null;
+
+        if (!empty($programa_data['titular_id'])) {
+            $titular_data = $db->fetch(
+                "SELECT *
+                FROM viajeros
+                WHERE id = ?",
+                [$programa_data['titular_id']]
+            );
+        }
+        
+        $viajeros_programa = $db->fetchAll(
+            "SELECT v.*
+            FROM viajeros_solicitud vs
+            INNER JOIN viajeros v ON vs.viajero_id = v.id
+            WHERE vs.solicitud_id = ?
+            ORDER BY v.nombre ASC, v.apellido ASC",
+            [$programa_id]
+        );
         
         $form_data = [
-            'traveler_name' => $programa_data['nombre_viajero'] ?? '',
-            'traveler_lastname' => $programa_data['apellido_viajero'] ?? '',
+            'traveler_name' => $programa_data['nombre'] ?? $programa_data['nombre_viajero'] ?? '',
+            'traveler_lastname' => $programa_data['apellido'] ?? $programa_data['apellido_viajero'] ?? '',
             'destination' => $programa_data['destino'] ?? '',
-            'arrival_date' => $programa_data['fecha_llegada'] ?? '',
+            'arrival_date' => !empty($programa_data['fecha_llegada']) ? substr($programa_data['fecha_llegada'], 0, 10) : '',
             'departure_date' => $programa_data['fecha_salida'] ?? '',
             'passengers' => $programa_data['numero_pasajeros'] ?? 1,
             'accompaniment' => $programa_data['acompanamiento'] ?? 'sin-acompanamiento',
             'program_title' => $personalizacion_data['titulo_programa'] ?? '',
             'language' => $personalizacion_data['idioma_predeterminado'] ?? 'es',
             'request_id' => $programa_data['id_solicitud'] ?? '',
-            'cover_image' => $personalizacion_data['foto_portada'] ?? ''
+            'cover_image' => $personalizacion_data['foto_portada'] ?? '',
+            'titular_id' => $programa_data['titular_id'] ?? null,
+            'titular_data' => $titular_data,
+            'viajeros_asociados' => $viajeros_asociados,
+            'viajeros_ids' => array_column($viajeros_asociados, 'id')
         ];
     } catch(Exception $e) {
         error_log("Error cargando programa: " . $e->getMessage());
@@ -94,6 +130,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     <link href="<?= APP_URL ?>/assets/css/dashboard.css" rel="stylesheet">
 
     <script src="<?= APP_URL ?>/assets/js/ubicacion-search-widget.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js"></script>
     
     <style>
 
@@ -3080,6 +3120,7 @@ textarea.form-control {
 /* Ocultar pestañas si no está guardado */
 .programa-no-guardado .tab-item[data-tab="dia-a-dia"],
 .programa-no-guardado .tab-item[data-tab="precio"],
+.programa-no-guardado .tab-item[data-tab="viajeros"],
 .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"],
 .programa-no-guardado .nav-button[onclick*="compartirEnlace"] {
     opacity: 0.3;
@@ -3089,6 +3130,7 @@ textarea.form-control {
 
 .programa-no-guardado .tab-item[data-tab="dia-a-dia"]::after,
 .programa-no-guardado .tab-item[data-tab="precio"]::after,
+.programa-no-guardado .tab-item[data-tab="viajeros"]::after,
 .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"]::after,
 .programa-no-guardado .nav-button[onclick*="compartirEnlace"]::after {
     content: "🔒";
@@ -3729,8 +3771,315 @@ textarea.form-control {
     box-shadow: 0 0 0 4px rgba(47,128,237,.12);
 }
 
+/* ============================================================
+   PESTAÑA VIAJEROS - VISTA COMPACTA
+============================================================ */
+
+.viajeros-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.viajeros-summary-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: var(--shadow-md, 0 10px 25px rgba(15, 23, 42, 0.06));
+}
+
+.summary-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.summary-card-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 6px 0;
+    color: var(--text-primary, #111827);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.summary-card-header h4 i {
+    color: var(--primary-color);
+}
+
+.summary-card-header p {
+    margin: 0;
+    color: var(--text-secondary, #6b7280);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.empty-state-inline,
+.empty-viajeros {
+    color: var(--text-secondary, #6b7280);
+    border: 1px dashed var(--border-color, #d1d5db);
+    background: var(--bg-light, #f9fafb);
+}
+
+.empty-state-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 14px;
+}
+
+.empty-state-inline i,
+.empty-viajeros i {
+    color: var(--primary-color);
+    opacity: 0.65;
+}
+
+.titular-summary-box,
+.viajero-row {
+    background: var(--bg-light, #f9fafb);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 14px;
+}
+
+.titular-summary-box {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+}
+
+.titular-summary-name,
+.viajero-name {
+    font-weight: 700;
+    color: var(--text-primary, #111827);
+    font-size: 15px;
+}
+
+.titular-summary-meta,
+.viajero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+    color: var(--text-secondary, #6b7280);
+    font-size: 13px;
+}
+
+.checkbox-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 0 0;
+    font-size: 14px;
+    color: var(--text-primary, #374151);
+    cursor: pointer;
+}
+
+.checkbox-line input {
+    width: 16px;
+    height: 16px;
+}
+
+.viajeros-seleccionados-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.viajero-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+}
+
+.viajero-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.viajero-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: color-mix(in srgb, var(--primary-color) 12%, white);
+    color: var(--primary-color);
+    margin-right: 6px;
+}
+
+.viajero-badge.titular {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.viajero-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-viajero-action {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.btn-viajero-action.primary {
+    background: color-mix(in srgb, var(--primary-color) 12%, white);
+    color: var(--primary-color);
+}
+
+.btn-viajero-action.danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-viajero-action:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.97);
+}
+
+.empty-viajeros {
+    text-align: center;
+    padding: 26px 18px;
+    border-radius: 16px;
+}
+
+.empty-viajeros i {
+    display: block;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+/* Modal viajeros */
+
+#modal-viajero.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+}
+
+#modal-viajero .modal-content {
+    width: min(720px, 94vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--card-bg, #fff);
+    border-radius: var(--border-radius-lg, 18px);
+    box-shadow: var(--shadow-xl, 0 25px 60px rgba(15, 23, 42, 0.25));
+    margin: 0;
+    position: relative;
+}
+
+#modal-viajero .modal-header {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: var(--border-radius-lg, 18px) var(--border-radius-lg, 18px) 0 0;
+}
+
+.phone-input-group {
+    display: grid;
+    grid-template-columns: 135px 1fr;
+    gap: 10px;
+}
+
+.country-code-select {
+    min-width: 120px;
+}
+
+.viajero-status {
+    display: none;
+    margin: 10px 0 16px 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.viajero-status.success {
+    display: block;
+    background: color-mix(in srgb, var(--primary-color) 10%, white);
+    color: var(--primary-color);
+    border: 1px solid color-mix(in srgb, var(--primary-color) 28%, white);
+}
+
+.viajero-status.info {
+    display: block;
+    background: color-mix(in srgb, var(--secondary-color) 10%, white);
+    color: var(--secondary-color);
+    border: 1px solid color-mix(in srgb, var(--secondary-color) 28%, white);
+}
+
+.viajero-status.warning {
+    display: block;
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.viajero-status.error {
+    display: block;
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+@media (max-width: 900px) {
+    .summary-card-header {
+        flex-direction: column;
+    }
+
+    .summary-card-header .btn {
+        width: 100%;
+    }
+
+    .viajero-row,
+    .titular-summary-box {
+        grid-template-columns: 1fr;
+    }
+
+    .phone-input-group {
+        grid-template-columns: 1fr;
+    }
+
+    .viajero-actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+.iti {
+    width: 100%;
+}
+
+.iti__country-list {
+    z-index: 10000;
+}
+
 
     </style>
+
+
 </head>
 
 <body class="<?= !$is_editing ? 'programa-no-guardado' : 'programa-guardado' ?>">
@@ -3751,6 +4100,7 @@ textarea.form-control {
         <a href="#" class="tab-item active" data-tab="mi-programa">Mi programa</a>
         <a href="#" class="tab-item" data-tab="dia-a-dia">Día a día</a>
         <a href="#" class="tab-item" data-tab="precio">Precio</a>
+        <a href="#" class="tab-item" data-tab="viajeros">Viajeros</a>
         <a href="#" class="tab-item" onclick="abrirVistaPrevia()">
             <i class="fas fa-eye"></i> Vista previa
         </a>
@@ -4316,6 +4666,151 @@ textarea.form-control {
                 </div>
             </div>
     </div>
+
+    <!-- Contenido de la pestaña Viajeros -->
+<div id="viajeros" class="tab-content">
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-users"></i>
+                Viajeros
+            </div>
+        </div>
+
+        <div class="section-body">
+            <p class="form-text text-muted" style="margin-bottom: 20px;">
+                Define el titular de la solicitud y las personas que viajarán. Puedes dejar esta sección vacía si aún es una cotización preliminar.
+            </p>
+
+            <div class="viajeros-summary-grid">
+                <div class="viajeros-summary-card">
+                    <div class="summary-card-header">
+                        <div>
+                            <h4><i class="fas fa-user-tie"></i> Titular de la solicitud</h4>
+                            <p>Responsable o contacto principal. No necesariamente viaja.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalViajero('titular')">
+                            Seleccionar / crear
+                        </button>
+                    </div>
+
+                    <div id="titular-resumen" class="titular-resumen empty-state-inline">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Sin titular seleccionado</span>
+                    </div>
+
+                    <label class="checkbox-line compact">
+                        <input type="checkbox" id="titular-tambien-viaja" checked>
+                        <span>Este titular también viaja</span>
+                    </label>
+                </div>
+
+                <div class="viajeros-summary-card">
+                    <div class="summary-card-header">
+                        <div>
+                            <h4><i class="fas fa-suitcase-rolling"></i> Viajeros asociados</h4>
+                            <p>Personas que sí harán parte del viaje.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalViajero('viajero')">
+                            + Agregar
+                        </button>
+                    </div>
+
+                    <div id="viajeros-seleccionados-list" class="viajeros-seleccionados-list compact-list">
+                        <div class="empty-viajeros">
+                            <i class="fas fa-users"></i>
+                            <p>Aún no hay viajeros asociados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear/seleccionar viajeros -->
+<div id="modal-viajero" class="modal" style="display: none;">
+    <div class="modal-content modal-viajero-content">
+        <div class="modal-header">
+            <h3 id="modal-viajero-title">Agregar viajero</h3>
+            <button type="button" class="modal-close" onclick="cerrarModalViajero()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <input type="hidden" id="modal-viajero-contexto" value="viajero">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Tipo de documento</label>
+                    <select class="form-control" id="modal-tipo-documento">
+                        <option value="1">Cédula de ciudadanía</option>
+                        <option value="2">Pasaporte</option>
+                        <option value="3">Cédula de extranjería</option>
+                        <option value="4">Tarjeta de identidad</option>
+                        <option value="5">Registro civil</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Número de documento</label>
+                    <input type="text" class="form-control" id="modal-numero-documento" placeholder="Escribe y presiona Enter">
+                </div>
+            </div>
+
+            <div id="modal-viajero-status" class="viajero-status"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="modal-nombre">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Apellido</label>
+                    <input type="text" class="form-control" id="modal-apellido">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Fecha de nacimiento</label>
+                    <input type="date" class="form-control" id="modal-fecha-nacimiento">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">País / nacionalidad</label>
+                    <input type="text" class="form-control" id="modal-pais-nacimiento">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Correo <small>(opcional)</small></label>
+                    <input type="email" class="form-control" id="modal-mail">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Teléfono <small>(opcional)</small></label>
+                    <input 
+                        type="tel" 
+                        class="form-control" 
+                        id="modal-telefono"
+                        inputmode="numeric"
+                        placeholder="3004005060"
+                    >
+                </div>
+
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalViajero()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="guardarViajeroDesdeModal()">
+                Guardar
+            </button>
+        </div>
+    </div>
+</div>
 
     <!-- Modal para agregar/editar días desde biblioteca -->
 <div id="bibliotecaModal" class="modal" style="display: none;">
@@ -5133,6 +5628,11 @@ let currentTipoServicio = null;
 let isAddingAlternative = false;
 let alternativeParentId = null;
 let diasPrograma = [];
+let titularId = <?= !empty($form_data['titular_id']) ? intval($form_data['titular_id']) : 'null' ?>;
+let viajerosSeleccionados = <?= json_encode($form_data['viajeros_asociados'] ?? [], JSON_UNESCAPED_UNICODE) ?>;
+let titularTambienViaja = viajerosSeleccionados.some(v => titularId && parseInt(v.id) === parseInt(titularId));
+let titularData = <?= json_encode($form_data['titular_data'] ?? null, JSON_UNESCAPED_UNICODE) ?>;
+let telefonoInputInstance = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Iniciando programa.php...');
@@ -5142,6 +5642,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupFileValidation();
     // setupPreviewUpdates(); // ← ELIMINADO porque updatePreview no existe
     setupMealHandlers();
+    setupViajerosHandlers();
     
     if (isEditing && programaId) {
         console.log(`📋 Cargando datos para programa ID: ${programaId}`);
@@ -5370,6 +5871,679 @@ async function cargarComidasDia(diaId) {
 }
 
 // ============================================================
+// FUNCIONES DE VIAJEROS - MODAL COMPACTO
+// ============================================================
+
+let modalViajeroContexto = 'viajero';
+let viajeroModalTemporal = null;
+
+function setupViajerosHandlers() {
+    const numeroDocumento = document.getElementById('modal-numero-documento');
+    const tipoDocumento = document.getElementById('modal-tipo-documento');
+    const titularCheckbox = document.getElementById('titular-tambien-viaja');
+
+    const telefonoInput = document.getElementById('modal-telefono');
+
+    if (telefonoInput && window.intlTelInput && !telefonoInputInstance) {
+        telefonoInputInstance = window.intlTelInput(telefonoInput, {
+            initialCountry: "co",
+            preferredCountries: ["co", "us", "mx", "es", "ar", "cl", "pe", "ec", "br", "th"],
+            separateDialCode: true,
+            nationalMode: false,
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js"
+        });
+
+        telefonoInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+
+
+    if (numeroDocumento) {
+        numeroDocumento.addEventListener('blur', buscarViajeroDesdeModal);
+        numeroDocumento.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarViajeroDesdeModal();
+            }
+        });
+    }
+
+    if (tipoDocumento) {
+        tipoDocumento.addEventListener('change', function() {
+            if (numeroDocumento && numeroDocumento.value.trim()) {
+                buscarViajeroDesdeModal();
+            }
+        });
+    }
+
+    if (titularCheckbox) {
+        titularCheckbox.addEventListener('change', function() {
+            titularTambienViaja = this.checked;
+
+            if (titularData && titularTambienViaja) {
+                agregarViajeroSeleccionado(titularData);
+            }
+
+            if (titularData && !titularTambienViaja) {
+                viajerosSeleccionados = viajerosSeleccionados.filter(v => parseInt(v.id) !== parseInt(titularData.id));
+                renderViajerosSeleccionados();
+            }
+
+            renderTitularResumen();
+        });
+    }
+
+    renderTitularResumen();
+    renderViajerosSeleccionados();
+}
+
+function abrirModalViajero(contexto = 'viajero') {
+    modalViajeroContexto = contexto;
+    viajeroModalTemporal = null;
+
+    const modal = document.getElementById('modal-viajero');
+    const title = document.getElementById('modal-viajero-title');
+    const contextoInput = document.getElementById('modal-viajero-contexto');
+
+    if (!modal) {
+        console.error('No existe #modal-viajero en el HTML.');
+        return;
+    }
+
+    if (contextoInput) {
+        contextoInput.value = contexto;
+    }
+
+    if (title) {
+        title.textContent = contexto === 'titular'
+            ? 'Seleccionar / crear titular'
+            : 'Agregar viajero';
+    }
+
+    limpiarModalViajero();
+    modal.style.display = 'flex';
+
+    setTimeout(() => {
+        document.getElementById('modal-numero-documento')?.focus();
+    }, 100);
+}
+
+function cerrarModalViajero() {
+    const modal = document.getElementById('modal-viajero');
+
+    if (modal) {
+        modal.style.display = 'none';
+    }
+
+    limpiarModalViajero();
+}
+
+function limpiarModalViajero() {
+    viajeroModalTemporal = null;
+
+    setInputValue('modal-tipo-documento', '1');
+    setInputValue('modal-numero-documento', '');
+    setInputValue('modal-nombre', '');
+    setInputValue('modal-apellido', '');
+    setInputValue('modal-fecha-nacimiento', '');
+    setInputValue('modal-pais-nacimiento', '');
+    setInputValue('modal-mail', '');
+    setInputValue('modal-telefono', '');
+    setInputValue('modal-country-code', '+57');
+
+    const status = document.getElementById('modal-viajero-status');
+    if (status) {
+        status.className = 'viajero-status';
+        status.textContent = '';
+    }
+}
+
+async function buscarViajeroDesdeModal() {
+    const tipoDocumento = getInputValue('modal-tipo-documento');
+    const numeroDocumento = getInputValue('modal-numero-documento');
+
+    if (!tipoDocumento || !numeroDocumento) {
+        return;
+    }
+
+    mostrarEstadoModalViajero('info', 'Buscando viajero en tu agencia...');
+
+    try {
+        const formData = new FormData();
+        formData.append('action', 'find_by_document');
+        formData.append('tipo_documento', tipoDocumento);
+        formData.append('numero_documento', numeroDocumento);
+
+        const response = await fetch('<?= APP_URL ?>/modules/viajeros/api.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            mostrarEstadoModalViajero('error', result.message || 'No se pudo buscar el viajero.');
+            return;
+        }
+
+        if (result.found && result.data) {
+            viajeroModalTemporal = result.data;
+            llenarModalViajero(result.data);
+            mostrarEstadoModalViajero('success', 'Viajero encontrado. Los datos fueron autocompletados.');
+        } else {
+            viajeroModalTemporal = null;
+            limpiarDatosPersonalesModal(false);
+            mostrarEstadoModalViajero('warning', 'No existe un viajero con este documento. Completa los datos para crearlo.');
+        }
+    } catch (error) {
+        console.error('Error buscando viajero:', error);
+        mostrarEstadoModalViajero('error', 'Error de conexión al buscar el viajero.');
+    }
+}
+
+function llenarModalViajero(viajero) {
+    setInputValue('modal-tipo-documento', viajero.tipo_documento || '1');
+    setInputValue('modal-numero-documento', viajero.numero_documento || '');
+    setInputValue('modal-nombre', viajero.nombre || '');
+    setInputValue('modal-apellido', viajero.apellido || '');
+    setInputValue('modal-fecha-nacimiento', normalizarFechaInput(viajero.fecha_nacimiento));
+    setInputValue('modal-pais-nacimiento', viajero.pais_nacimiento || viajero.nacionalidad || '');
+    setInputValue('modal-mail', viajero.mail || viajero.email || '');
+    llenarTelefonoModal(viajero.telefono || '');
+}
+
+function llenarTelefonoModal(telefonoCompleto) {
+    const countrySelect = document.getElementById('modal-country-code');
+    const phoneInput = document.getElementById('modal-telefono');
+
+    if (!countrySelect || !phoneInput) return;
+
+    const limpio = String(telefonoCompleto || '').replace(/\s+/g, '');
+
+    const codigos = Array.from(countrySelect.options)
+        .map(option => option.value)
+        .sort((a, b) => b.length - a.length);
+
+    const codigoEncontrado = codigos.find(codigo => limpio.startsWith(codigo));
+
+    if (codigoEncontrado) {
+        countrySelect.value = codigoEncontrado;
+        phoneInput.value = limpio.replace(codigoEncontrado, '').replace(/[^0-9]/g, '');
+    } else {
+        countrySelect.value = '+57';
+        phoneInput.value = limpio.replace(/[^0-9]/g, '');
+    }
+}
+
+function obtenerTelefonoCompletoModal() {
+    const telefono = getInputValue('modal-telefono').replace(/[^0-9]/g, '');
+
+    if (!telefono) {
+        return '';
+    }
+
+    if (telefonoInputInstance) {
+        const dialCode = telefonoInputInstance.getSelectedCountryData().dialCode;
+        return `+${dialCode}${telefono}`;
+    }
+
+    return telefono;
+}
+
+function llenarTelefonoModal(telefonoCompleto) {
+    const phoneInput = document.getElementById('modal-telefono');
+    if (!phoneInput) return;
+
+    const limpio = String(telefonoCompleto || '').replace(/\s+/g, '');
+
+    if (telefonoInputInstance && limpio.startsWith('+')) {
+        telefonoInputInstance.setNumber(limpio);
+        return;
+    }
+
+    phoneInput.value = limpio.replace(/[^0-9]/g, '');
+}
+
+function validarEmailModal() {
+    const email = getInputValue('modal-mail');
+
+    if (!email) {
+        return true;
+    }
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validarTelefonoModal() {
+    const telefono = getInputValue('modal-telefono');
+
+    if (!telefono) {
+        return true;
+    }
+
+    return /^[0-9]{6,15}$/.test(telefono);
+}
+
+function limpiarDatosPersonalesModal(limpiarDocumento = true) {
+    if (limpiarDocumento) {
+        setInputValue('modal-numero-documento', '');
+    }
+
+    setInputValue('modal-nombre', '');
+    setInputValue('modal-apellido', '');
+    setInputValue('modal-fecha-nacimiento', '');
+    setInputValue('modal-pais-nacimiento', '');
+    setInputValue('modal-mail', '');
+    setInputValue('modal-telefono', '');
+}
+
+async function guardarViajeroDesdeModal() {
+    const tipoDocumento = getInputValue('modal-tipo-documento');
+    const numeroDocumento = getInputValue('modal-numero-documento');
+    const nombre = getInputValue('modal-nombre');
+    const apellido = getInputValue('modal-apellido');
+    const fechaNacimiento = getInputValue('modal-fecha-nacimiento');
+
+    if (!tipoDocumento || !numeroDocumento || !nombre || !apellido || !fechaNacimiento) {
+        mostrarEstadoModalViajero('error', 'Completa tipo de documento, número, nombre, apellido y fecha de nacimiento.');
+        return;
+    }
+
+    if (!validarEmailModal()) {
+        mostrarEstadoModalViajero('error', 'Ingresa un correo válido o deja el campo vacío.');
+        return;
+    }
+
+    if (!validarTelefonoModal()) {
+        mostrarEstadoModalViajero('error', 'El teléfono debe contener solo números y tener entre 6 y 15 dígitos.');
+        return;
+    }
+
+    let viajero = null;
+
+    if (
+        viajeroModalTemporal &&
+        parseInt(viajeroModalTemporal.tipo_documento) === parseInt(tipoDocumento) &&
+        String(viajeroModalTemporal.numero_documento) === String(numeroDocumento)
+    ) {
+        viajero = {
+            ...viajeroModalTemporal,
+            nombre,
+            apellido,
+            fecha_nacimiento: fechaNacimiento,
+            pais_nacimiento: getInputValue('modal-pais-nacimiento'),
+            mail: getInputValue('modal-mail'),
+            telefono: obtenerTelefonoCompletoModal()
+        };
+    } else {
+        viajero = await crearViajeroDesdeModal();
+    }
+
+    if (!viajero || !viajero.id) {
+        return;
+    }
+
+    if (modalViajeroContexto === 'titular') {
+        titularId = parseInt(viajero.id);
+        titularData = viajero;
+
+        setInputValue('traveler-name', viajero.nombre);
+        setInputValue('traveler-lastname', viajero.apellido);
+
+        if (document.getElementById('titular-tambien-viaja')?.checked) {
+            titularTambienViaja = true;
+
+            const agregado = agregarViajeroSeleccionado(viajero);
+
+            if (!agregado) {
+                titularTambienViaja = false;
+                return;
+            }
+        }
+
+        renderTitularResumen();
+    } else {
+        const agregado = agregarViajeroSeleccionado(viajero);
+
+        if (!agregado) {
+            return;
+        }
+    }
+
+    const guardado = await persistirViajerosEnPrograma();
+
+    if (guardado) {
+        showAlert('Viajeros actualizados correctamente.', 'success');
+        cerrarModalViajero();
+    }
+}
+
+async function crearViajeroDesdeModal() {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'create');
+        formData.append('tipo_documento', getInputValue('modal-tipo-documento'));
+        formData.append('numero_documento', getInputValue('modal-numero-documento'));
+        formData.append('nombre', getInputValue('modal-nombre'));
+        formData.append('apellido', getInputValue('modal-apellido'));
+        formData.append('fecha_nacimiento', getInputValue('modal-fecha-nacimiento'));
+        formData.append('pais_nacimiento', getInputValue('modal-pais-nacimiento'));
+        formData.append('mail', getInputValue('modal-mail'));
+        formData.append('telefono', obtenerTelefonoCompletoModal());
+
+        const response = await fetch('<?= APP_URL ?>/modules/viajeros/api.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            mostrarEstadoModalViajero('error', result.message || 'No se pudo guardar el viajero.');
+            return null;
+        }
+
+        return result.data || null;
+    } catch (error) {
+        console.error('Error creando viajero:', error);
+        mostrarEstadoModalViajero('error', 'Error de conexión al guardar el viajero.');
+        return null;
+    }
+}
+
+function renderTitularResumen() {
+    const container = document.getElementById('titular-resumen');
+
+    if (!container) {
+        return;
+    }
+
+    if (!titularData && titularId && viajerosSeleccionados.length > 0) {
+        titularData = viajerosSeleccionados.find(v => parseInt(v.id) === parseInt(titularId)) || null;
+    }
+
+    if (!titularData) {
+        container.className = 'titular-resumen empty-state-inline';
+        container.innerHTML = `
+            <i class="fas fa-user-circle"></i>
+            <span>Sin titular seleccionado</span>
+        `;
+        return;
+    }
+
+    const edadTipo = calcularTipoPorEdad(titularData.fecha_nacimiento);
+
+    container.className = 'titular-resumen titular-summary-box';
+    container.innerHTML = `
+        <div>
+            <div class="titular-summary-name">
+                ${escapeHtml(titularData.nombre || '')} ${escapeHtml(titularData.apellido || '')}
+            </div>
+            <div class="titular-summary-meta">
+                <span>Doc. ${escapeHtml(titularData.numero_documento || 'Sin documento')}</span>
+                <span>${escapeHtml(edadTipo)}</span>
+                ${titularData.mail ? `<span>${escapeHtml(titularData.mail)}</span>` : ''}
+                ${titularData.telefono ? `<span>${escapeHtml(titularData.telefono)}</span>` : ''}
+            </div>
+        </div>
+        <button type="button" class="btn-viajero-action primary" onclick="abrirModalViajero('titular')">
+            Cambiar
+        </button>
+    `;
+}
+
+function agregarViajeroSeleccionado(viajero) {
+    if (!viajero || !viajero.id) return false;
+    if (!validarCupoViajero(viajero)) return false;
+
+    const existe = viajerosSeleccionados.some(v => parseInt(v.id) === parseInt(viajero.id));
+
+    if (!existe) {
+        viajerosSeleccionados.push(viajero);
+    } else {
+        viajerosSeleccionados = viajerosSeleccionados.map(v => {
+            return parseInt(v.id) === parseInt(viajero.id) ? { ...v, ...viajero } : v;
+        });
+    }
+
+    renderViajerosSeleccionados();
+    return true;
+}
+
+function quitarViajeroSeleccionado(viajeroId) {
+    viajerosSeleccionados = viajerosSeleccionados.filter(v => parseInt(v.id) !== parseInt(viajeroId));
+
+    if (parseInt(titularId) === parseInt(viajeroId)) {
+        const checkbox = document.getElementById('titular-tambien-viaja');
+        if (checkbox) checkbox.checked = false;
+        titularTambienViaja = false;
+    }
+
+    renderViajerosSeleccionados();
+    renderTitularResumen();
+    persistirViajerosEnPrograma();
+}
+
+function marcarComoTitular(viajeroId) {
+    const viajero = viajerosSeleccionados.find(v => parseInt(v.id) === parseInt(viajeroId));
+
+    if (!viajero) {
+        return;
+    }
+
+    titularId = parseInt(viajero.id);
+    titularData = viajero;
+
+    setInputValue('traveler-name', viajero.nombre);
+    setInputValue('traveler-lastname', viajero.apellido);
+
+    const checkbox = document.getElementById('titular-tambien-viaja');
+    if (checkbox) checkbox.checked = true;
+
+    titularTambienViaja = true;
+
+    renderTitularResumen();
+    renderViajerosSeleccionados();
+    persistirViajerosEnPrograma();
+}
+
+function renderViajerosSeleccionados() {
+    const container = document.getElementById('viajeros-seleccionados-list');
+
+    if (!container) {
+        return;
+    }
+
+    if (!viajerosSeleccionados || viajerosSeleccionados.length === 0) {
+        container.innerHTML = `
+            <div class="empty-viajeros">
+                <i class="fas fa-users"></i>
+                <p>Aún no hay viajeros asociados.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = viajerosSeleccionados.map(viajero => {
+        const edadTipo = calcularTipoPorEdad(viajero.fecha_nacimiento);
+        const esTitular = titularId && parseInt(titularId) === parseInt(viajero.id);
+
+        return `
+            <div class="viajero-row">
+                <div class="viajero-main">
+                    <div class="viajero-name">
+                        ${escapeHtml(viajero.nombre || '')} ${escapeHtml(viajero.apellido || '')}
+                    </div>
+                    <div class="viajero-meta">
+                        <span>Doc. ${escapeHtml(viajero.numero_documento || 'Sin documento')}</span>
+                        ${viajero.fecha_nacimiento ? `<span>${escapeHtml(normalizarFechaInput(viajero.fecha_nacimiento))}</span>` : ''}
+                        ${viajero.telefono ? `<span>${escapeHtml(viajero.telefono)}</span>` : ''}
+                        ${viajero.mail ? `<span>${escapeHtml(viajero.mail)}</span>` : ''}
+                    </div>
+                    <div>
+                        <span class="viajero-badge">${edadTipo}</span>
+                        ${esTitular ? '<span class="viajero-badge titular">Titular</span>' : ''}
+                    </div>
+                </div>
+                <div class="viajero-actions">
+                    ${!esTitular ? `<button type="button" class="btn-viajero-action primary" onclick="marcarComoTitular(${parseInt(viajero.id)})">Marcar titular</button>` : ''}
+                    <button type="button" class="btn-viajero-action danger" onclick="quitarViajeroSeleccionado(${parseInt(viajero.id)})">Quitar</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function mostrarEstadoModalViajero(type, message) {
+    const status = document.getElementById('modal-viajero-status');
+
+    if (!status) {
+        return;
+    }
+
+    status.className = `viajero-status ${type}`;
+    status.textContent = message;
+}
+
+function setInputValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.value = value || '';
+    }
+}
+
+function getInputValue(id) {
+    return document.getElementById(id)?.value?.trim() || '';
+}
+
+function normalizarFechaInput(fecha) {
+    if (!fecha) return '';
+    return String(fecha).substring(0, 10);
+}
+
+function calcularTipoPorEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return 'Edad no definida';
+
+    const birth = new Date(fechaNacimiento);
+    if (isNaN(birth.getTime())) return 'Edad no definida';
+
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+    }
+
+    if (age <= 1) return 'Bebé';
+    if (age <= 11) return 'Niño';
+    return 'Adulto';
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
+function obtenerLimitesViajerosPorPrecio() {
+    const adultosInput = document.querySelector('#precio-form [name="cantidad_adultos"]');
+    const ninosInput = document.querySelector('#precio-form [name="cantidad_ninos"]');
+
+    return {
+        adultos: parseInt(adultosInput?.value || 0),
+        ninos: parseInt(ninosInput?.value || 0)
+    };
+}
+
+function contarViajerosPorTipo() {
+    return viajerosSeleccionados.reduce((acc, viajero) => {
+        const tipo = calcularTipoPorEdad(viajero.fecha_nacimiento);
+
+        if (tipo === 'Niño' || tipo === 'Bebé') {
+            acc.ninos++;
+        } else if (tipo === 'Adulto') {
+            acc.adultos++;
+        }
+
+        return acc;
+    }, { adultos: 0, ninos: 0 });
+}
+
+function validarCupoViajero(viajero) {
+    const limites = obtenerLimitesViajerosPorPrecio();
+    const actuales = contarViajerosPorTipo();
+    const tipo = calcularTipoPorEdad(viajero.fecha_nacimiento);
+
+    const yaExiste = viajerosSeleccionados.some(v => parseInt(v.id) === parseInt(viajero.id));
+    if (yaExiste) return true;
+
+    if (tipo === 'Adulto' && actuales.adultos >= limites.adultos) {
+        showAlert(`Ya agregaste el máximo de adultos permitido: ${limites.adultos}`, 'error');
+        return false;
+    }
+
+    if ((tipo === 'Niño' || tipo === 'Bebé') && actuales.ninos >= limites.ninos) {
+        showAlert(`Ya agregaste el máximo de niños permitido: ${limites.ninos}`, 'error');
+        return false;
+    }
+
+    return true;
+}
+
+//================================================
+// Función ara gaurdar los viajeros y que persistan
+//====================================================
+async function persistirViajerosEnPrograma() {
+    if (!programaId) {
+        return;
+    }
+
+    const form = document.getElementById('programa-form');
+    if (!form) {
+        return;
+    }
+
+    try {
+        const formData = new FormData(form);
+        formData.append('action', 'save_programa');
+
+        if (titularId) {
+            formData.append('titular_id', titularId);
+        }
+
+        viajerosSeleccionados.forEach(viajero => {
+            if (viajero && viajero.id) {
+                formData.append('viajeros_ids[]', viajero.id);
+            }
+        });
+
+        const response = await fetch('<?= APP_URL ?>/modules/programa/api.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showAlert(result.message || 'No se pudieron guardar los viajeros en la solicitud.', 'error');
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error persistiendo viajeros:', error);
+        showAlert('Error guardando los viajeros en la solicitud.', 'error');
+        return false;
+    }
+}
+
+// ============================================================
 // FUNCIÓN PARA GUARDAR PROGRAMA
 // ============================================================
 async function guardarPrograma() {
@@ -5395,6 +6569,16 @@ async function guardarPrograma() {
 
         const formData = new FormData(form);
         formData.append('action', 'save_programa');
+
+        if (titularId) {
+            formData.append('titular_id', titularId);
+        }
+
+        viajerosSeleccionados.forEach(viajero => {
+            if (viajero && viajero.id) {
+                formData.append('viajeros_ids[]', viajero.id);
+            }
+        });
         
         // Debug - verificar que programaId esté definido
         console.log('🔍 Guardando programa. ID actual:', programaId, 'Is editing:', isEditing);

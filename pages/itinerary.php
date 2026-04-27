@@ -563,6 +563,11 @@ if ($programa['fecha_llegada']) {
             list-style: none;
         }
         
+        /* Nueva clase para nivelar menú */
+        .navbar-topmargin{
+            margin-top: 8px;
+        }
+        
         .navbar-nav a {
             color: #2c3e50;
             text-decoration: none;
@@ -619,7 +624,7 @@ if ($programa['fecha_llegada']) {
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
-    padding: 10px 15px;
+    padding: 1px 3px;
     backdrop-filter: blur(15px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     transition: all 0.3s ease;
@@ -731,6 +736,21 @@ if ($programa['fecha_llegada']) {
 
 .goog-te-banner-frame.skiptranslate { 
     display: none !important; 
+}
+
+/*Cambios para selector de menu (desplegable) */
+.VIpgJd-ZVi9od-vH1Gmf{
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    padding: 8px 0 !important;
+}
+
+.VIpgJd-ZVi9od-vH1Gmf-ibnC6b-gk6SMd div {
+    color: #3498db !important;
+}
+
+.VIpgJd-ZVi9od-vH1Gmf-ibnC6b div{
+    color: #2c3e50;
 }
 
 body { 
@@ -3264,20 +3284,19 @@ body {
 </head>
 
 <body>
-    <div class="translate-container">
-        <div id="google_translate_element"></div>
-    </div>
+        
     <!-- Navigation Bar -->
     <nav class="navbar" id="navbar">
         <div class="navbar-content">
             <a href="#" class="navbar-brand"><?= htmlspecialchars($company_name) ?></a>
             <ul class="navbar-nav">
-                <li><a href="#overview">Resumen</a></li>
-                <li><a href="#map">Mapa</a></li>
-                <li><a href="#itinerary">Itinerario</a></li>
-                <?php if ($mostrar_precios): ?>
-                    <li><a href="#pricing">Precios</a></li>
+                <li class="navbar-topmargin"><a href="#overview">Resumen</a></li>
+                <li class="navbar-topmargin"><a href="#map">Mapa</a></li>
+                <li class="navbar-topmargin"><a href="#itinerary">Itinerario</a></li>
+                <?php if ($mostrar_precios): ?> 
+                    <li class="navbar-topmargin"><a href="#pricing">Precios</a></li>
                 <?php endif; ?>
+                <li><div id="google_translate_element"></div></li>
             </ul>
         </div>
     </nav>
