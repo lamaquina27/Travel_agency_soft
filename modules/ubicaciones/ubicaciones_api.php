@@ -24,6 +24,8 @@ class UbicacionesAPI
         try {
             $this->db = Database::getInstance();
             $this->agencia_id = $_SESSION['agencia_id'] ?? null;
+            error_log("DEBUG: Agencia ID detectada en API: " . $this->agencia_id);
+
 
             if (!$this->agencia_id) {
                 throw new Exception('Usuario sin agencia asignada');
@@ -103,9 +105,13 @@ class UbicacionesAPI
         try {
 
             //primero busca en Nominatim de busquedas pasadas
-            $results = $this->searchNominatim($query);
+            $results = $this->searchLocal($query);
             error_log("Nominatim local encontró: " . count($results) . " resultados");
-
+            if (empty($results) || $results[0]['puntaje'] <= 80) {
+                error_log("BD local sin resultados para '$query', usando Nominatim...");
+                $results = $this->searchNominatim($query);
+                error_log("Nominatim encontró: " . count($results) . " resultados");
+            }
             //---------------En caso de que nominatim  no encuentre o no supere un puntaje minimo busca en geoapify--------------------
             if (empty($results) || $results[0]['puntaje'] <= 80) {
                 error_log("Nominatim sin resultados para '$query', usando Geoapify...");
@@ -146,7 +152,7 @@ class UbicacionesAPI
                         uso_count,
                         'local' as source
                     FROM ubicaciones_principales
-                    WHERE (agencia_id = ? OR agencia_id IS NULL)
+                    WHERE (agencia_id = ?)
                       AND (
                           MATCH(nombre, nombre_completo, pais, region) AGAINST(? IN NATURAL LANGUAGE MODE)
                           OR nombre LIKE ?
@@ -157,7 +163,7 @@ class UbicacionesAPI
                         agencia_id DESC,
                         created_at DESC
                     LIMIT 10";
-
+            $puntaje = 0;
             $searchTerm = "%{$query}%";
 
             $results = $this->db->fetchAll($sql, [
@@ -170,10 +176,22 @@ class UbicacionesAPI
             // Formatear resultados para el frontend
             $formatted = [];
             foreach ($results as $result) {
+                $nombre_completo = $result['nombre_completo'] ?? $result['nombre'];
+                //-------------------Comparativas de texto para asignar puntaje ----------------
+                if (strcasecmp($nombre_completo, $query) == 0) {
+                    $puntaje = 100;
+                } elseif (stripos($nombre_completo, $query) !== false) {
+                    $puntaje = 90;
+                } elseif (levenshtein($nombre_completo, $query) > 0 && levenshtein($nombre_completo, $query) <= 5) {
+                    $puntaje = 80;
+                } else {
+                    $puntaje = 0;
+                }
                 $formatted[] = [
                     'id' => $result['id'],
                     'display_name' => $result['nombre_completo'],
                     'name' => $result['nombre'],
+                    'puntaje' => $puntaje,
                     'type' => $result['tipo'],
                     'lat' => (float) $result['latitud'],
                     'lon' => (float) $result['longitud'],
@@ -183,7 +201,9 @@ class UbicacionesAPI
                     'uso_count' => $result['uso_count']
                 ];
             }
-
+            usort($formatted, function ($a, $b) {
+                return $b['puntaje'] <=> $a['puntaje'];
+            });
             return $formatted;
 
         } catch (Exception $e) {
@@ -262,7 +282,7 @@ class UbicacionesAPI
                 }
 
                 $ubicacion = $this->formatNominatimResult($item, $puntaje);
-                $this->saveUbicacionAsync($ubicacion);
+                //$this->saveUbicacionAsync($ubicacion);
                 $formatted[] = $ubicacion;
             }
             //----------------Funcion para organizar el arreglo de ubicaciones, de mayor puntaje a menor ----------------------
@@ -359,7 +379,7 @@ class UbicacionesAPI
                     'source' => 'geoapify'
                 ];
 
-                $this->saveUbicacionAsync($ubicacion);
+                //$this->saveUbicacionAsync($ubicacion);
 
                 $formatted[] = $ubicacion;
             }
@@ -457,7 +477,7 @@ class UbicacionesAPI
                     'source' => 'google'
                 ];
 
-                $this->saveUbicacionAsync($ubicacion);
+                //$this->saveUbicacionAsync($ubicacion);
                 $formatted[] = $ubicacion;
             }
             //----------------Funcion para organizar el arreglo de ubicaciones, de mayor puntaje a menor ----------------------
@@ -566,6 +586,8 @@ class UbicacionesAPI
     /**
      * Guardar ubicación en BD (asíncrono, no bloquea la respuesta)
      */
+
+    //----------------------------EN PRUIEBAS PARA BORRARLA EN UN FUTURO ----------------------------------------
     private function saveUbicacionAsync($ubicacion)
     {
         try {
@@ -657,6 +679,8 @@ class UbicacionesAPI
             ];
 
             $id = $this->db->insert('ubicaciones_principales', $insertData);
+            error_log("DEBUG: Agencia ID detectada en API: " . $this->agencia_id . "lugar : " . $data);
+
 
             return [
                 'success' => true,
