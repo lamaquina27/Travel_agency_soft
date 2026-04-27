@@ -315,8 +315,10 @@ private function eliminarProgramaPrincipal($programa_id) {
         
         // Crear nuevo programa
         $nuevo_programa_data = [
-            'nombre_viajero' => $original['nombre_viajero'],
-            'apellido_viajero' => $original['apellido_viajero'],
+            'nombre' => $original['nombre'],
+            'apellido' => $original['apellido'],
+            'titular_id' => $original['titular_id'], // <- Hereda el titular
+            'comprado' => 0,                         // <- Las copias nacen sin comprar
             'destino' => $original['destino'],
             'fecha_llegada' => $original['fecha_llegada'],
             'fecha_salida' => $original['fecha_salida'],
@@ -329,6 +331,19 @@ private function eliminarProgramaPrincipal($programa_id) {
         ];
         
         $nuevo_programa_id = $this->db->insert('programa_solicitudes', $nuevo_programa_data);
+        // --- DUPLICAR VIAJEROS VINCULADOS ---
+        $viajeros_vinculados = $this->db->fetchAll(
+            "SELECT viajero_id FROM viajeros_solicitud WHERE solicitud_id = ?",
+            [$programa_id] // Buscamos en el viaje viejo
+        );
+            
+        foreach ($viajeros_vinculados as $vinculo) {
+            $this->db->insert('viajeros_solicitud', [
+                'viajero_id' => $vinculo['viajero_id'],
+                'solicitud_id' => $nuevo_programa_id // Insertamos en el viaje nuevo
+            ]);
+        }
+
         error_log("Nuevo programa creado con ID: $nuevo_programa_id");
         
         // Generar ID de solicitud único
@@ -731,8 +746,10 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
             
             // Datos para inserción (basado en estructura real de la DB)
             $data = [
-                'nombre_viajero' => trim($_POST['traveler_name'] ?? ''),
-                'apellido_viajero' => trim($_POST['traveler_lastname'] ?? ''),
+                'nombre' => trim($_POST['traveler_name'] ?? ''),
+                'apellido' => trim($_POST['traveler_lastname'] ?? ''),
+                'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
+                'comprado' => !empty($_POST['comprado']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -747,6 +764,18 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
             error_log("📝 Insertando programa con datos: " . print_r($data, true));
             
             $programa_id = $this->db->insert('programa_solicitudes', $data);
+
+            // --- NUEVO: Vincular viajeros múltiples a la solicitud ---
+            if (!empty($_POST['viajeros_ids']) && is_array($_POST['viajeros_ids'])) {
+                foreach ($_POST['viajeros_ids'] as $v_id) {
+                    $this->db->insert('viajeros_solicitud', [
+                        'viajero_id' => intval($v_id),
+                        'solicitud_id' => $programa_id
+                    ]);
+                }
+            }
+            // ---------------------------------------------------------
+
             
             if (!$programa_id) {
                 throw new Exception('Error al crear el programa en la base de datos');
@@ -833,8 +862,10 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
             
             // ACTUALIZAR solicitud del viajero
             $solicitud_data = [
-                'nombre_viajero' => trim($_POST['traveler_name'] ?? ''),
-                'apellido_viajero' => trim($_POST['traveler_lastname'] ?? ''),
+                'nombre' => trim($_POST['traveler_name'] ?? ''),
+                'apellido' => trim($_POST['traveler_lastname'] ?? ''),
+                'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
+                'comprado' => !empty($_POST['comprado']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -851,6 +882,20 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
                 'id = ?', 
                 [$programa_id]
             );
+
+            // --- ACTUALIZAR VIAJEROS VINCULADOS ---
+            if (isset($_POST['viajeros_ids']) && is_array($_POST['viajeros_ids'])) {
+                // 1. Limpiamos los viajeros anteriores de este viaje
+                $this->db->delete('viajeros_solicitud', 'solicitud_id = ?', [$programa_id]);
+                
+                // 2. Insertamos la nueva lista
+                foreach ($_POST['viajeros_ids'] as $v_id) {
+                    $this->db->insert('viajeros_solicitud', [
+                        'viajero_id' => intval($v_id),
+                        'solicitud_id' => $programa_id
+                    ]);
+                }
+            }
             
             if ($result_solicitud === false) {
                 throw new Exception('Error al actualizar datos del programa');
@@ -1046,6 +1091,19 @@ private function duplicarPrecios($programa_original_id, $nuevo_programa_id) {
             if (!$programa) {
                 throw new Exception('Programa no encontrado');
             }
+            //--Había un bug al no seleccionar de nuevo a los viajeros. se solucionó con este bloque
+            //------------------------ Obtener viajeros vinculados a esta solicitud
+            $viajeros = $this->db->fetchAll(
+                "SELECT v.*
+                FROM viajeros_solicitud vs
+                INNER JOIN viajeros v ON vs.viajero_id = v.id
+                WHERE vs.solicitud_id = ? AND v.agencia_id = ?
+                ORDER BY v.nombre ASC, v.apellido ASC",
+                [$id, $agencia_id]
+            );
+
+            $programa['viajeros'] = $viajeros;
+            $programa['viajeros_ids'] = array_column($viajeros, 'id');
             
             return [
                 'success' => true,

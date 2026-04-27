@@ -81,7 +81,14 @@ foreach ($dias as $dia) {
 
 // Preparar datos para la vista
 $titulo_programa = $programa['titulo_programa'] ?: 'Mi Viaje a ' . $programa['destino'];
-$nombre_viajero = trim($programa['nombre_viajero'] . ' ' . $programa['apellido_viajero']);
+$nombre_viajero = trim(
+    ($programa['nombre'] ?? $programa['nombre_viajero'] ?? '') . ' ' .
+    ($programa['apellido'] ?? $programa['apellido_viajero'] ?? '')
+);
+
+if ($nombre_viajero === '') {
+    $nombre_viajero = 'tu viaje';
+}
 // Normalizar imagen: extraer solo el path si es URL absoluta y reconstruir
 // con APP_URL local. Funciona con BD del hosting o local sin cambios.
 $_foto_raw = $programa['foto_portada'] ?? '';
@@ -94,7 +101,7 @@ if ($_foto_raw) {
 $imagen_portada = $_foto_raw ?: APP_URL . '/assets/images/default-travel.jpg';
 $destino = $programa['destino'];
 $num_dias = $duracion_dias; // Usar la duración calculada en lugar del conteo
-$num_pasajeros = $programa['numero_pasajeros'];
+$num_pasajeros = (int)($programa['numero_pasajeros'] ?? 1);
 
 
 // Si no hay días en el programa, usar el conteo de días

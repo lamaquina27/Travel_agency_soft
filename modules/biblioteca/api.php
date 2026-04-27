@@ -75,11 +75,34 @@ class BibliotecaAPI
                         $result['data']['ubicaciones_secundarias'] = $ubicaciones_secundarias;
                         error_log("Ubicaciones secundarias cargadas: " . count($ubicaciones_secundarias));
                     }
+
+                    // AGREGAR: Cargar acomodaciones para alojamientos
+                    if ($_GET['type'] === 'alojamientos' && isset($result['data']['id'])) {
+                        $acomodaciones = $this->db->fetchAll(
+                            "SELECT id, tipo_acomodacion, descripcion, acomodacion 
+                             FROM acomodaciones 
+                             WHERE hotel_id = ?
+                             ORDER BY acomodacion ASC, tipo_acomodacion ASC",
+                            [$result['data']['id']]
+                        );
+                        $result['data']['acomodaciones'] = $acomodaciones;
+                    }
                     break;
 
                 case 'get_ubicaciones_secundarias':
                     $result = $this->getUbicacionesSecundarias($_GET['dia_id']);
                     break;
+
+                case 'get_acomodaciones':
+                    $hotel_id = (int) ($_GET['hotel_id'] ?? $_POST['hotel_id'] ?? 0);
+                    $result = $this->getAcomodaciones($hotel_id);
+                    break;
+
+                case 'create_acomodacion':
+                    $result = $this->createAcomodacion();
+                    break;
+
+
                 case 'get_plantilla_precios':
                     $result = $this->getPlantillaPrecios();
                     break;
@@ -230,6 +253,11 @@ class BibliotecaAPI
                 $this->processUbicacionesSecundarias($id, $_POST);
             }
 
+            // PROCESAR ACOMODACIONES (SOLO PARA ALOJAMIENTOS)
+            if ($type === 'alojamientos') {
+                $this->processAcomodaciones($id, $_POST);
+            }
+
             // AHORA procesar imágenes con el ID válido
             $imageUrls = $this->processImages($type, $id);
 
@@ -241,7 +269,7 @@ class BibliotecaAPI
                 error_log("Update result for images: " . $updateResult);
             }
 
-            return ['success' => true, 'id' => $id, 'message' => 'Recurso creado correctamente', "data" => $data];
+            return ['success' => true, 'id' => $id, 'message' => 'Recurso creado correctamente'];
 
         } catch (Exception $e) {
             error_log("Create error: " . $e->getMessage());
@@ -295,6 +323,11 @@ class BibliotecaAPI
             // PROCESAR UBICACIONES SECUNDARIAS (SOLO PARA DÍAS)
             if ($type === 'dias') {
                 $this->processUbicacionesSecundarias($id, $_POST);
+            }
+
+            // PROCESAR ACOMODACIONES (SOLO PARA ALOJAMIENTOS)
+            if ($type === 'alojamientos') {
+                $this->processAcomodaciones($id, $_POST);
             }
 
             // Procesar imágenes nuevas
@@ -697,6 +730,154 @@ class BibliotecaAPI
             // No lanzamos excepción para no interrumpir el flujo principal
         }
     }
+    private function processAcomodaciones($hotelId, $postData)
+    {
+        try {
+            error_log("=== PROCESANDO ACOMODACIONES ===");
+
+            // 1. Limpiar las viejas acomodaciones del hotel (Borrar y reescribir)
+            $this->db->query("DELETE FROM acomodaciones WHERE hotel_id = ?", [$hotelId]);
+
+            // 2. Insertar las nuevas (El frontend enviará arreglos 'tipos_acomodacion' y 'valores_acomodacion')
+            if (isset($postData['tipos_acomodacion']) && is_array($postData['tipos_acomodacion'])) {
+                $tipos = $postData['tipos_acomodacion'];
+                $valores = $postData['valores_acomodacion'] ?? [];
+
+                foreach ($tipos as $index => $tipo) {
+                    $tipo = trim($tipo);
+                    $valor = isset($valores[$index]) ? intval($valores[$index]) : 1;
+
+                    if (!empty($tipo)) {
+                        $this->db->insert('acomodaciones', [
+                            'hotel_id' => $hotelId,
+                            'tipo_acomodacion' => $tipo,
+                            'acomodacion' => $valor
+                        ]);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log("❌ Error procesando acomodaciones: " . $e->getMessage());
+        }
+    }
+
+
+    private function getAcomodaciones($hotelId)
+    {
+        $hotelId = (int) $hotelId;
+
+        if ($hotelId <= 0) {
+            throw new Exception('ID de alojamiento requerido');
+        }
+
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $hotel = $this->db->fetch(
+            "SELECT id FROM biblioteca_alojamientos 
+             WHERE id = ? 
+             AND agencia_id = ?",
+            [$hotelId, $agencia_id]
+        );
+
+        if (!$hotel) {
+            throw new Exception('Alojamiento no encontrado o sin permisos');
+        }
+
+        $acomodaciones = $this->db->fetchAll(
+            "SELECT id, tipo_acomodacion, descripcion, acomodacion
+            FROM acomodaciones
+            WHERE hotel_id = ?
+            ORDER BY acomodacion ASC, tipo_acomodacion ASC",
+            [$hotelId]
+        );
+
+        return [
+            'success' => true,
+            'data' => $acomodaciones
+        ];
+    }
+
+    private function createAcomodacion()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $hotel_id = (int) ($_POST['hotel_id'] ?? 0);
+        $tipo_acomodacion = trim($_POST['tipo_acomodacion'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        $acomodacion = (int) ($_POST['acomodacion'] ?? 1);
+
+        if ($hotel_id <= 0) {
+            throw new Exception('ID de alojamiento requerido');
+        }
+
+        if ($tipo_acomodacion === '') {
+            throw new Exception('El tipo de acomodación es obligatorio');
+        }
+
+        if ($acomodacion < 1) {
+            $acomodacion = 1;
+        }
+
+        $hotel = $this->db->fetch(
+            "SELECT id FROM biblioteca_alojamientos 
+             WHERE id = ? 
+             AND agencia_id = ?",
+            [$hotel_id, $agencia_id]
+        );
+
+        if (!$hotel) {
+            throw new Exception('Alojamiento no encontrado o sin permisos');
+        }
+
+        $existente = $this->db->fetch(
+            "SELECT id, tipo_acomodacion, descripcion, acomodacion
+            FROM acomodaciones
+            WHERE hotel_id = ?
+            AND tipo_acomodacion = ?
+            AND acomodacion = ?
+            LIMIT 1",
+            [$hotel_id, $tipo_acomodacion, $acomodacion]
+        );
+
+        if ($existente) {
+            return [
+                'success' => true,
+                'already_exists' => true,
+                'data' => $existente,
+                'message' => 'La acomodación ya existía para este alojamiento'
+            ];
+        }
+
+        $id = $this->db->insert('acomodaciones', [
+            'hotel_id' => $hotel_id,
+            'tipo_acomodacion' => $tipo_acomodacion,
+            'descripcion' => $descripcion ?: null,
+            'acomodacion' => $acomodacion
+        ]);
+
+        $acomodacionData = $this->db->fetch(
+            "SELECT id, tipo_acomodacion, descripcion, acomodacion
+            FROM acomodaciones
+            WHERE id = ?",
+            [$id]
+        );
+
+        return [
+            'success' => true,
+            'id' => $id,
+            'data' => $acomodacionData,
+            'message' => 'Acomodación creada correctamente'
+        ];
+    }
+
     /**
      * Obtener la plantilla de precios de la agencia
      */
