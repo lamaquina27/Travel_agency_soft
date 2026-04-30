@@ -232,6 +232,15 @@ class TravelAgencyAPI {
     async getStatistics() {
         return this.request('/admin/api?action=statistics');
     }
+    // API de Bonos
+    async getBonoDatos(programa_id) {
+        const params = new URLSearchParams({
+            action: 'get',
+            'programa_id':programa_id
+        });
+        
+        return this.request(`/modules/bonos/api?${params}`);
+    }
 }
 
 // Instancia global de la API
