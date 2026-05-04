@@ -20,10 +20,7 @@ CREATE TABLE `vuelos_dias` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `codigo_vuelo_id` int(11) NOT NULL,
   `programa_dias_id` int(11) NOT NULL,
+  `orden` int(11) NOT NULL DEFAULT 1 COMMENT 'Orden de prioridad: 1=principal, 2=secundario...',
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_vuelo_dia` (`codigo_vuelo_id`, `programa_dias_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabla intermedia: asigna un código de vuelo a un día de programa';
-
-ALTER TABLE `programa_dias`
-  ADD COLUMN `vuelo_id` int(11) NULL
-    AFTER `fecha_dia`;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabla intermedia: asigna códigos de vuelo a días de programa';
