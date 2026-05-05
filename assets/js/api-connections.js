@@ -241,6 +241,48 @@ class TravelAgencyAPI {
         
         return this.request(`/modules/bonos/api?${params}`);
     }
+
+    // API de Vuelos
+    async previewVuelo(codigo_vuelo, programa_dias_id) {
+        return this.request('/modules/vuelos/api.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'preview',
+                codigo_vuelo,
+                programa_dias_id
+            })
+        });
+    }
+
+    async saveVuelo(codigo_vuelo, programa_dias_id) {
+        return this.request('/modules/vuelos/api.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save',
+                codigo_vuelo,
+                programa_dias_id
+            })
+        });
+    }
+
+    async getVuelos(programa_dias_id) {
+        const params = new URLSearchParams({
+            action: 'get',
+            programa_dias_id
+        });
+
+        return this.request(`/modules/vuelos/api.php?${params}`);
+    }
+
+    async deleteVuelo(vuelo_dia_id) {
+        return this.request('/modules/vuelos/api.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'delete',
+                vuelo_dia_id
+            })
+        });
+    }
 }
 
 // Instancia global de la API

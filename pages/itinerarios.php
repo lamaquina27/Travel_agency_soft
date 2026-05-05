@@ -1564,6 +1564,7 @@ function crearDesdeCeroRapido() {
                                 <i class="fas fa-eye"></i>
                                 Ver
                             </button>
+                            
                             <button onclick="event.stopPropagation(); copiarPrograma(${programa.id})" class="btn-sm btn-primary-sm">
                                 <i class="fas fa-copy"></i>
                                 Copiar
@@ -1584,6 +1585,10 @@ function crearDesdeCeroRapido() {
                             <button onclick="event.stopPropagation(); verDetalles(${programa.id})" class="btn-sm btn-outline-sm">
                                 <i class="fas fa-eye"></i>
                                 Ver
+                            </button>
+                            <button class="btn-sm btn-outline-sm" onclick="event.stopPropagation(); abrirBonoReserva(${programa.id})">
+                                <i class="fas fa-file-pdf"></i>
+                                Bono
                             </button>
                             <button onclick="event.stopPropagation(); confirmarEliminacion(${programa.id}, '${(programa.titulo_programa || `Viaje a ${programa.destino}`).replace(/'/g, "\\\'")}')" class="btn-sm btn-danger-sm" title="Eliminar mi programa">
                                 <i class="fas fa-trash"></i>
@@ -2297,6 +2302,16 @@ function abrirEnNuevaVentana(id) {
         });
         
         console.log('✅ Script de itinerarios mejorado cargado completamente');
+
+
+    function abrirBonoReserva(programaId) {
+        if (!programaId) {
+            alert('No se encontró el ID del programa.');
+            return;
+        }
+
+        window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
+    }
         
     </script>
 </body>

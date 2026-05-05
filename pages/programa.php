@@ -147,7 +147,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
    CSS PARA ALTERNATIVAS - AGREGAR AL <style> DE programa.php
    ============================================================ */
 /* Botón compartir enlace - Estilo minimalista */
-.nav-button[onclick*="compartirEnlace"], .nav-button[onclick*="abrirMiBiblioteca"] {
+.nav-button[onclick*="compartirEnlace"], .nav-button[onclick*="abrirMiBiblioteca"], .nav-button[onclick*="abrirBonoReservaPrograma"] {
     background: rgba(107, 114, 128, 0.08) !important;
     color: #374151 !important;
     border: none !important;
@@ -165,24 +165,24 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     gap: 8px !important;
 }
 
-.nav-button[onclick*="compartirEnlace"]:hover, .nav-button[onclick*="abrirMiBiblioteca"]:hover {
+.nav-button[onclick*="compartirEnlace"]:hover, .nav-button[onclick*="abrirMiBiblioteca"]:hover, .nav-button[onclick*="abrirBonoReservaPrograma"]:hover {
     background: rgba(107, 114, 128, 0.12) !important;
     color: #1f2937 !important;
     transform: translateY(-0.5px) !important;
     box-shadow: 0 2px 8px rgba(107, 114, 128, 0.15) !important;
 }
 
-.nav-button[onclick*="compartirEnlace"]:active, .nav-button[onclick*="abrirMiBiblioteca"]:active {
+.nav-button[onclick*="compartirEnlace"]:active, .nav-button[onclick*="abrirMiBiblioteca"]:active, .nav-button[onclick*="abrirBonoReservaPrograma"]:active {
     transform: translateY(0) !important;
     background: rgba(107, 114, 128, 0.15) !important;
 }
 
-.nav-button[onclick*="compartirEnlace"] i, .nav-button[onclick*="abrirMiBiblioteca"] i {
+.nav-button[onclick*="compartirEnlace"] i, .nav-button[onclick*="abrirMiBiblioteca"] i, .nav-button[onclick*="abrirBonoReservaPrograma"] i {
     color: inherit !important;
     font-size: 12px !important;
 }
 
-.nav-button[onclick*="compartirEnlace"] span, .nav-button[onclick*="abrirMiBiblioteca"] span {
+.nav-button[onclick*="compartirEnlace"] span, .nav-button[onclick*="abrirMiBiblioteca"] span, .nav-button[onclick*="abrirBonoReservaPrograma"] span {
     color: inherit !important;
 }
 
@@ -213,6 +213,21 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     }
     
     .nav-button[onclick*="abrirMiBiblioteca"] i {
+        margin-right: 0 !important;
+    }
+
+
+    .nav-button[onclick*="abrirBonoReservaPrograma"] {
+        padding: 10px 16px !important;
+        font-size: 12px !important;
+        margin-left: 10px !important;
+    }
+    
+    .nav-button[onclick*="abrirBonoReservaPrograma"] span {
+        display: none !important;
+    }
+    
+    .nav-button[onclick*="abrirBonoReservaPrograma"] i {
         margin-right: 0 !important;
     }
 }
@@ -3122,7 +3137,8 @@ textarea.form-control {
 .programa-no-guardado .tab-item[data-tab="precio"],
 .programa-no-guardado .tab-item[data-tab="viajeros"],
 .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"],
-.programa-no-guardado .nav-button[onclick*="compartirEnlace"] {
+.programa-no-guardado .nav-button[onclick*="compartirEnlace"],
+.programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"] {
     opacity: 0.3;
     pointer-events: none;
     position: relative;
@@ -3132,7 +3148,8 @@ textarea.form-control {
 .programa-no-guardado .tab-item[data-tab="precio"]::after,
 .programa-no-guardado .tab-item[data-tab="viajeros"]::after,
 .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"]::after,
-.programa-no-guardado .nav-button[onclick*="compartirEnlace"]::after {
+.programa-no-guardado .nav-button[onclick*="compartirEnlace"]::after,
+.programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"]::after {
     content: "🔒";
     position: absolute;
     top: 5px;
@@ -4202,7 +4219,14 @@ textarea.form-control {
             <i class="fas fa-share-alt"></i>
             <span>Compartir Enlace</span>
         </button>
-        <!-- NUEVO BOTÓN MI BIBLIOTECA - Mismo estilo que Compartir Enlace -->
+
+        <?php if ($is_editing): ?>
+        <button type="button" class="nav-button" onclick="abrirBonoReservaPrograma()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <i class="fas fa-file-pdf"></i>
+            <span>Bono reserva</span>
+        </button>
+        <?php endif; ?>
+
         <button type="button" class="nav-button" onclick="abrirMiBiblioteca()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <i class="fas fa-book"></i>
             <span>Mi Biblioteca</span>
@@ -12260,6 +12284,18 @@ function abrirCrearAcomodacionDesdeEditor() {
 
         modal.style.display = 'flex';
     }
+}
+
+
+function abrirBonoReservaPrograma() {
+    const programaId = <?= $is_editing ? (int)$programa_id : 'null' ?>;
+
+    if (!programaId) {
+        alert('Primero debes guardar el programa para generar el bono.');
+        return;
+    }
+
+    window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
 }
 
 </script>

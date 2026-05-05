@@ -3479,6 +3479,16 @@ body {
                             <div class="detail-info">
                                 <h4><?= $total_alojamientos ?> Alojamientos</h4>
                                 <p>Hospedaje confortable y bien ubicado</p>
+
+                                <?php if (!$is_public): ?>
+                                    <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int)$programa_id ?>"
+                                    target="_blank"
+                                    class="btn btn-outline"
+                                    style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px;">
+                                        <i class="fas fa-file-pdf"></i>
+                                        Bono hotelero
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -4175,6 +4185,17 @@ body {
                     <i class="fas fa-download"></i>
                     Descargar PDF
                 </a>
+            
+                <?php if (!empty($programa_id)): ?>
+                <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int)$programa_id ?>" 
+                class="btn btn-outline" 
+                target="_blank">
+                    <i class="fas fa-file-pdf"></i>
+                    Bono hotelero
+                </a>
+                <?php endif; ?>
+
+
             </div>
             
             <div class="footer-bottom">
