@@ -4877,16 +4877,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                                 </div>
                             <?php endif; ?>
                             
-                            <?php if (!empty($dia['servicios'])): ?>
-                            <h4 style="margin-bottom: 20px; color: var(--brand-text); font-size: 1.2rem; font-weight: 600;">
-                                <i class="fas fa-list-ul"></i> Servicios incluidos
-                                <?php if ($duracion > 1): ?>
-                                    <span style="font-size: 0.8rem; color: var(--brand-muted); font-weight: normal;">
-                                        (Disponibles durante <?= $duracion ?> días)
-                                    </span>
-                                <?php endif; ?>
-                            </h4>
-                            
+
                             <?php
                             $vuelos_dia = $db->fetchAll("
                                 SELECT 
@@ -4908,6 +4899,18 @@ svg, svg path, .fa, .fas, .far, .fab {
                                 ORDER BY vd.orden ASC
                             ", [$dia['id']]);
                             ?>
+
+                            <?php if (!empty($dia['servicios']) || !empty($vuelos_dia)): ?>
+                            <h4 style="margin-bottom: 20px; color: var(--brand-text); font-size: 1.2rem; font-weight: 600;">
+                                <i class="fas fa-list-ul"></i> Servicios incluidos
+                                <?php if ($duracion > 1): ?>
+                                    <span style="font-size: 0.8rem; color: var(--brand-muted); font-weight: normal;">
+                                        (Disponibles durante <?= $duracion ?> días)
+                                    </span>
+                                <?php endif; ?>
+                            </h4>
+                            
+                            
 
                             <?php if (!empty($vuelos_dia)): ?>
                             <section class="day-flights-section">

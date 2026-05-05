@@ -248,7 +248,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
 .service-group:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-color: var(--primary-color);
+    border-color: #2d5a4a;
 }
 
 /* Servicio principal */
@@ -265,7 +265,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     top: 0;
     bottom: 0;
     width: 4px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #2d5a4a 0%, #4a7c59 100%);
 }
 
 /* Container de alternativas */
@@ -294,7 +294,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     top: 0;
     bottom: 0;
     width: 2px;
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
 }
 
 /* Conector visual para alternativas */
@@ -304,7 +304,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     top: 20px;
     width: 20px;
     height: 2px;
-    background: linear-gradient(90deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(90deg, #17a2b8 0%, #20c997 100%);
 }
 
 .alternative-connector::before {
@@ -314,7 +314,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     top: -2px;
     width: 6px;
     height: 6px;
-    background: var(--secondary-color);
+    background: #17a2b8;
     border-radius: 50%;
 }
 /* ============================================================
@@ -414,8 +414,8 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     border-radius: 16px;
     border: 2px solid #e9ecef;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    position: relative;
     overflow: hidden;
-    max-width: 50%;
 }
 
 .day-controls-detail::before {
@@ -425,6 +425,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     left: 0;
     right: 0;
     height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
     background-size: 200% 100%;
     animation: shimmer 3s ease-in-out infinite;
 }
@@ -455,7 +456,8 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     font-weight: 800;
     min-width: 50px;
     border-radius: 12px;
-    color: #000;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     border: none;
 }
@@ -464,7 +466,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 .duration-badge {
     display: inline-flex;
     align-items: center;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
     padding: 2px 8px;
     border-radius: 8px;
@@ -537,7 +539,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     right: 4px;
     width: 8px;
     height: 8px;
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     border-radius: 50%;
     box-shadow: 0 0 0 2px white, 0 2px 4px rgba(245, 158, 11, 0.4);
     animation: glow 2s ease-in-out infinite alternate;
@@ -612,14 +614,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 }
 /* Iconos de servicios alternativas */
 .service-icon.alternativa {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
     border: 2px solid white;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Botón para agregar alternativa */
 .btn-add-alternative {
-    background: linear-gradient(135deg, #28a745 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
     border: none;
     border-radius: 4px;
@@ -672,7 +674,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 }
 
 .service-badge.alternativa {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
     color: white;
 }
 
@@ -693,7 +695,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     position: absolute;
     top: 8px;
     right: 50px;
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
     color: white;
     font-size: 10px;
     padding: 2px 6px;
@@ -718,7 +720,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     top: 60px;
     bottom: 20px;
     width: 1px;
-    background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--secondary-color) 100%);
+    background: linear-gradient(180deg, #2d5a4a 0%, #17a2b8 50%, #20c997 100%);
     z-index: 1;
 }
 
@@ -841,7 +843,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
 .add-day-btn {
     padding: 8px 16px;
-    background: var(--primary-color);
+    background: #2d5a4a;
     color: white;
     border: none;
     border-radius: 6px;
@@ -1015,7 +1017,9 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 .day-detail-header {
     padding: 24px;
     border-bottom: 1px solid #e0e0e0;
-    color: #000;
+    background: linear-gradient(135deg, #2d5a4a 0%, #4a7c59 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
 }
 
 .day-detail-number {
@@ -1030,29 +1034,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     margin-bottom: 8px;
 }
 
-.day-flexy{
-    display: flex !important;
-     align-items: center;     /* alinea verticalmente */
-    gap: 24px;               /* espacio entre elementos */
-    flex-wrap: nowrap;
-}
-
-.day-flexy2{
-    display: block !important;
-     align-items: center;
-}
-
-.day-fecha{
-    display: flex !important;
-    font-size: 14px;
-    padding: 2px;
-    opacity: 0.9;
-}
-
 .day-detail-meta {
-    display: flex !important;
+    display: flex;
+    gap: 20px;
     font-size: 14px;
-    padding: 2px;
     opacity: 0.9;
 }
 
@@ -1171,7 +1156,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .top-nav {
-            background-color: var(--primary-color);
+            background-color: #2d5a4a;
             color: white;
             padding: 12px 20px;
             display: flex;
@@ -1221,7 +1206,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
 #request-id-group .form-text i {
     margin-right: 0.25rem;
-    color: var(--primary-color);
+    color: #007bff;
 }
 
 /* Animación de aparición */
@@ -1243,7 +1228,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .top-nav .user-avatar {
             width: 32px;
             height: 32px;
-            background-color: var(--secondary-color);
+            background-color: #4a7c59;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -1280,12 +1265,12 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .tab-item.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
+            color: #2d5a4a;
+            border-bottom-color: #2d5a4a;
         }
         
         .tab-item:hover:not(.active) {
-            color: var(--primary-color);
+            color: #2d5a4a;
             background-color: #f8f9fa;
         }
         
@@ -1538,7 +1523,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         
         .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: #2d5a4a;
             box-shadow: 0 0 0 3px rgba(45, 90, 74, 0.1);
         }
         
@@ -1556,7 +1541,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .btn-primary {
-            background-color: var(--primary-color);
+            background-color: #2d5a4a;
             color: white;
         }
         
@@ -1572,12 +1557,12 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         
         .btn-outline {
             background-color: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
+            color: #2d5a4a;
+            border: 2px solid #2d5a4a;
         }
         
         .btn-outline:hover {
-            background-color: var(--primary-color);
+            background-color: #2d5a4a;
             color: white;
         }
         
@@ -1597,13 +1582,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .day-card:hover {
-            border-color: var(--primary-color);
+            border-color: #2d5a4a;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             transform: translateY(-2px);
         }
         
         .day-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #2d5a4a 0%, #4a7c59 100%);
             color: white;
             padding: 20px;
             display: flex;
@@ -1834,9 +1819,9 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .service-btn:hover {
-            background: var(--primary-color);
+            background: #2d5a4a;
             color: white;
-            border-color: var(--primary-color);
+            border-color: #2d5a4a;
             transform: translateY(-2px);
         }
         
@@ -1941,7 +1926,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .service-icon.transporte {
-            background: var(--primary-color);
+            background: #007bff;
         }
         
         .service-icon.alojamiento {
@@ -2041,13 +2026,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
         
         .biblioteca-item:hover {
-            border-color: var(--primary-color);
+            border-color: #2d5a4a;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             transform: translateY(-3px);
         }
         
         .biblioteca-item.selected {
-            border-color: var(--primary-color);
+            border-color: #2d5a4a;
             background: #f0fff0;
             box-shadow: 0 8px 25px rgba(45, 90, 74, 0.3);
         }
@@ -2115,7 +2100,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     position: absolute;
     top: 12px;
     left: 12px;
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
     width: 32px;
     height: 32px;
@@ -2276,7 +2261,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             font-size: 24px;
             font-weight: 600;
             text-align: center;
-            color: var(--primary-color);
+            color: #2d5a4a;
         }
         
         /* Preview panel */
@@ -2363,12 +2348,12 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
 
         .alert-success {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
         }
 
         .alert-error {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
         }
 
@@ -3198,11 +3183,11 @@ textarea.form-control {
 }
 
 .toast.success {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
 }
 
 .toast.error {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 /* Contenedor para input con contador */
 .input-with-counter {
@@ -3227,13 +3212,13 @@ textarea.form-control {
 
 /* Cuando se acerca al límite */
 .char-counter.warning {
-    color: var(--secondary-color);
+    color: #f59e0b;
     background: rgba(252, 211, 77, 0.1);
 }
 
 /* Cuando llega al límite */
 .char-counter.danger {
-    color: var(--primary-color);
+    color: #ef4444;
     background: rgba(254, 226, 226, 0.9);
 }
 
@@ -3268,15 +3253,15 @@ textarea.form-control {
 
 /* Estados del archivo */
 .file-info.valid {
-    color: var(--primary-color);
+    color: #10b981;
 }
 
 .file-info.invalid {
-    color: var(--primary-color);
+    color: #ef4444;
 }
 
 .file-info.warning {
-    color: var(--secondary-color);
+    color: #f59e0b;
 }
 
 /* Input de archivo mejorado */
@@ -3379,7 +3364,7 @@ textarea.form-control {
 /* Formulario inline general */
 .edit-inline-form {
     background: #fff;
-    border: 2px solid var(--primary-color);
+    border: 2px solid #2d5a4a;
     border-radius: 12px;
     margin: 20px 0;
     padding: 0;
@@ -3400,7 +3385,7 @@ textarea.form-control {
 
 /* Header del formulario */
 .edit-form-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #2d5a4a 0%, #4a7c59 100%);
     color: white;
     padding: 15px 20px;
     border-radius: 10px 10px 0 0;
@@ -3465,7 +3450,7 @@ textarea.form-control {
 
 .edit-form-body .form-control:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: #2d5a4a;
     box-shadow: 0 0 0 3px rgba(45, 90, 74, 0.1);
 }
 
@@ -3590,7 +3575,7 @@ textarea.form-control {
 .btn-change-image {
     width: 100%;
     padding: 8px;
-    background: var(--primary-color);
+    background: #2d5a4a;
     color: white;
     border: none;
     border-radius: 0 0 6px 6px;
@@ -3633,7 +3618,7 @@ textarea.form-control {
 }
 
 .edit-form-actions .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: linear-gradient(135deg, #2d5a4a 0%, #4a7c59 100%);
     color: white;
 }
 
@@ -3683,12 +3668,12 @@ textarea.form-control {
 }
 
 .drop-zone-multiple:hover {
-    border-color: var(--primary-color) !important;
+    border-color: #10b981 !important;
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
 }
 
 .drop-zone-multiple.drag-over {
-    border-color: var(--primary-color) !important;
+    border-color: #10b981 !important;
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
     transform: scale(1.02);
 }
@@ -3720,7 +3705,7 @@ textarea.form-control {
 }
 
 .drop-zone-multiple:hover {
-    border-color: var(--primary-color) !important;
+    border-color: #10b981 !important;
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
 }
 
@@ -3983,7 +3968,7 @@ textarea.form-control {
 
 .btn-viajero-action.danger {
     background: #fee2e2;
-    color: var(--primary-color);
+    color: #991b1b;
 }
 
 .btn-viajero-action:hover {
@@ -4077,7 +4062,7 @@ textarea.form-control {
 .viajero-status.error {
     display: block;
     background: #fef2f2;
-    color: var(--primary-color);
+    color: #b91c1c;
     border: 1px solid #fecaca;
 }
 
@@ -4310,7 +4295,7 @@ textarea.form-control {
     border: none;
     border-radius: 9px;
     padding: 9px 12px;
-    background: var(--primary-color);
+    background: #10b981;
     color: white;
     font-weight: 700;
     cursor: pointer;
@@ -4369,7 +4354,7 @@ textarea.form-control {
 .flight-delete-btn {
     border: none;
     background: #fee2e2;
-    color: var(--primary-color);
+    color: #991b1b;
     width: 30px;
     height: 30px;
     border-radius: 8px;
@@ -4394,400 +4379,6 @@ textarea.form-control {
     .flight-confirm-btn {
         width: 100%;
     }
-}
-
-    
-
-/* ============================================================
-   REDISEÑO LIMPIO DEL PANEL PROGRAMA
-   Usa únicamente la paleta configurada por la agencia + neutros.
-   No cambia IDs, names, endpoints ni funciones JS existentes.
-============================================================ */
-:root {
-    --brand-primary-soft: color-mix(in srgb, var(--primary-color) 10%, white);
-    --brand-primary-softer: color-mix(in srgb, var(--primary-color) 5%, white);
-    --brand-secondary-soft: color-mix(in srgb, var(--secondary-color) 12%, white);
-    --brand-border: color-mix(in srgb, var(--primary-color) 16%, #e5e7eb);
-    --brand-shadow: 0 18px 45px rgba(15, 23, 42, .07);
-    --brand-shadow-soft: 0 8px 24px rgba(15, 23, 42, .055);
-    --panel-bg: #f7f8fb;
-    --panel-card: #ffffff;
-    --panel-text: #182033;
-    --panel-muted: #6b7280;
-    --panel-line: #e9edf3;
-    --panel-radius: 20px;
-}
-
-body {
-    background: var(--panel-bg) !important;
-    color: var(--panel-text) !important;
-}
-
-.main-container {
-    background:
-        radial-gradient(circle at top left, var(--brand-primary-soft), transparent 34%),
-        linear-gradient(180deg, #fbfcfe 0%, var(--panel-bg) 100%) !important;
-    padding: 28px 28px 56px !important;
-    min-height: calc(100vh - 70px) !important;
-}
-
-.form-section {
-    width: min(1480px, 100%) !important;
-    margin: 0 auto !important;
-}
-
-.tab-navigation {
-    background: rgba(255,255,255,.92) !important;
-    border-bottom: 1px solid var(--panel-line) !important;
-    backdrop-filter: blur(14px) !important;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, .04) !important;
-}
-
-.tab-nav {
-    max-width: 1480px !important;
-    gap: 8px !important;
-    align-items: center !important;
-    padding: 10px 20px !important;
-    overflow-x: auto !important;
-    scrollbar-width: thin !important;
-}
-
-.tab-item,
-.nav-button {
-    min-height: 42px !important;
-    border-radius: 999px !important;
-    border: 1px solid transparent !important;
-    background: transparent !important;
-    color: var(--panel-muted) !important;
-    padding: 10px 16px !important;
-    font-size: 13px !important;
-    font-weight: 650 !important;
-    letter-spacing: 0 !important;
-    text-transform: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    white-space: nowrap !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-}
-
-.tab-item:hover,
-.nav-button:hover {
-    background: var(--brand-primary-softer) !important;
-    border-color: var(--brand-border) !important;
-    color: var(--primary-color) !important;
-    transform: none !important;
-}
-
-.tab-item.active {
-    background: var(--primary-gradient) !important;
-    color: #fff !important;
-    border-color: transparent !important;
-    box-shadow: 0 10px 24px color-mix(in srgb, var(--primary-color) 24%, transparent) !important;
-}
-
-.tab-item.active i,
-.nav-button i { color: inherit !important; }
-
-.nav-button[onclick*="compartirEnlace"],
-.nav-button[onclick*="abrirMiBiblioteca"],
-.nav-button[onclick*="abrirBonoReservaPrograma"] {
-    background: #fff !important;
-    color: var(--primary-color) !important;
-    border: 1px solid var(--brand-border) !important;
-    box-shadow: 0 6px 18px rgba(15,23,42,.045) !important;
-}
-
-.nav-button[onclick*="compartirEnlace"]:hover,
-.nav-button[onclick*="abrirMiBiblioteca"]:hover,
-.nav-button[onclick*="abrirBonoReservaPrograma"]:hover {
-    background: var(--brand-primary-soft) !important;
-    color: var(--primary-color) !important;
-}
-
-.section-card,
-.viajeros-summary-card,
-.acomodaciones-selector-card,
-.flights-section,
-.price-visibility-setting,
-.readonly-hotel-box,
-.titular-summary-box,
-.viajero-row,
-.day-card,
-.service-card,
-.price-card,
-.modal-content {
-    background: var(--panel-card) !important;
-    border: 1px solid var(--panel-line) !important;
-    border-radius: var(--panel-radius) !important;
-    box-shadow: var(--brand-shadow-soft) !important;
-}
-
-.section-card {
-    overflow: hidden !important;
-    margin-bottom: 22px !important;
-    transition: border-color .2s ease, box-shadow .2s ease !important;
-}
-
-.section-card:hover {
-    transform: none !important;
-    border-color: var(--brand-border) !important;
-    box-shadow: var(--brand-shadow) !important;
-}
-
-.section-header,
-.section-header.collapsed {
-    background: #fff !important;
-    color: var(--panel-text) !important;
-    padding: 22px 28px !important;
-    border-bottom: 1px solid var(--panel-line) !important;
-    cursor: pointer !important;
-    box-shadow: none !important;
-}
-
-.section-header:hover {
-    background: var(--brand-primary-softer) !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-.section-title,
-.section-header.collapsed .section-title {
-    color: var(--panel-text) !important;
-    font-size: 20px !important;
-    font-weight: 750 !important;
-    letter-spacing: -.02em !important;
-    gap: 12px !important;
-    text-shadow: none !important;
-    animation: none !important;
-}
-
-.section-title i,
-.section-header.collapsed .section-title i {
-    width: 38px !important;
-    height: 38px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 12px !important;
-    background: var(--brand-primary-soft) !important;
-    color: var(--primary-color) !important;
-    font-size: 16px !important;
-    filter: none !important;
-}
-
-.expand-icon,
-.section-header.collapsed .expand-icon {
-    color: var(--panel-muted) !important;
-    font-size: 14px !important;
-}
-
-.section-body {
-    padding: 28px !important;
-    background: #fff !important;
-    border-top: 0 !important;
-}
-
-.section-body::before,
-.section-header::before,
-.form-label::before,
-.btn::before { display: none !important; }
-
-.form-row {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-    gap: 18px !important;
-    margin-bottom: 0 !important;
-}
-
-.form-group {
-    margin-bottom: 18px !important;
-}
-
-.form-label,
-.acomodaciones-selector-header h4,
-.summary-card-header h4,
-.setting-title {
-    color: var(--panel-text) !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0 !important;
-    text-transform: none !important;
-    margin-bottom: 8px !important;
-}
-
-.form-text,
-.setting-subtitle,
-.summary-card-header p,
-.acomodaciones-selector-header p,
-.file-info,
-.titular-summary-meta,
-.viajero-meta {
-    color: var(--panel-muted) !important;
-}
-
-.form-control,
-select.form-control,
-textarea.form-control,
-input[type="date"].form-control,
-.input-with-counter .form-control,
-.country-code-select {
-    min-height: 46px !important;
-    padding: 11px 14px !important;
-    border: 1px solid var(--panel-line) !important;
-    border-radius: 14px !important;
-    background: #fff !important;
-    color: var(--panel-text) !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    box-shadow: none !important;
-    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
-}
-
-.input-with-counter .form-control { padding-right: 64px !important; }
-
-.form-control:hover:not(:focus) {
-    border-color: var(--brand-border) !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-.form-control:focus,
-.country-code-select:focus {
-    border-color: var(--primary-color) !important;
-    background: #fff !important;
-    box-shadow: 0 0 0 4px var(--brand-primary-soft) !important;
-    transform: none !important;
-    outline: none !important;
-}
-
-#calculated-departure {
-    background: var(--brand-primary-softer) !important;
-    border-color: var(--brand-border) !important;
-    color: var(--panel-muted) !important;
-}
-
-.char-counter {
-    color: var(--panel-muted) !important;
-    background: rgba(255,255,255,.92) !important;
-    border: 1px solid var(--panel-line) !important;
-    border-radius: 999px !important;
-}
-
-.btn,
-.btn-primary,
-.edit-form-actions .btn-primary,
-.file-input::-webkit-file-upload-button,
-button[style*="var(--primary-color)"],
-button[style*="var(--secondary-color)"] {
-    background: var(--primary-gradient) !important;
-    color: #fff !important;
-    border: 1px solid transparent !important;
-    border-radius: 14px !important;
-    padding: 11px 18px !important;
-    min-width: auto !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0 !important;
-    text-transform: none !important;
-    box-shadow: 0 10px 22px color-mix(in srgb, var(--primary-color) 22%, transparent) !important;
-    transform: none !important;
-}
-
-.btn:hover,
-.btn-primary:hover,
-.edit-form-actions .btn-primary:hover {
-    filter: brightness(.98) !important;
-    transform: translateY(-1px) !important;
-}
-
-.btn-secondary,
-.edit-form-actions .btn-secondary,
-.btn-outline,
-.btn-viajero-action.primary,
-.btn-acomodacion {
-    background: var(--brand-primary-soft) !important;
-    color: var(--primary-color) !important;
-    border: 1px solid var(--brand-border) !important;
-    box-shadow: none !important;
-}
-
-.btn-danger,
-.btn-viajero-action.danger,
-.btn-edit-service,
-button[style*="background: var(--primary-color);"][style*="color: white"] {
-    background: var(--brand-secondary-soft) !important;
-    color: var(--secondary-color) !important;
-    border: 1px solid color-mix(in srgb, var(--secondary-color) 22%, white) !important;
-    box-shadow: none !important;
-}
-
-.form-actions {
-    margin: 20px -28px -28px !important;
-    padding: 22px 28px !important;
-    background: #fbfcfe !important;
-    border-top: 1px solid var(--panel-line) !important;
-    text-align: right !important;
-}
-
-.price-visibility-setting,
-.empty-state-inline,
-.empty-viajeros,
-.readonly-hotel-box,
-.titular-summary-box,
-.viajero-row {
-    background: #fbfcfe !important;
-    border-color: var(--panel-line) !important;
-}
-
-.viajero-badge,
-.viajero-badge.titular,
-.viajero-status.success,
-.viajero-status.info,
-.viajero-status.warning,
-.viajero-status.error {
-    background: var(--brand-primary-soft) !important;
-    color: var(--primary-color) !important;
-    border-color: var(--brand-border) !important;
-}
-
-.switch input:checked + .slider,
-.slider {
-    background: var(--primary-gradient) !important;
-}
-
-.drop-zone-multiple:hover,
-.drop-zone-multiple.drag-over {
-    border-color: var(--primary-color) !important;
-    background: var(--brand-primary-softer) !important;
-    transform: none !important;
-}
-
-.modal-header,
-#modal-viajero .modal-header,
-#bibliotecaModal .modal-header,
-#crearDiaModalPrograma .modal-header {
-    background: var(--primary-gradient) !important;
-    color: #fff !important;
-    border: 0 !important;
-}
-
-.toast.success,
-.toast.error {
-    background: var(--primary-gradient) !important;
-    color: #fff !important;
-}
-
-@media (max-width: 768px) {
-    .main-container { padding: 18px 14px 36px !important; }
-    .tab-navigation { top: 64px !important; margin-top: 64px !important; }
-    .tab-nav { padding: 8px 12px !important; }
-    .tab-item, .nav-button { padding: 9px 12px !important; font-size: 12px !important; }
-    .section-header { padding: 18px !important; }
-    .section-body { padding: 18px !important; }
-    .section-title { font-size: 17px !important; }
-    .form-actions { text-align: center !important; }
-    .form-actions .btn { width: 100% !important; margin: 6px 0 !important; justify-content: center !important; }
 }
 
     </style>
@@ -4817,19 +4408,19 @@ button[style*="background: var(--primary-color);"][style*="color: white"] {
         <a href="#" class="tab-item" onclick="abrirVistaPrevia()">
             <i class="fas fa-eye"></i> Vista previa
         </a>
-        <button type="button" class="nav-button" onclick="compartirEnlace()" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+        <button type="button" class="nav-button" onclick="compartirEnlace()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <i class="fas fa-share-alt"></i>
             <span>Compartir Enlace</span>
         </button>
 
         <?php if ($is_editing): ?>
-        <button type="button" class="nav-button" onclick="abrirBonoReservaPrograma()" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+        <button type="button" class="nav-button" onclick="abrirBonoReservaPrograma()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <i class="fas fa-file-pdf"></i>
             <span>Bono reserva</span>
         </button>
         <?php endif; ?>
 
-        <button type="button" class="nav-button" onclick="abrirMiBiblioteca()" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+        <button type="button" class="nav-button" onclick="abrirMiBiblioteca()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <i class="fas fa-book"></i>
             <span>Mi Biblioteca</span>
         </button>
@@ -5607,7 +5198,7 @@ button[style*="background: var(--primary-color);"][style*="color: white"] {
                             align-items: center;
                             gap: 8px;
                             padding: 12px 24px;
-                            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
                             border: none;
                             border-radius: 10px;
                             color: white;
@@ -5664,7 +5255,7 @@ button[style*="background: var(--primary-color);"][style*="color: white"] {
 
 <div id="crearDiaModalPrograma" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 1000px; max-height: 95vh; overflow-y: auto;">
-        <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+        <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
             <h3><i class="fas fa-calendar-plus"></i> Crear Nuevo Día</h3>
             <button class="close-modal" onclick="cerrarModalCrearDiaPrograma()" style="background: rgba(255,255,255,0.2);">&times;</button>
         </div>
@@ -5685,7 +5276,7 @@ button[style*="background: var(--primary-color);"][style*="color: white"] {
 
                 <!-- TÍTULO -->
                 <div class="form-group">
-                    <label>📝 Título <span style="color: var(--primary-color);">*</span></label>
+                    <label>📝 Título <span style="color: #ef4444;">*</span></label>
                     <div style="position: relative;">
                         <input type="text" id="titulo-crear-programa" name="titulo" class="form-control" required 
                                placeholder="Ej: Día en París" maxlength="300" style="padding-right: 80px;">
@@ -5696,7 +5287,7 @@ button[style*="background: var(--primary-color);"][style*="color: white"] {
 
                 <!-- UBICACIÓN PRINCIPAL -->
                 <div class="form-group" style="grid-column: 1 / -1;">
-                    <label>📍 Ubicación Principal <span style="color: var(--primary-color);">*</span></label>
+                    <label>📍 Ubicación Principal <span style="color: #ef4444;">*</span></label>
                     <div style="position: relative;">
                         <input type="text" 
                                id="ubicacion-principal-crear-programa" 
@@ -5756,7 +5347,7 @@ button[style*="background: var(--primary-color);"][style*="color: white"] {
                 <i class="fas fa-times"></i> Cancelar
             </button>
             <button type="button" class="btn btn-success" onclick="guardarDiaEnPrograma()"
-                    style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none;">
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
                 <i class="fas fa-save"></i> Crear y Agregar
             </button>
         </div>
@@ -6061,7 +5652,7 @@ function agregarUbicacionSecundariaPrograma() {
             <div id="preview-sec-${index}-programa"></div>
         </div>
         <button type="button" onclick="eliminarUbicacionSecundariaPrograma(${index})" 
-                style="width: 40px; height: 40px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px;">
+                style="width: 40px; height: 40px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px;">
             ✕
         </button>
     `;
@@ -6143,7 +5734,7 @@ function inicializarSistemaImagenesPrograma() {
         
         ['dragenter', 'dragover'].forEach(e => {
             dropZone.addEventListener(e, () => {
-                dropZone.style.borderColor = 'var(--primary-color)';
+                dropZone.style.borderColor = '#10b981';
                 dropZone.style.background = 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)';
             });
         });
@@ -6212,7 +5803,7 @@ function actualizarPreviewPrograma() {
                     <div style="font-size: 11px; color: #718096;">${(file.size / 1024).toFixed(0)} KB</div>
                 </div>
                 <button onclick="eliminarImagenPrograma(${index})" 
-                        style="position: absolute; top: 8px; right: 8px; background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer;">×</button>
+                        style="position: absolute; top: 8px; right: 8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer;">×</button>
                 <div style="position: absolute; top: 8px; left: 8px; background: rgba(16,185,129,0.9); color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px;">Imagen ${index + 1}</div>
             `;
             container.appendChild(div);
@@ -6276,7 +5867,7 @@ function inicializarContadoresPrograma() {
         titulo.addEventListener('input', function() {
             const count = this.value.length;
             tituloCounter.textContent = `${count}/300`;
-            tituloCounter.style.color = count > 270 ? 'var(--primary-color)' : '#6b7280';
+            tituloCounter.style.color = count > 270 ? '#ef4444' : '#6b7280';
         });
     }
     
@@ -6286,7 +5877,7 @@ function inicializarContadoresPrograma() {
         descripcion.addEventListener('input', function() {
             const count = this.value.length;
             descripcionCounter.textContent = `${count}/3000`;
-            descripcionCounter.style.color = count > 2700 ? 'var(--primary-color)' : '#6b7280';
+            descripcionCounter.style.color = count > 2700 ? '#ef4444' : '#6b7280';
         });
     }
 }
@@ -7910,7 +7501,7 @@ function renderizarDiasBibliotecaGrid(dias) {
                     ` : ''}
                     
                     ${dia.ubicaciones_secundarias && dia.ubicaciones_secundarias.length > 0 ? `
-                        <div style="font-size: 11px; color: var(--primary-color); margin-top: 6px; font-weight: 600;">
+                        <div style="font-size: 11px; color: #10b981; margin-top: 6px; font-weight: 600;">
                             <i class="fas fa-plus"></i> ${dia.ubicaciones_secundarias.length} ubicación(es) adicional(es)
                         </div>
                     ` : ''}
@@ -8081,9 +7672,9 @@ function actualizarContadorSeleccion() {
         if (cantidad === 0) {
             info.innerHTML = '<i class="fas fa-info-circle" style="color: #667eea;"></i> Selecciona uno o más días para agregar';
         } else if (cantidad === 1) {
-            info.innerHTML = `<i class="fas fa-check-circle" style="color: var(--primary-color);"></i> <strong>1 día</strong> seleccionado`;
+            info.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i> <strong>1 día</strong> seleccionado`;
         } else {
-            info.innerHTML = `<i class="fas fa-check-circle" style="color: var(--primary-color);"></i> <strong>${cantidad} días</strong> seleccionados (se agregarán en orden)`;
+            info.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i> <strong>${cantidad} días</strong> seleccionados (se agregarán en orden)`;
         }
     }
 }
@@ -9745,7 +9336,12 @@ function renderizarSidebarDias() {
                         ${duracion > 1 ? '<span class="duration-badge">' + duracion + 'd</span>' : ''}
                     </div>
                     
-                
+                    <!-- CONTROLES DE ESTANCIA -->
+                    <div class="day-controls">
+                        <button class="estancia-btn" onclick="event.stopPropagation(); cambiarEstancia(${dia.id}, ${duracion - 1})" ${duracion <= 1 ? 'disabled' : ''}>➖</button>
+                        <span class="estancia-display">${duracion}</span>
+                        <button class="estancia-btn" onclick="event.stopPropagation(); cambiarEstancia(${dia.id}, ${duracion + 1})" ${duracion >= 30 ? 'disabled' : ''}>➕</button>
+                    </div>
                     
                     <!-- ⭐ BOTONES DE EDITAR Y ELIMINAR AQUÍ -->
                     <div class="day-actions-sidebar">
@@ -10016,7 +9612,6 @@ function renderizarDetalleDia(diaId) {
         <div class="day-detail-header">
             <div class="day-detail-number">${rangoTexto}</div>
             <div class="day-detail-title">${titulo}${duracionTexto}</div>
-            <div class="day-flexy">
             <div class="day-controls-detail">
                 <button class="estancia-btn" onclick="cambiarEstancia(${dia.id}, ${duracion - 1})" 
                         ${duracion <= 1 ? 'disabled' : ''}>➖</button>
@@ -10024,7 +9619,6 @@ function renderizarDetalleDia(diaId) {
                 <button class="estancia-btn" onclick="cambiarEstancia(${dia.id}, ${duracion + 1})" 
                         ${duracion >= 30 ? 'disabled' : ''}>➕</button>
             </div>
-            <div class="day-flexy2">
             <div class="day-detail-meta">
                 <div id="ubicaciones-display-${dia.id}" style="display: flex; flex-direction: column; gap: 8px;">
                     <span>
@@ -10033,14 +9627,12 @@ function renderizarDetalleDia(diaId) {
                     </span>
                     <!-- Las ubicaciones secundarias se cargarán aquí -->
                 </div>
-                </div><div class="day-fecha">
                 ${fechaDia ? `
                     <span style="margin-top: 8px;">
                         <i class="fas fa-calendar"></i> 
                         ${fechaDia}
                     </span>
                 ` : ''}
-            </div></div>
             </div>
         </div>
         
@@ -10180,10 +9772,10 @@ function renderizarDetalleDia(diaId) {
                         <input type="hidden" id="edit-dia-longitud-${diaId}" value="${dia.longitud || ''}">
                         
                         ${dia.ubicacion ? `
-                            <div class="ubicacion-preview" style="margin-top: 8px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 3px solid var(--primary-color); font-size: 12px;">
+                            <div class="ubicacion-preview" style="margin-top: 8px; padding: 10px; background: #f0fdf4; border-radius: 6px; border-left: 3px solid #10b981; font-size: 12px;">
                                 <strong style="color: #065f46;">${dia.ubicacion}</strong>
                                 ${dia.latitud && dia.longitud ? `
-                                    <div style="color: var(--secondary-color); margin-top: 4px;">
+                                    <div style="color: #059669; margin-top: 4px;">
                                         📍 ${parseFloat(dia.latitud).toFixed(6)}, ${parseFloat(dia.longitud).toFixed(6)}
                                     </div>
                                 ` : ''}
@@ -10458,7 +10050,7 @@ async function cambiarEstancia(diaId, nuevaDuracion) {
         // Animación en displays
         displays.forEach(display => {
             display.style.transform = 'scale(1.1)';
-            display.style.background = 'linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-color) 100%)';
+            display.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
         });
         
         const formData = new FormData();
@@ -10482,7 +10074,7 @@ async function cambiarEstancia(diaId, nuevaDuracion) {
         
         // Efecto de celebración
         displays.forEach(display => {
-            display.style.background = 'linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)';
+            display.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
             display.style.transform = 'scale(1.2)';
             setTimeout(() => {
                 display.style.transform = 'scale(1)';
@@ -10816,7 +10408,7 @@ function renderizarAlternativa(alternativa) {
                 </div>
                 <div class="service-details">
                     <h6>
-                        <i class="fas fa-sync-alt" style="color: var(--secondary-color); font-size: 12px; margin-right: 4px;" title="Alternativa"></i>
+                        <i class="fas fa-sync-alt" style="color: #17a2b8; font-size: 12px; margin-right: 4px;" title="Alternativa"></i>
                         Alternativa ${alternativa.orden_alternativa}: ${alternativa.nombre || alternativa.titulo || 'Sin título'}
                     </h6>
                     <p>${getServiceSummary(alternativa)}</p>
@@ -11314,9 +10906,9 @@ function compartirEnlace() {
                 <h3 style="margin-bottom:20px;color:#333;text-align:center;">🔗 Enlaces para Compartir</h3>
                 
                 <div style="margin-bottom:20px;padding:15px;background:#f8f9fa;border-radius:8px;">
-                    <strong style="color:var(--primary-color);">📖 Vista Previa:</strong><br>
+                    <strong style="color:#10b981;">📖 Vista Previa:</strong><br>
                     <input type="text" value="${previewUrl}" readonly style="width:100%;padding:8px;margin:5px 0;border:1px solid #ddd;border-radius:5px;font-size:12px;">
-                    <button onclick="copiarUrl('${previewUrl}')" style="background:var(--primary-color);color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;width:100%;">
+                    <button onclick="copiarUrl('${previewUrl}')" style="background:#10b981;color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;width:100%;">
                         📋 Copiar Enlace Vista Previa
                     </button>
                 </div>
@@ -11349,7 +10941,7 @@ function copiarUrl(url) {
         // Mostrar confirmación temporal
         const confirmacion = document.createElement('div');
         confirmacion.innerHTML = '✅ Enlace copiado!';
-        confirmacion.style.cssText = 'position:fixed;top:20px;right:20px;background:var(--primary-color);color:white;padding:10px 20px;border-radius:8px;z-index:10000;font-weight:bold;';
+        confirmacion.style.cssText = 'position:fixed;top:20px;right:20px;background:#10b981;color:white;padding:10px 20px;border-radius:8px;z-index:10000;font-weight:bold;';
         document.body.appendChild(confirmacion);
         
         setTimeout(() => confirmacion.remove(), 2000);
@@ -12567,7 +12159,7 @@ async function buscarUbicacionNominatim(query, resultsDiv, onSelectCallback) {
     } catch (error) {
         console.error('❌ Error buscando ubicación:', error);
         resultsDiv.innerHTML = `
-            <div style="padding: 12px; text-align: center; color: var(--secondary-color); font-size: 13px;">
+            <div style="padding: 12px; text-align: center; color: #dc2626; font-size: 13px;">
                 <i class="fas fa-exclamation-circle"></i> ${error.message || 'Error al buscar ubicación'}
             </div>
         `;
@@ -13103,7 +12695,7 @@ async function cargarVuelosDia(diaId) {
     } catch (error) {
         console.error('Error cargando vuelos:', error);
         container.innerHTML = `
-            <div class="flight-empty" style="color:var(--primary-color);">
+            <div class="flight-empty" style="color:#b91c1c;">
                 No se pudieron cargar los vuelos.
             </div>
         `;
