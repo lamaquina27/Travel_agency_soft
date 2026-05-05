@@ -3317,6 +3317,275 @@ body {
     color: #6b7280;
 }
 
+.day-flights-section {
+    margin: 24px 0;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.day-flights-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-weight: 800;
+    color: #1f2937;
+    font-size: 16px;
+}
+
+.day-flights-title i {
+    color: var(--primary-color, #667eea);
+}
+
+.day-flights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.day-flight-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--primary-color, #667eea);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.day-flight-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.day-flight-header strong {
+    font-size: 15px;
+    color: #111827;
+}
+
+.day-flight-header span {
+    margin-left: 6px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.day-flight-header small {
+    color: var(--primary-color, #667eea);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.day-flight-route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+.day-flight-route div {
+    flex: 1;
+}
+
+.day-flight-route div:last-child {
+    text-align: right;
+}
+
+.day-flight-route strong {
+    display: block;
+    font-size: 18px;
+    color: #111827;
+}
+
+.day-flight-route span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.day-flight-route i {
+    color: var(--primary-color, #667eea);
+}
+
+.day-flight-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #4b5563;
+    font-size: 13px;
+}
+
+.day-flight-meta i {
+    color: var(--primary-color, #667eea);
+    margin-right: 4px;
+}
+
+@media print {
+    .day-flights-section {
+        break-inside: avoid;
+        background: #fff;
+    }
+
+    .day-flight-card {
+        break-inside: avoid;
+    }
+}
+
+@media (max-width: 768px) {
+    .day-flight-route {
+        align-items: flex-start;
+    }
+
+    .day-flight-route strong {
+        font-size: 16px;
+    }
+}
+
+.clean-flight-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+.clean-flight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.clean-flight-code {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.clean-flight-airline {
+    margin-top: 2px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.clean-flight-order {
+    background: var(--primary-color, #667eea);
+    color: white;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.clean-flight-route {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.clean-airport-code {
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 800;
+    color: #111827;
+}
+
+.clean-airport-city {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.clean-flight-time {
+    margin-top: 10px;
+    color: var(--primary-color, #667eea);
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.clean-airport-right {
+    text-align: right;
+}
+
+.clean-flight-line {
+    text-align: center;
+}
+
+.clean-duration {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.clean-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-color, #667eea);
+}
+
+.clean-line span {
+    height: 1px;
+    background: #d1d5db;
+    flex: 1;
+}
+
+.clean-line i {
+    font-size: 15px;
+}
+
+.clean-flight-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr .45fr;
+    gap: 12px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 14px;
+}
+
+.clean-flight-details div {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.clean-flight-details strong {
+    display: block;
+    color: #374151;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.clean-flight-details span {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+@media print {
+    .clean-flight-card {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+}
+
+@media (max-width: 768px) {
+    .clean-flight-route {
+        grid-template-columns: 1fr;
+    }
+
+    .clean-airport-right {
+        text-align: left;
+    }
+
+    .clean-flight-details {
+        grid-template-columns: 1fr;
+    }
+}
 
     </style>
 </head>
@@ -3740,6 +4009,112 @@ body {
                                     </span>
                                 <?php endif; ?>
                             </h4>
+                            
+                            <?php
+                            $vuelos_dia = $db->fetchAll("
+                                SELECT 
+                                    vd.orden,
+                                    cv.codigo_vuelo,
+                                    cv.aerolinea,
+                                    cv.ciudad_origen,
+                                    cv.codigo_aeropuerto_origen,
+                                    cv.aeropuerto_origen,
+                                    cv.ciudad_destino,
+                                    cv.codigo_aeropuerto_destino,
+                                    cv.aeropuerto_destino,
+                                    cv.terminal,
+                                    cv.hora_salida,
+                                    cv.hora_llegada
+                                FROM vuelos_dias vd
+                                INNER JOIN codigos_vuelos cv ON cv.id = vd.codigo_vuelo_id
+                                WHERE vd.programa_dias_id = ?
+                                ORDER BY vd.orden ASC
+                            ", [$dia['id']]);
+                            ?>
+
+                            <?php if (!empty($vuelos_dia)): ?>
+                            <section class="day-flights-section">
+                                <div class="day-flights-title">
+                                    <i class="fas fa-plane-departure"></i>
+                                    <span>Vuelos del día</span>
+                                </div>
+
+                                <div class="day-flights-list">
+                                    <?php foreach ($vuelos_dia as $vuelo): ?>
+                                        <div class="clean-flight-card">
+                                            <div class="clean-flight-header">
+                                                <div>
+                                                    <div class="clean-flight-code">
+                                                        <?= htmlspecialchars($vuelo['codigo_vuelo']) ?>
+                                                    </div>
+                                                    <div class="clean-flight-airline">
+                                                        <?= htmlspecialchars($vuelo['aerolinea']) ?>
+                                                    </div>
+                                                </div>
+
+                                                <div class="clean-flight-order">
+                                                    Vuelo <?= (int)$vuelo['orden'] ?>
+                                                </div>
+                                            </div>
+
+                                            <div class="clean-flight-route">
+                                                <div class="clean-airport">
+                                                    <div class="clean-airport-code">
+                                                        <?= htmlspecialchars($vuelo['codigo_aeropuerto_origen']) ?>
+                                                    </div>
+                                                    <div class="clean-airport-city">
+                                                        <?= htmlspecialchars($vuelo['ciudad_origen']) ?>
+                                                    </div>
+                                                    <div class="clean-flight-time">
+                                                        <?= htmlspecialchars(substr($vuelo['hora_salida'], 0, 5)) ?>
+                                                    </div>
+                                                </div>
+
+                                                <div class="clean-flight-line">
+                                                    <div class="clean-duration">
+                                                        Vuelo programado
+                                                    </div>
+                                                    <div class="clean-line">
+                                                        <span></span>
+                                                        <i class="fas fa-plane"></i>
+                                                        <span></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="clean-airport clean-airport-right">
+                                                    <div class="clean-airport-code">
+                                                        <?= htmlspecialchars($vuelo['codigo_aeropuerto_destino']) ?>
+                                                    </div>
+                                                    <div class="clean-airport-city">
+                                                        <?= htmlspecialchars($vuelo['ciudad_destino']) ?>
+                                                    </div>
+                                                    <div class="clean-flight-time">
+                                                        <?= htmlspecialchars(substr($vuelo['hora_llegada'], 0, 5)) ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="clean-flight-details">
+                                                <div>
+                                                    <strong>Aeropuerto origen</strong>
+                                                    <span><?= htmlspecialchars($vuelo['aeropuerto_origen']) ?></span>
+                                                </div>
+
+                                                <div>
+                                                    <strong>Aeropuerto destino</strong>
+                                                    <span><?= htmlspecialchars($vuelo['aeropuerto_destino']) ?></span>
+                                                </div>
+
+                                                <div>
+                                                    <strong>Terminal</strong>
+                                                    <span><?= !empty($vuelo['terminal']) ? htmlspecialchars($vuelo['terminal']) : '-' ?></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </section>
+                            <?php endif; ?>
                             
                             <div class="services-grid">
                                 <?php foreach ($dia['servicios'] as $servicio_grupo): ?>

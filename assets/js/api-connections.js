@@ -1,8 +1,4 @@
-<?php
-// =====================================
-// ARCHIVO: assets/js/api-connections.js - Conexiones API Reales
-// =====================================
-?>
+    
 // Archivo para centralizar todas las conexiones API del sistema
 class TravelAgencyAPI {
     constructor() {
@@ -316,7 +312,7 @@ class UIHelpers {
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
-            z-index: 10000;
+            z-index: 999999;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transform: translateX(100%);
             transition: transform 0.3s ease;

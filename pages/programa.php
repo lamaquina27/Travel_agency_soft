@@ -129,7 +129,12 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="<?= APP_URL ?>/assets/css/dashboard.css" rel="stylesheet">
 
+    <script>
+        const APP_URL = '<?= APP_URL ?>';
+    </script>
+
     <script src="<?= APP_URL ?>/assets/js/ubicacion-search-widget.js"></script>
+    <script src="<?= APP_URL ?>/assets/js/api-connections.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
@@ -4186,7 +4191,195 @@ textarea.form-control {
     color: var(--primary-color) !important;
 }
 
+/* ================================
+   Vuelos por día
+================================ */
 
+.flights-section {
+    margin: 18px 0;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+.flights-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.flights-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #1f2937;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.flights-title i {
+    color: var(--primary-color, #667eea);
+}
+
+.flight-search-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.flight-code-input {
+    flex: 1;
+    min-width: 180px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    background: #fff;
+}
+
+.flight-code-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, .12);
+}
+
+.flight-search-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    background: var(--primary-gradient);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.flight-search-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.flight-preview {
+    display: none;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+}
+
+.flight-preview-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+}
+
+.flight-route-main {
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.flight-route-meta {
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.flight-confirm-btn {
+    border: none;
+    border-radius: 9px;
+    padding: 9px 12px;
+    background: #10b981;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.flights-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.flight-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--primary-color, #667eea);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.flight-item-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.flight-code {
+    font-weight: 800;
+    color: #111827;
+    font-size: 14px;
+}
+
+.flight-airline {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.flight-route {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    font-size: 13px;
+    flex-wrap: wrap;
+}
+
+.flight-time {
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.flight-delete-btn {
+    border: none;
+    background: #fee2e2;
+    color: #991b1b;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.flight-empty,
+.flight-loading {
+    color: #6b7280;
+    font-size: 13px;
+    padding: 8px 2px;
+}
+
+@media (max-width: 768px) {
+    .flight-search-row,
+    .flight-preview-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .flight-search-btn,
+    .flight-confirm-btn {
+        width: 100%;
+    }
+}
 
     </style>
 
@@ -5968,6 +6161,9 @@ function setupMealHandlers() {
 
 // Función separada para manejar cambios de comidas
 function handleMealChange(e) {
+    if (event.target.matches('[data-flight-input="true"], .flight-code-input')) {
+        return;
+    }
     console.log('📝 Evento de comida detectado:', e.target.name, e.target.value);
     
     if (e.target.name && e.target.name.startsWith('meals_')) {
@@ -9353,6 +9549,8 @@ function seleccionarDiaEnSidebar(diaId) {
     
     // Renderizar detalle del día seleccionado
     renderizarDetalleDia(diaId);
+
+    cargarVuelosDia(diaId);
     
     // Cargar servicios del día seleccionado
     cargarServiciosDia(diaId);
@@ -9466,6 +9664,8 @@ function renderizarDetalleDia(diaId) {
                         Alojamiento
                     </button>
                 </div>
+
+                ${renderizarBloqueVuelosDia(dia.id)}
                 
                 <!-- Opciones de comidas -->
                 <div class="meals-section">
@@ -9656,6 +9856,51 @@ function renderizarDetalleDia(diaId) {
         
         detailContainer.insertAdjacentHTML('beforeend', formHTML);
     }
+}
+
+//New funcion para vuelos code
+
+function renderizarBloqueVuelosDia(diaId) {
+    return `
+        <div class="flights-section" id="flights-section-${diaId}">
+            <div class="flights-header">
+                <div class="flights-title">
+                    <i class="fas fa-plane-departure"></i>
+                    <span>Vuelos del día</span>
+                </div>
+            </div>
+
+            <div class="flight-search-row">
+                <input 
+                    type="text"
+                    class="flight-code-input"
+                    id="flight-code-${diaId}"
+                    data-flight-input="true"
+                    placeholder="Código de vuelo, ej: EK330"
+                    maxlength="12"
+                    onkeydown="handleFlightInputKey(event, ${diaId})"
+                >
+
+                <button 
+                    type="button"
+                    class="flight-search-btn"
+                    id="flight-search-btn-${diaId}"
+                    onclick="buscarPreviewVuelo(${diaId})">
+                    <i class="fas fa-search"></i>
+                    Buscar
+                </button>
+            </div>
+
+            <div class="flight-preview" id="flight-preview-${diaId}"></div>
+
+            <div class="flights-list" id="flights-list-${diaId}">
+                <div class="flight-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Cargando vuelos...
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 async function cargarUbicacionesSecundariasDia(diaId) {
@@ -12297,6 +12542,238 @@ function abrirBonoReservaPrograma() {
 
     window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
 }
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function normalizarCodigoVuelo(codigo) {
+    return String(codigo || '')
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '');
+}
+
+function handleFlightInputKey(event, diaId) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        buscarPreviewVuelo(diaId);
+    }
+}
+
+async function buscarPreviewVuelo(diaId) {
+    const input = document.getElementById(`flight-code-${diaId}`);
+    const previewContainer = document.getElementById(`flight-preview-${diaId}`);
+    const button = document.getElementById(`flight-search-btn-${diaId}`);
+
+    console.log('CLICK buscar vuelo', diaId);
+    console.log('VALOR INPUT:', input.value);
+
+    if (!input || !previewContainer || !button) {
+        alert('No se encontró el bloque de vuelos.');
+        return;
+    }
+
+    const codigo = normalizarCodigoVuelo(input.value);
+
+    if (!codigo) {
+        mostrarMensajeVuelo('Ingresa un código de vuelo.', 'error');
+        return;
+    }
+
+    if (!/^[A-Z0-9]{2,3}\d{1,5}$/.test(codigo)) {
+        mostrarMensajeVuelo('Formato inválido. Ej: EK521.', 'error');
+        return;
+    }
+
+    
+
+    input.value = codigo;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+
+    try {
+        const response = await API.previewVuelo(codigo, diaId);
+        const vuelo = response.vuelo;
+
+        previewContainer.style.display = 'block';
+        previewContainer.innerHTML = `
+            <div class="flight-preview-card">
+                <div>
+                    <div class="flight-route-main">
+                        ${escapeHtml(vuelo.codigo_vuelo)} · ${escapeHtml(vuelo.aerolinea)}
+                    </div>
+
+                    <div class="flight-route-meta">
+                        ${escapeHtml(vuelo.ciudad_origen)} (${escapeHtml(vuelo.codigo_aeropuerto_origen)})
+                        →
+                        ${escapeHtml(vuelo.ciudad_destino)} (${escapeHtml(vuelo.codigo_aeropuerto_destino)})
+                        <br>
+                        Salida: ${escapeHtml(vuelo.hora_salida)}
+                        · Llegada: ${escapeHtml(vuelo.hora_llegada)}
+                        ${vuelo.terminal ? `<br>Terminal: ${escapeHtml(vuelo.terminal)}` : ''}
+                    </div>
+                </div>
+
+                <button 
+                    type="button"
+                    class="flight-confirm-btn"
+                    onclick="guardarVueloDia('${escapeHtml(vuelo.codigo_vuelo)}', ${diaId})">
+                    <i class="fas fa-check"></i>
+                    Agregar vuelo
+                </button>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error preview vuelo:', error);
+        previewContainer.style.display = 'none';
+        previewContainer.innerHTML = '';
+        UIHelpers.showMessage(error.message || 'No se encontró el vuelo para la fecha del día.', 'error');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-search"></i> Buscar';
+    }
+}
+
+async function guardarVueloDia(codigoVuelo, diaId) {
+    try {
+        await API.saveVuelo(codigoVuelo, diaId);
+
+        UIHelpers.showMessage('Vuelo agregado correctamente.', 'success');
+
+        const input = document.getElementById(`flight-code-${diaId}`);
+        const previewContainer = document.getElementById(`flight-preview-${diaId}`);
+
+        if (input) input.value = '';
+        if (previewContainer) {
+            previewContainer.style.display = 'none';
+            previewContainer.innerHTML = '';
+        }
+
+        await cargarVuelosDia(diaId);
+
+    } catch (error) {
+        console.error('Error guardando vuelo:', error);
+        UIHelpers.showMessage(error.message || 'No se pudo guardar el vuelo.', 'error');
+    }
+}
+
+async function cargarVuelosDia(diaId) {
+    const container = document.getElementById(`flights-list-${diaId}`);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="flight-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            Cargando vuelos...
+        </div>
+    `;
+
+    try {
+        const response = await API.getVuelos(diaId);
+        const vuelos = response.vuelos || [];
+
+        if (vuelos.length === 0) {
+            container.innerHTML = `
+                <div class="flight-empty">
+                    No hay vuelos asignados a este día.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = vuelos.map(vuelo => renderizarVueloItem(vuelo, diaId)).join('');
+
+    } catch (error) {
+        console.error('Error cargando vuelos:', error);
+        container.innerHTML = `
+            <div class="flight-empty" style="color:#b91c1c;">
+                No se pudieron cargar los vuelos.
+            </div>
+        `;
+    }
+}
+
+function renderizarVueloItem(vuelo, diaId) {
+    return `
+        <div class="flight-item">
+            <div class="flight-item-top">
+                <div>
+                    <div class="flight-code">
+                        ${escapeHtml(vuelo.orden)}. ${escapeHtml(vuelo.codigo_vuelo)}
+                    </div>
+                    <div class="flight-airline">
+                        ${escapeHtml(vuelo.aerolinea)}
+                    </div>
+                </div>
+
+                <button 
+                    type="button"
+                    class="flight-delete-btn"
+                    title="Eliminar vuelo"
+                    onclick="eliminarVueloDia(${parseInt(vuelo.vuelo_dia_id)}, ${diaId})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flight-route">
+                <span>
+                    <strong>${escapeHtml(vuelo.codigo_aeropuerto_origen)}</strong>
+                    ${escapeHtml(vuelo.ciudad_origen)}
+                </span>
+
+                <i class="fas fa-arrow-right"></i>
+
+                <span>
+                    <strong>${escapeHtml(vuelo.codigo_aeropuerto_destino)}</strong>
+                    ${escapeHtml(vuelo.ciudad_destino)}
+                </span>
+            </div>
+
+            <div class="flight-time">
+                <i class="far fa-clock"></i>
+                ${escapeHtml(vuelo.hora_salida)}
+                →
+                ${escapeHtml(vuelo.hora_llegada)}
+                ${vuelo.terminal ? `· Terminal ${escapeHtml(vuelo.terminal)}` : ''}
+            </div>
+        </div>
+    `;
+}
+
+async function eliminarVueloDia(vueloDiaId, diaId) {
+    if (!confirm('¿Eliminar este vuelo del día?')) return;
+
+    try {
+        await API.deleteVuelo(vueloDiaId);
+        UIHelpers.showMessage('Vuelo eliminado correctamente.', 'success');
+        await cargarVuelosDia(diaId);
+
+    } catch (error) {
+        console.error('Error eliminando vuelo:', error);
+        UIHelpers.showMessage(error.message || 'No se pudo eliminar el vuelo.', 'error');
+    }
+
+}
+
+function mostrarMensajeVuelo(message, type = 'info') {
+        console.log('MENSAJE VUELO:', message, type);
+
+        if (window.UIHelpers && typeof window.UIHelpers.showMessage === 'function') {
+            window.UIHelpers.showMessage(message, type);
+            
+        }
+
+        alert(message);
+    }
 
 </script>
 </body>

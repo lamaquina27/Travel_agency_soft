@@ -11,6 +11,7 @@ error_reporting(E_ALL);
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
 require_once dirname(__DIR__, 2) . '/config/aerodatabox.php';
+require_once dirname(__DIR__, 2) . '/classes/FechaCalculator.php';
 
 App::init();
 App::requireLogin();
@@ -92,27 +93,19 @@ class VuelosAPI
             throw new Exception('El ID del día de programa es requerido.');
         }
 
-        $stmt = $this->db->getConnection()->prepare(
-            'SELECT fecha_dia FROM programa_dias WHERE id = ? LIMIT 1'
-        );
-        $stmt->execute([$programaDiasId]);
-        $dia = $stmt->fetch(PDO::FETCH_ASSOC);
+        $fechaDia = $this->obtenerFechaRealDia((int)$programaDiasId);
 
-        if (!$dia) {
-            throw new Exception('No se encontró el día de programa indicado.');
-        }
-
-        $vuelo = AeroDataBox::fetchFlight($codigoVuelo, $dia['fecha_dia']);
+        $vuelo = AeroDataBox::fetchFlight($codigoVuelo, $fechaDia);
 
         if (!$vuelo) {
             throw new Exception(
-                "No se encontró el vuelo {$codigoVuelo} para la fecha {$dia['fecha_dia']}."
+                "No se encontró el vuelo {$codigoVuelo} para la fecha {$fechaDia}."
             );
         }
 
         return [
             'success'   => true,
-            'fecha_dia' => $dia['fecha_dia'],
+            'fecha_dia' => $fechaDia,
             'vuelo'     => $vuelo,
         ];
     }
@@ -131,22 +124,14 @@ class VuelosAPI
         }
 
         // Obtener la fecha del día para llamar a la API
-        $stmt = $this->db->getConnection()->prepare(
-            'SELECT fecha_dia FROM programa_dias WHERE id = ? LIMIT 1'
-        );
-        $stmt->execute([$programaDiasId]);
-        $dia = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$dia) {
-            throw new Exception('No se encontró el día de programa indicado.');
-        }
+        $fechaDia = $this->obtenerFechaRealDia((int)$programaDiasId);
 
         // Verificar que el vuelo sigue existiendo en AeroDataBox
-        $vuelo = AeroDataBox::fetchFlight($codigoVuelo, $dia['fecha_dia']);
+        $vuelo = AeroDataBox::fetchFlight($codigoVuelo, $fechaDia);
 
         if (!$vuelo) {
             throw new Exception(
-                "No se pudo verificar el vuelo {$codigoVuelo} para la fecha {$dia['fecha_dia']}."
+                "No se pudo verificar el vuelo {$codigoVuelo} para la fecha {$fechaDia}."
             );
         }
 
@@ -327,6 +312,60 @@ class VuelosAPI
             'error'   => $message,
         ], JSON_UNESCAPED_UNICODE);
         exit;
+    }
+
+
+    private function obtenerFechaRealDia(int $programaDiasId): string
+    {
+        $dia = $this->db->fetch(
+            "SELECT 
+                pd.id,
+                pd.solicitud_id,
+                pd.dia_numero,
+                pd.fecha_dia,
+                pd.duracion_estancia,
+                ps.fecha_llegada
+            FROM programa_dias pd
+            INNER JOIN programa_solicitudes ps ON ps.id = pd.solicitud_id
+            WHERE pd.id = ?
+            AND ps.agencia_id = ?
+            LIMIT 1",
+            [$programaDiasId, $_SESSION['agencia_id']]
+        );
+
+        if (!$dia) {
+            throw new Exception('Día no encontrado o sin permisos.');
+        }
+
+        if (!empty($dia['fecha_dia'])) {
+            return $dia['fecha_dia'];
+        }
+
+        $dias = $this->db->fetchAll(
+            "SELECT 
+                id,
+                dia_numero,
+                fecha_dia,
+                duracion_estancia
+            FROM programa_dias
+            WHERE solicitud_id = ?
+            ORDER BY dia_numero ASC",
+            [$dia['solicitud_id']]
+        );
+
+        $diasCalculados = FechaCalculator::calcularFechasDias($dias, $dia['fecha_llegada']);
+
+        foreach ($diasCalculados as $diaCalculado) {
+            if ((int)$diaCalculado['id'] === $programaDiasId) {
+                if (empty($diaCalculado['fecha_calculada'])) {
+                    throw new Exception('No se pudo calcular la fecha del día.');
+                }
+
+                return $diaCalculado['fecha_calculada'];
+            }
+        }
+
+        throw new Exception('No se encontró la fecha calculada del día.');
     }
 }
 
