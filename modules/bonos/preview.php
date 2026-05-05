@@ -13,7 +13,8 @@ try {
         throw new Exception('ID de programa requerido.');
     }
 
-    $renderer = new BonoRenderer($programaId);
+    $hotelsPerPage = isset($_GET['hotels_per_page']) ? (int)$_GET['hotels_per_page'] : 1;
+    $renderer = new BonoRenderer($programaId, $hotelsPerPage);
     echo $renderer->renderHtml(false);
 
 } catch (Exception $e) {
