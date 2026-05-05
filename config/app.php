@@ -32,7 +32,7 @@ class App {
 
         // ✅ DEFINIR CONSTANTES DINÁMICAMENTE
         if (!defined('APP_NAME')) {
-            $companyName = 'Travel Agency';
+            $companyName = 'TravelSoft';
             try {
                 ConfigManager::init();
                 $companyName = ConfigManager::getCompanyName();
@@ -359,7 +359,7 @@ public static function getUser() {
             ConfigManager::init();
             return ConfigManager::getCompanyName();
         } catch(Exception $e) {
-            return 'Travel Agency';
+            return 'TravelSoft';
         }
     }
 

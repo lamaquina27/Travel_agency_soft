@@ -31,5 +31,6 @@ vendor/
 .htaccess
 
 # Uploads (imágenes subidas por usuarios — no van en Git)
-assets/uploads/
+assets/uploads/agencia_1
+assets/uploads/TravelSoftLogo.png
 

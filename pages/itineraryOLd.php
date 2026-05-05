@@ -338,112 +338,6 @@ $num_dias = $duracion_dias;
 $num_pasajeros = $programa['numero_pasajeros'];
 
 
-// Paleta configurada por el usuario / agencia.
-// Se toman varios nombres posibles para no depender de una sola clave de configuración.
-function ts_safe_hex_color($value, $fallback) {
-    $value = trim((string)$value);
-    if ($value === '') return $fallback;
-    if ($value[0] !== '#') $value = '#' . $value;
-    return preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? $value : $fallback;
-}
-
-$brand_primary = ts_safe_hex_color(
-    $config['primary_color']
-    ?? $config['color_principal']
-    ?? $config['brand_color']
-    ?? $config['accent_color']
-    ?? $config['main_color']
-    ?? $config['color']
-    ?? '',
-    '#2f3437'
-);
-
-$brand_secondary = ts_safe_hex_color(
-    $config['secondary_color']
-    ?? $config['color_secundario']
-    ?? $config['brand_secondary_color']
-    ?? $config['accent_secondary_color']
-    ?? '',
-    $brand_primary
-);
-
-function ts_spanish_day_name($date) {
-    $dias = [
-        'Monday' => 'lunes',
-        'Tuesday' => 'martes',
-        'Wednesday' => 'miércoles',
-        'Thursday' => 'jueves',
-        'Friday' => 'viernes',
-        'Saturday' => 'sábado',
-        'Sunday' => 'domingo'
-    ];
-    return $dias[$date->format('l')] ?? strtolower($date->format('l'));
-}
-
-function ts_spanish_month_name($date) {
-    $meses = [
-        1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
-        5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
-        9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre'
-    ];
-    return $meses[(int)$date->format('n')] ?? strtolower($date->format('F'));
-}
-
-function ts_full_spanish_date($dateString) {
-    if (empty($dateString)) return '';
-    try {
-        $date = $dateString instanceof DateTime ? clone $dateString : new DateTime($dateString);
-        return ts_spanish_day_name($date) . ', ' . (int)$date->format('d') . ' de ' . ts_spanish_month_name($date) . ' de ' . $date->format('Y');
-    } catch (Exception $e) {
-        return '';
-    }
-}
-
-function ts_day_range_label($startDay, $duration) {
-    $startDay = (int)$startDay;
-    $duration = max(1, (int)$duration);
-    $endDay = $startDay + $duration - 1;
-
-    if ($duration === 1) {
-        return 'Día ' . $startDay;
-    }
-
-    if ($duration === 2) {
-        return 'Días ' . $startDay . ' y ' . $endDay;
-    }
-
-    $days = range($startDay, $endDay);
-    $last = array_pop($days);
-    return 'Días ' . implode(', ', $days) . ' y ' . $last;
-}
-
-function ts_date_range_label($startDateString, $endDateString, $duration = 1) {
-    if (empty($startDateString)) return '';
-
-    try {
-        $start = new DateTime($startDateString);
-        $end = !empty($endDateString) ? new DateTime($endDateString) : clone $start;
-        $duration = max(1, (int)$duration);
-
-        if ($duration <= 1 || $start->format('Y-m-d') === $end->format('Y-m-d')) {
-            return ts_full_spanish_date($start);
-        }
-
-        if ($start->format('Y') === $end->format('Y')) {
-            if ($start->format('m') === $end->format('m')) {
-                return 'del ' . ts_spanish_day_name($start) . ' ' . (int)$start->format('d') . ' al ' . ts_spanish_day_name($end) . ' ' . (int)$end->format('d') . ' de ' . ts_spanish_month_name($end) . ' de ' . $end->format('Y');
-            }
-
-            return 'del ' . ts_spanish_day_name($start) . ' ' . (int)$start->format('d') . ' de ' . ts_spanish_month_name($start) . ' al ' . ts_spanish_day_name($end) . ' ' . (int)$end->format('d') . ' de ' . ts_spanish_month_name($end) . ' de ' . $end->format('Y');
-        }
-
-        return 'del ' . ts_full_spanish_date($start) . ' al ' . ts_full_spanish_date($end);
-    } catch (Exception $e) {
-        return '';
-    }
-}
-
-
 
 // Calcular fechas basado en fecha de llegada + días del programa
 $fecha_inicio_formatted = '';
@@ -483,20 +377,6 @@ if ($programa['fecha_llegada']) {
     <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
     
     <style>
-        :root {
-            --brand-primary: <?= $brand_primary ?>;
-            --brand-secondary: <?= $brand_secondary ?>;
-            --brand-surface: #ffffff;
-            --brand-surface-soft: #f8f9fa;
-            --brand-border: #e9ecef;
-            --brand-text: #2f3437;
-            --brand-muted: var(--brand-muted);
-            --brand-soft: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
-            --brand-soft-strong: color-mix(in srgb, var(--brand-primary) 14%, #ffffff);
-            --brand-shadow: 0 18px 45px rgba(20, 24, 28, 0.08);
-            --brand-radius: 22px;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -506,7 +386,7 @@ if ($programa['fecha_llegada']) {
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: var(--brand-text);
+            color: #2c3e50;
             background: #ffffff;
         }
         
@@ -543,8 +423,8 @@ if ($programa['fecha_llegada']) {
         }
 
         @keyframes continuousZoom {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            0%, 100% { transform: scale(1); }      ← Inicio y fin en scale(1)
+            50% { transform: scale(1.1); }         ← Mitad en scale(1.1)
         }
         .hero-program-title {
             font-family: 'Playfair Display', serif;
@@ -685,7 +565,7 @@ if ($programa['fecha_llegada']) {
             font-family: 'Playfair Display', serif;
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             text-decoration: none;
         }
         
@@ -701,14 +581,14 @@ if ($programa['fecha_llegada']) {
         }
         
         .navbar-nav a {
-            color: var(--brand-text);
+            color: #2c3e50;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s ease;
         }
         
         .navbar-nav a:hover {
-            color: var(--brand-primary);
+            color: #3498db;
         }
         
         /* ========================================
@@ -734,13 +614,13 @@ if ($programa['fecha_llegada']) {
             font-family: 'Playfair Display', serif;
             font-size: 3rem;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 15px;
         }
         
         .section-subtitle {
             font-size: 1.2rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
             max-width: 600px;
             margin: 0 auto;
         }
@@ -781,7 +661,7 @@ if ($programa['fecha_llegada']) {
 .VIpgJd-ZVi9od-xl07Ob-lTBxed {
     background: transparent !important;
     border: none !important;
-    color: var(--brand-text) !important;
+    color: #2c3e50 !important;
     text-decoration: none !important;
     font-family: inherit !important;
     font-size: 14px !important;
@@ -796,8 +676,8 @@ if ($programa['fecha_llegada']) {
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed:hover {
-    background: color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
-    color: var(--brand-primary) !important;
+    background: rgba(52, 152, 219, 0.1) !important;
+    color: #3498db !important;
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed img {
@@ -809,14 +689,14 @@ if ($programa['fecha_llegada']) {
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed span[aria-hidden="true"] {
-    color: var(--brand-muted) !important;
+    color: #6b7280 !important;
     font-size: 12px !important;
     margin-left: 6px !important;
     transition: all 0.2s ease !important;
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed:hover span[aria-hidden="true"] {
-    color: var(--brand-primary) !important;
+    color: #3498db !important;
     transform: translateY(1px) !important;
 }
 
@@ -845,7 +725,7 @@ if ($programa['fecha_llegada']) {
     font-family: 'Inter', sans-serif !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    color: var(--brand-text) !important;
+    color: #374151 !important;
     padding: 12px 18px !important;
     transition: all 0.15s ease !important;
     cursor: pointer !important;
@@ -855,13 +735,13 @@ if ($programa['fecha_llegada']) {
 }
 
 .goog-te-menu2-item:hover {
-    background: color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
-    color: var(--brand-primary) !important;
+    background: rgba(52, 152, 219, 0.1) !important;
+    color: #3498db !important;
     transform: translateX(3px) !important;
 }
 
 .goog-te-menu2-item-selected {
-    background: var(--brand-primary) !important;
+    background: #3498db !important;
     color: white !important;
     font-weight: 600 !important;
 }
@@ -878,11 +758,11 @@ if ($programa['fecha_llegada']) {
 }
 
 .VIpgJd-ZVi9od-vH1Gmf-ibnC6b-gk6SMd div {
-    color: var(--brand-primary) !important;
+    color: #3498db !important;
 }
 
 .VIpgJd-ZVi9od-vH1Gmf-ibnC6b div{
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 body { 
@@ -948,7 +828,7 @@ body {
         .detail-icon {
             width: 50px;
             height: 50px;
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -960,11 +840,11 @@ body {
         .detail-info h4 {
             font-weight: 600;
             margin-bottom: 5px;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
         
         .detail-info p {
-            color: var(--brand-muted);
+            color: #7f8c8d;
             margin: 0;
         }
         
@@ -972,17 +852,17 @@ body {
             background: #f8f9fa;
             padding: 30px;
             border-radius: 15px;
-            border-left: 5px solid var(--brand-primary);
+            border-left: 5px solid #3498db;
         }
         
         .overview-summary h3 {
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 15px;
             font-size: 1.3rem;
         }
         
         .overview-summary p {
-            color: var(--brand-muted);
+            color: #5a6c7d;
             line-height: 1.8;
         }
         
@@ -1010,7 +890,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.95);
-    color: var(--brand-text);
+    color: #2c3e50;
     padding: 12px 20px;
     border-radius: 8px;
     font-size: 13px;
@@ -1021,16 +901,16 @@ body {
     z-index: 1000;
     pointer-events: none;
     box-shadow: 0 3px 15px rgba(0,0,0,0.2);
-    border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    border: 1px solid rgba(52, 152, 219, 0.3);
 }
 
 .map-tooltip i {
     font-size: 16px;
-    color: var(--brand-primary);
+    color: #3498db;
 }
 
 .map-tooltip strong {
-    color: var(--brand-primary);
+    color: #3498db;
 }
 
 .map-container:hover .map-tooltip {
@@ -1082,13 +962,13 @@ body {
             width: 100px;
             height: 80px;
             background: #ffffff;
-            border: 2px solid var(--brand-primary);
+            border: 2px solid #3498db;
             border-radius: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: var(--brand-text);
+            color: #2c3e50;
             font-weight: 700;
             box-shadow: 0 3px 15px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
@@ -1102,12 +982,12 @@ body {
         .day-number-main {
             font-size: 1.4rem;
             line-height: 1;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
         
         .day-number-label {
             font-size: 0.7rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 2px;
@@ -1118,7 +998,7 @@ body {
             position: absolute;
             top: -8px;
             right: -8px;
-            background: var(--brand-primary);
+            background: #3498db;
             color: white;
             padding: 4px 8px;
             border-radius: 12px;
@@ -1137,8 +1017,8 @@ body {
             padding: 8px 16px;
             font-size: 13px;
             border-radius: 20px;
-            background: var(--brand-primary);
-            box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
         }
 
      
@@ -1179,7 +1059,7 @@ body {
             font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
@@ -1198,16 +1078,16 @@ body {
     gap: 12px;
     padding: 15px 20px;
     background: #ffffff;
-    border: 2px solid var(--brand-primary);
+    border: 2px solid #3498db;
     border-radius: 12px;
     margin-bottom: 15px;
-    box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
 }
 
 .location-icon {
     width: 40px;
     height: 40px;
-    background: var(--brand-primary);
+    background: #3498db;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1222,13 +1102,13 @@ body {
 
 .location-title {
     font-weight: 600;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 16px;
     margin-bottom: 4px;
 }
 
 .location-subtitle {
-    color: var(--brand-muted);
+    color: #7f8c8d;
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1238,9 +1118,9 @@ body {
 .secondary-locations-new {
     margin-top: 15px;
     padding: 20px;
-    background: var(--brand-surface-soft);
+    background: #f8fffe;
     border-radius: 12px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e8f5e8;
 }
 
 .secondary-header {
@@ -1249,12 +1129,12 @@ body {
     gap: 10px;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--brand-border);
+    border-bottom: 1px solid #e8f5e8;
 }
 
 .secondary-header h4 {
     margin: 0;
-    color: var(--brand-primary);
+    color: #27ae60;
     font-size: 14px;
     font-weight: 600;
 }
@@ -1280,7 +1160,7 @@ body {
 .location-marker {
     width: 24px;
     height: 24px;
-    background: var(--brand-primary);
+    background: #27ae60;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1297,7 +1177,7 @@ body {
 
 .location-name {
     font-weight: 500;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 14px;
     line-height: 1.4;
     margin-bottom: 4px;
@@ -1305,7 +1185,7 @@ body {
 
 .location-coords {
     font-size: 11px;
-    color: var(--brand-muted);
+    color: #7f8c8d;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -1316,7 +1196,7 @@ body {
             display: inline-flex;
             align-items: center;
             background: #f8f9fa;
-            color: var(--brand-muted);
+            color: #6c757d;
             padding: 4px 12px;
             border-radius: 15px;
             font-size: 0.8rem;
@@ -1329,7 +1209,7 @@ body {
             align-items: center;
             gap: 6px;
             background: #f8f9fa;
-            color: var(--brand-muted);
+            color: #6c757d;
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 0.85rem;
@@ -1354,8 +1234,8 @@ body {
             gap: 7px;
             padding: 7px 13px;
             border-radius: 999px;
-            background: var(--brand-surface-soft);
-            color: var(--brand-text);
+            background: #f8fafc;
+            color: #475569;
             border: 1px solid #e2e8f0;
             font-size: 0.86rem;
             font-weight: 600;
@@ -1363,10 +1243,10 @@ body {
         }
 
         .day-meta-pill-primary {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 6px 16px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.22);
         }
 
         .day-meta-pill i {
@@ -1475,7 +1355,7 @@ body {
     position: absolute;
     top: -15px;
     right: -15px;
-    background: var(--brand-primary);
+    background: #e74c3c;
     color: white;
     border: none;
     width: 35px;
@@ -1490,7 +1370,7 @@ body {
 }
 
 .simple-modal-close:hover {
-    background: var(--brand-primary);
+    background: #c0392b;
 }
 
 @media (max-width: 768px) {
@@ -1520,12 +1400,12 @@ body {
             padding: 20px;
             background: #f8f9fa;
             border-radius: 12px;
-            border-left: 4px solid var(--brand-primary);
+            border-left: 4px solid #3498db;
         }
         
         .day-description p {
             margin: 0;
-            color: var(--brand-muted);
+            color: #5a6c7d;
             line-height: 1.7;
         }
         
@@ -1535,7 +1415,7 @@ body {
             background: #ffffff;
             border-radius: 8px;
             border: 1px solid #e9ecef;
-            color: var(--brand-muted);
+            color: #6c757d;
             font-size: 14px;
         }
         
@@ -1558,7 +1438,7 @@ body {
         
         .service-group:hover {
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            border-color: var(--brand-primary);
+            border-color: #3498db;
         }
         
         .service-item {
@@ -1571,7 +1451,7 @@ body {
         
         .service-item.principal {
             background: #ffffff;
-            border-left: 4px solid var(--brand-primary);
+            border-left: 4px solid #3498db;
         }
         
         .service-item:hover {
@@ -1593,15 +1473,15 @@ body {
         }
         
         .service-icon.actividad {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
         
         .service-icon.transporte {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
         }
         
         .service-icon.alojamiento {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #f39c12, #e67e22);
         }
         
         .service-details {
@@ -1611,7 +1491,7 @@ body {
         
         .service-details h4 {
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 8px;
             font-size: 1.1rem;
             display: flex;
@@ -1621,7 +1501,7 @@ body {
         }
         
         .service-details p {
-            color: var(--brand-muted);
+            color: #7f8c8d;
             margin-bottom: 8px;
             font-size: 0.95rem;
             line-height: 1.5;
@@ -1636,7 +1516,7 @@ body {
         
         .service-meta span {
             font-size: 0.85rem;
-            color: var(--brand-muted);
+            color: #95a5a6;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -1690,7 +1570,7 @@ body {
             align-items: center;
             gap: 4px;
             background: #f8f9fa;
-            color: var(--brand-muted);
+            color: #6c757d;
             padding: 3px 8px;
             border-radius: 10px;
             font-size: 0.75rem;
@@ -1705,15 +1585,15 @@ body {
         .day-meals {
             margin-top: 20px;
             padding: 20px;
-            background: var(--brand-surface-soft);
+            background: #fff9f0;
             border-radius: 12px;
-            border-left: 4px solid var(--brand-primary);
-            border: 1px solid var(--brand-border);
+            border-left: 4px solid #f39c12;
+            border: 1px solid #fef5e7;
         }
         
         .day-meals h4 {
             margin-bottom: 15px;
-            color: var(--brand-primary);
+            color: #d35400;
             font-size: 1.1rem;
             display: flex;
             align-items: center;
@@ -1733,9 +1613,9 @@ body {
             background: #ffffff;
             border-radius: 20px;
             font-size: 13px;
-            color: var(--brand-primary);
+            color: #d35400;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid var(--brand-border);
+            border: 1px solid #fef5e7;
             transition: all 0.3s ease;
         }
         
@@ -1746,7 +1626,7 @@ body {
         
         .meal-item i {
             margin-right: 6px;
-            color: var(--brand-primary);
+            color: #27ae60;
             font-size: 12px;
         }
         
@@ -1761,7 +1641,7 @@ body {
             align-items: center;
             gap: 10px;
             font-weight: 500;
-            color: var(--brand-muted);
+            color: #6c757d;
             font-size: 0.9rem;
             border-top: 1px solid #e9ecef;
             transition: all 0.3s ease;
@@ -1769,11 +1649,11 @@ body {
         
         .alternatives-header:hover {
             background: #e9ecef;
-            color: var(--brand-text);
+            color: #495057;
         }
         
         .alternatives-header i {
-            color: var(--brand-muted);
+            color: #6c757d;
         }
         
         .alternatives-toggle {
@@ -1798,7 +1678,7 @@ body {
         .service-item.alternativa {
             background: #fafbfc;
             border-bottom: 1px solid #e9ecef;
-            border-left: 3px solid var(--brand-muted);
+            border-left: 3px solid #6c757d;
             position: relative;
         }
         
@@ -1807,7 +1687,7 @@ body {
         }
         
         .service-item.alternativa .service-icon {
-            background: linear-gradient(135deg, var(--brand-muted), var(--brand-text)) !important;
+            background: linear-gradient(135deg, #6c757d, #495057) !important;
             width: 45px;
             height: 45px;
             font-size: 1rem;
@@ -1817,7 +1697,7 @@ body {
             position: absolute;
             top: 8px;
             right: 8px;
-            background: var(--brand-muted);
+            background: #6c757d;
             color: white;
             font-size: 9px;
             padding: 2px 6px;
@@ -1830,10 +1710,10 @@ body {
             margin-top: 8px;
             padding: 8px 12px;
             background: rgba(108, 117, 125, 0.1);
-            border-left: 3px solid var(--brand-muted);
+            border-left: 3px solid #6c757d;
             border-radius: 4px;
             font-size: 0.85rem;
-            color: var(--brand-text);
+            color: #495057;
             font-style: italic;
         }
         
@@ -1861,13 +1741,13 @@ body {
         .pricing-header h2 {
             font-family: 'Playfair Display', serif;
             font-size: 2.5rem;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 15px;
         }
 
         .pricing-header p {
             font-size: 1.1rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
         }
 
         .price-main-card {
@@ -1898,18 +1778,18 @@ body {
         .price-currency {
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--brand-muted);
+            color: #7f8c8d;
         }
 
         .price-value {
             font-size: 3.5rem;
             font-weight: 700;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
 
         .price-per {
             font-size: 1.2rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
         }
 
         .nights-included {
@@ -1917,7 +1797,7 @@ body {
             align-items: center;
             gap: 10px;
             padding: 15px 25px;
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
             border-radius: 50px;
             font-weight: 600;
@@ -1959,7 +1839,7 @@ body {
         }
 
         .accordion-header.active {
-            background: var(--brand-surface-soft);
+            background: #f0f7ff;
         }
 
         .accordion-title {
@@ -1967,7 +1847,7 @@ body {
             align-items: center;
             gap: 15px;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             font-size: 1.1rem;
         }
 
@@ -1976,7 +1856,7 @@ body {
         }
 
         .accordion-arrow {
-            color: var(--brand-muted);
+            color: #7f8c8d;
             transition: transform 0.3s ease;
         }
 
@@ -2015,17 +1895,17 @@ body {
         }
 
         .pricing-list.included i {
-            color: var(--brand-primary);
+            color: #27ae60;
             margin-top: 2px;
         }
 
         .pricing-list.excluded i {
-            color: var(--brand-primary);
+            color: #e74c3c;
             margin-top: 2px;
         }
 
         .pricing-list span {
-            color: var(--brand-text);
+            color: #2c3e50;
             line-height: 1.5;
         }
 
@@ -2038,8 +1918,8 @@ body {
             border-radius: 10px;
             margin-top: 15px;
             line-height: 1.6;
-            color: var(--brand-muted);
-            border-left: 4px solid var(--brand-primary);
+            color: #5a6c7d;
+            border-left: 4px solid #3498db;
         }
 
         .accessibility-info {
@@ -2061,25 +1941,25 @@ body {
         }
 
         .status-badge.fully-accessible {
-            background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
-            color: var(--brand-primary);
+            background: #d5f4e6;
+            color: #27ae60;
         }
 
         .status-badge.partially-accessible {
-            background: var(--brand-surface-soft);
-            color: var(--brand-primary);
+            background: #fef9e7;
+            color: #f39c12;
         }
 
         .status-badge.not-accessible {
-            background: var(--brand-surface-soft);
-            color: var(--brand-primary);
+            background: #fdf2f2;
+            color: #e74c3c;
         }
 
         .accessibility-details {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            color: var(--brand-muted);
+            color: #5a6c7d;
             line-height: 1.6;
         }
 
@@ -2094,7 +1974,7 @@ body {
            FOOTER
            ======================================== */
         .footer {
-            background: var(--brand-text);
+            background: #2c3e50;
             color: white;
             text-align: center;
             padding: 60px 20px 30px;
@@ -2139,13 +2019,13 @@ body {
         }
         
         .btn-primary {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
             color: white;
         }
         
@@ -2157,11 +2037,11 @@ body {
         
         .btn-outline:hover {
             background: white;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
         
         .footer-bottom {
-            border-top: 1px solid var(--brand-text);
+            border-top: 1px solid #34495e;
             padding-top: 20px;
             font-size: 0.9rem;
             opacity: 0.7;
@@ -2320,16 +2200,16 @@ body {
    ======================================== */
 .main-location {
     font-weight: 600;
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 .secondary-locations-section {
     margin-top: 15px;
     padding: 15px;
-    background: var(--brand-surface-soft);
+    background: #f8fffe;
     border-radius: 12px;
-    border-left: 4px solid var(--brand-primary);
-    border: 1px solid var(--brand-border);
+    border-left: 4px solid #27ae60;
+    border: 1px solid #e8f5e8;
 }
 
 .secondary-locations-header {
@@ -2338,7 +2218,7 @@ body {
     gap: 8px;
     margin-bottom: 12px;
     font-weight: 600;
-    color: var(--brand-primary);
+    color: #27ae60;
     font-size: 0.9rem;
 }
 
@@ -2359,20 +2239,20 @@ body {
     padding: 10px 12px;
     background: #ffffff;
     border-radius: 8px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e8f5e8;
     transition: all 0.3s ease;
 }
 
 .secondary-location-item:hover {
     transform: translateX(3px);
     box-shadow: 0 3px 10px rgba(39, 174, 96, 0.1);
-    border-color: var(--brand-primary);
+    border-color: #27ae60;
 }
 
 .location-marker {
     width: 24px;
     height: 24px;
-    background: var(--brand-primary);
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2392,14 +2272,14 @@ body {
 
 .location-name {
     font-weight: 500;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 0.9rem;
     line-height: 1.3;
 }
 
 .location-coords {
     font-size: 0.75rem;
-    color: var(--brand-muted);
+    color: #7f8c8d;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -2407,7 +2287,7 @@ body {
 
 .location-coords i {
     font-size: 10px;
-    color: var(--brand-muted);
+    color: #95a5a6;
 }
 
 /* Responsive para ubicaciones secundarias */
@@ -2486,23 +2366,23 @@ body {
 
 /* Adultos - Azul coherente con el diseño */
 .price-category.adulto {
-    border-color: var(--brand-primary);
-    background: linear-gradient(135deg, var(--brand-surface-soft) 0%, #ffffff 100%);
+    border-color: #3498db;
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
 }
 
 .price-category.adulto .category-icon {
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary) 100%);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 /* Niños - Verde coherente con ubicaciones secundarias */
 .price-category.nino {
-    border-color: var(--brand-primary);
-    background: linear-gradient(135deg, var(--brand-surface-soft) 0%, #ffffff 100%);
+    border-color: #27ae60;
+    background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
 }
 
 .price-category.nino .category-icon {
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary) 100%);
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
     box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
@@ -2524,7 +2404,7 @@ body {
 
 .category-label {
     font-size: 14px;
-    color: var(--brand-muted);
+    color: #5a6c7d;
     font-weight: 600;
     margin-bottom: 8px;
     text-transform: uppercase;
@@ -2541,23 +2421,23 @@ body {
 .category-price .price-currency {
     font-size: 16px;
     font-weight: 600;
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 .category-price .price-value {
     font-size: 28px;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 .category-price .price-per {
     font-size: 12px;
-    color: var(--brand-muted);
+    color: #7f8c8d;
 }
 
 .category-subtotal {
     font-size: 12px;
-    color: var(--brand-muted);
+    color: #95a5a6;
     font-style: italic;
 }
 
@@ -2577,7 +2457,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px 30px;
-    background: linear-gradient(135deg, var(--brand-text) 0%, var(--brand-text) 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     border-radius: 12px;
     color: #ffffff;
     box-shadow: 0 5px 20px rgba(44, 62, 80, 0.3);
@@ -2613,7 +2493,7 @@ body {
 .nights-included {
     text-align: center;
     padding: 12px 20px;
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary) 100%);
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
     color: white;
     border-radius: 8px;
     font-weight: 600;
@@ -2702,12 +2582,12 @@ body {
 
 /* Estados de hover más refinados */
 .price-category.adulto:hover {
-    border-color: var(--brand-primary);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    border-color: #2980b9;
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.2);
 }
 
 .price-category.nino:hover {
-    border-color: var(--brand-primary);
+    border-color: #2ecc71;
     box-shadow: 0 8px 20px rgba(39, 174, 96, 0.2);
 }
 
@@ -2793,10 +2673,10 @@ body {
     gap: 8px;
     padding: 8px 16px;
     background: #f8f9fa;
-    color: var(--brand-text);
+    color: #495057;
     text-decoration: none;
     border-radius: 6px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #dee2e6;
     font-weight: 500;
     font-size: 13px;
     transition: all 0.2s ease;
@@ -2804,8 +2684,8 @@ body {
 
 .service-website a:hover {
     background: #e9ecef;
-    border-color: var(--brand-muted);
-    color: var(--brand-text);
+    border-color: #adb5bd;
+    color: #212529;
 }
 
 .service-website a i {
@@ -2918,7 +2798,7 @@ body {
 }
 
 .modal-title {
-    color: var(--brand-text);
+    color: #2c3e50;
     margin-bottom: 30px;
     font-size: 24px;
     font-weight: 600;
@@ -2930,7 +2810,7 @@ body {
     top: 50%;
     transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.05);
-    color: var(--brand-text);
+    color: #2c3e50;
     border: 1px solid rgba(0, 0, 0, 0.1);
     width: 50px;
     height: 50px;
@@ -2958,7 +2838,7 @@ body {
     position: absolute;
     top: 30px;
     right: 40px;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 36px;
     font-weight: 300;
     cursor: pointer;
@@ -2980,7 +2860,7 @@ body {
 }
 
 .modal-counter {
-    color: var(--brand-muted);
+    color: #6c757d;
     margin-top: 20px;
     font-size: 15px;
     font-weight: 500;
@@ -3352,7 +3232,7 @@ body {
     .day-card {
         page-break-inside: avoid;
         margin-bottom: 15px !important;
-        border: 1px solid var(--brand-border) !important;
+        border: 1px solid #e0e0e0 !important;
         padding: 12px !important;
     }
     
@@ -3369,7 +3249,7 @@ body {
     
     /* Footer compacto */
     .footer {
-        background: var(--brand-text) !important;
+        background: #2c3e50 !important;
         color: #fff !important;
         padding: 15px !important;
         text-align: center !important;
@@ -3422,8 +3302,8 @@ body {
     margin: 6px 0 8px 0;
     padding: 6px 11px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
-    color: var(--brand-primary);
+    background: rgba(52, 152, 219, 0.10);
+    color: #2563eb;
     font-size: 13px;
     font-weight: 600;
 }
@@ -3434,15 +3314,15 @@ body {
 
 .accommodation-detail.muted {
     background: rgba(107, 114, 128, 0.10);
-    color: var(--brand-muted);
+    color: #6b7280;
 }
 
 .day-flights-section {
     margin: 24px 0;
     padding: 18px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e5e7eb;
     border-radius: 16px;
-    background: var(--brand-surface-soft);
+    background: #f8fafc;
 }
 
 .day-flights-title {
@@ -3451,12 +3331,12 @@ body {
     gap: 8px;
     margin-bottom: 14px;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #1f2937;
     font-size: 16px;
 }
 
 .day-flights-title i {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
 }
 
 .day-flights-list {
@@ -3467,8 +3347,8 @@ body {
 
 .day-flight-card {
     background: #ffffff;
-    border: 1px solid var(--brand-border);
-    border-left: 4px solid var(--primary-color, var(--brand-primary));
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--primary-color, #667eea);
     border-radius: 12px;
     padding: 14px 16px;
 }
@@ -3483,17 +3363,17 @@ body {
 
 .day-flight-header strong {
     font-size: 15px;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .day-flight-header span {
     margin-left: 6px;
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 14px;
 }
 
 .day-flight-header small {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
     font-weight: 700;
     white-space: nowrap;
 }
@@ -3517,28 +3397,28 @@ body {
 .day-flight-route strong {
     display: block;
     font-size: 18px;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .day-flight-route span {
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 13px;
 }
 
 .day-flight-route i {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
 }
 
 .day-flight-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    color: var(--brand-muted);
+    color: #4b5563;
     font-size: 13px;
 }
 
 .day-flight-meta i {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
     margin-right: 4px;
 }
 
@@ -3565,7 +3445,7 @@ body {
 
 .clean-flight-card {
     background: #ffffff;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e5e7eb;
     border-radius: 18px;
     padding: 18px;
     box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
@@ -3582,17 +3462,17 @@ body {
 .clean-flight-code {
     font-size: 18px;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .clean-flight-airline {
     margin-top: 2px;
     font-size: 13px;
-    color: var(--brand-muted);
+    color: #6b7280;
 }
 
 .clean-flight-order {
-    background: var(--primary-color, var(--brand-primary));
+    background: var(--primary-color, #667eea);
     color: white;
     border-radius: 999px;
     padding: 6px 10px;
@@ -3613,18 +3493,18 @@ body {
     font-size: 34px;
     line-height: 1;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .clean-airport-city {
     margin-top: 6px;
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 13px;
 }
 
 .clean-flight-time {
     margin-top: 10px;
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
     font-size: 22px;
     font-weight: 800;
 }
@@ -3639,7 +3519,7 @@ body {
 
 .clean-duration {
     font-size: 12px;
-    color: var(--brand-muted);
+    color: #6b7280;
     margin-bottom: 8px;
 }
 
@@ -3647,12 +3527,12 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
 }
 
 .clean-line span {
     height: 1px;
-    background: var(--brand-border);
+    background: #d1d5db;
     flex: 1;
 }
 
@@ -3664,25 +3544,25 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr .45fr;
     gap: 12px;
-    border-top: 1px solid var(--brand-border);
+    border-top: 1px solid #e5e7eb;
     padding-top: 14px;
 }
 
 .clean-flight-details div {
-    background: var(--brand-surface-soft);
+    background: #f8fafc;
     border-radius: 12px;
     padding: 10px 12px;
 }
 
 .clean-flight-details strong {
     display: block;
-    color: var(--brand-text);
+    color: #374151;
     font-size: 11px;
     margin-bottom: 4px;
 }
 
 .clean-flight-details span {
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 12px;
 }
 
@@ -3707,802 +3587,7 @@ body {
     }
 }
 
-    
-
-/* =====================================================
-   TRAVEL SOFT - REDISEÑO LIMPIO TIPO "MI VIAJE"
-   Mantiene la estructura PHP, funciones, modales, mapa, precios y botones.
-   Solo redefine presentación visual para una lectura más clara.
-   ===================================================== */
-:root {
-    /*
-      Variables visuales del rediseño.
-      El color principal sale de la paleta configurada por el usuario.
-      Si el sistema ya define --primary-color / --secondary-color, este diseño las hereda.
-    */
-    --primary-color: <?= htmlspecialchars($brand_primary) ?>;
-    --secondary-color: <?= htmlspecialchars($brand_secondary) ?>;
-    --ts-brand: <?= htmlspecialchars($brand_primary) ?>;
-    --ts-brand-dark: <?= htmlspecialchars($brand_secondary) ?>;
-    --ts-bg: color-mix(in srgb, var(--ts-brand) 7%, #ffffff);
-    --ts-surface: #ffffff;
-    --ts-surface-soft: color-mix(in srgb, var(--ts-brand) 4%, #ffffff);
-    --ts-text: #20292d;
-    --ts-muted: #6b7478;
-    --ts-line: color-mix(in srgb, var(--ts-brand) 14%, #e9e9e9);
-    --ts-brand-soft: color-mix(in srgb, var(--ts-brand) 12%, #ffffff);
-    --ts-brand-faint: color-mix(in srgb, var(--ts-brand) 6%, #ffffff);
-    --ts-radius-lg: 28px;
-    --ts-radius-md: 18px;
-    --ts-shadow-soft: 0 18px 50px rgba(32, 41, 45, .10);
-    --ts-shadow-card: 0 10px 30px rgba(32, 41, 45, .07);
-}
-html { scroll-behavior: smooth; }
-body {
-    background: var(--ts-bg) !important;
-    color: var(--ts-text) !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-.navbar {
-    background: rgba(255,255,255,.88) !important;
-    border-bottom: 1px solid var(--ts-line) !important;
-    box-shadow: 0 8px 30px rgba(32,41,45,.06) !important;
-}
-.navbar-content { max-width: 1180px !important; padding: 0 24px !important; }
-.navbar-brand { font-family: 'Inter', sans-serif !important; font-weight: 800 !important; color: var(--ts-brand) !important; }
-.navbar-nav a { color: var(--ts-text) !important; font-weight: 700 !important; font-size: .92rem !important; }
-.navbar-nav a:hover { color: var(--ts-brand) !important; }
-
-.hero-section {
-    height: 78vh !important;
-    min-height: 560px !important;
-    align-items: flex-end !important;
-    justify-content: flex-start !important;
-    text-align: left !important;
-    padding: 0 24px 72px !important;
-    background-image: linear-gradient(90deg, rgba(0,0,0,.64) 0%, rgba(0,0,0,.36) 48%, rgba(0,0,0,.10) 100%), url('<?= addslashes($imagen_portada) ?>') !important;
-}
-.hero-content {
-    max-width: 1120px !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-}
-.hero-subtitle {
-    width: fit-content !important;
-    background: rgba(255,255,255,.16) !important;
-    border: 1px solid rgba(255,255,255,.28) !important;
-    border-radius: 999px !important;
-    padding: 9px 15px !important;
-    letter-spacing: .08em !important;
-    font-size: .78rem !important;
-    margin-bottom: 18px !important;
-}
-.hero-title {
-    max-width: 820px !important;
-    font-family: 'Playfair Display', serif !important;
-    font-size: clamp(2.7rem, 6vw, 5.4rem) !important;
-    line-height: .96 !important;
-    letter-spacing: -.04em !important;
-    text-shadow: 0 12px 35px rgba(0,0,0,.35) !important;
-}
-.hero-description {
-    max-width: 620px !important;
-    margin: 18px 0 28px !important;
-    font-size: 1.05rem !important;
-    color: rgba(255,255,255,.9) !important;
-}
-.hero-stats {
-    justify-content: flex-start !important;
-    gap: 12px !important;
-    margin: 0 !important;
-}
-.hero-stat {
-    min-width: 120px !important;
-    padding: 14px 18px !important;
-    border-radius: 18px !important;
-    background: rgba(255,255,255,.92) !important;
-    color: var(--ts-text) !important;
-    border: 1px solid rgba(255,255,255,.5) !important;
-    box-shadow: var(--ts-shadow-card) !important;
-    backdrop-filter: blur(18px) !important;
-}
-.hero-stat-number { font-size: 1.8rem !important; color: var(--ts-brand) !important; }
-.hero-stat-label, .hero-stat-title { color: var(--ts-muted) !important; font-size: .72rem !important; }
-.scroll-indicator { display: none !important; }
-
-.main-content {
-    max-width: 1180px !important;
-    padding: 38px 24px 80px !important;
-    background: transparent !important;
-}
-.section { margin-bottom: 54px !important; }
-.section-header {
-    text-align: left !important;
-    margin-bottom: 22px !important;
-}
-.section-title {
-    font-family: 'Inter', sans-serif !important;
-    font-size: clamp(1.65rem, 3vw, 2.35rem) !important;
-    letter-spacing: -.035em !important;
-    color: var(--ts-text) !important;
-    margin-bottom: 6px !important;
-}
-.section-subtitle { margin: 0 !important; color: var(--ts-muted) !important; font-size: .98rem !important; }
-
-.overview-grid {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, .9fr) !important;
-    gap: 18px !important;
-    margin-bottom: 0 !important;
-}
-.overview-content, .price-main-card, .pricing-accordion, .day-content, .map-container {
-    background: var(--ts-surface) !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: var(--ts-radius-lg) !important;
-    box-shadow: var(--ts-shadow-card) !important;
-}
-.overview-content { padding: 26px !important; }
-.overview-details { gap: 12px !important; margin-bottom: 16px !important; }
-.detail-item {
-    background: var(--ts-surface-soft) !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: 18px !important;
-    padding: 16px !important;
-    align-items: flex-start !important;
-}
-.detail-icon {
-    width: 42px !important;
-    height: 42px !important;
-    border-radius: 14px !important;
-    background: var(--ts-brand-soft) !important;
-    color: var(--ts-brand) !important;
-    font-size: 1rem !important;
-}
-.detail-info h4 { color: var(--ts-text) !important; font-size: .86rem !important; margin-bottom: 3px !important; }
-.detail-info p { color: var(--ts-muted) !important; font-size: .92rem !important; }
-.overview-summary {
-    background: var(--ts-brand-faint) !important;
-    border: 1px solid var(--ts-line) !important;
-    border-left: 0 !important;
-    padding: 20px !important;
-    border-radius: 20px !important;
-}
-.overview-summary h3 { color: var(--ts-brand-dark) !important; }
-
-#map.section { margin-bottom: 54px !important; }
-.map-container {
-    height: 470px !important;
-    overflow: hidden !important;
-    position: relative !important;
-}
-#map { height: 470px !important; }
-.leaflet-popup-content-wrapper { border-radius: 18px !important; box-shadow: var(--ts-shadow-soft) !important; }
-.map-tooltip {
-    border-radius: 999px !important;
-    border: 1px solid var(--ts-line) !important;
-    box-shadow: var(--ts-shadow-card) !important;
-}
-
-.itinerary-timeline::before {
-    left: 20px !important;
-    top: 20px !important;
-    bottom: 20px !important;
-    width: 2px !important;
-    background: repeating-linear-gradient(to bottom, var(--ts-line), var(--ts-line) 8px, transparent 8px, transparent 14px) !important;
-}
-.day-card {
-    padding-left: 58px !important;
-    margin-bottom: 28px !important;
-}
-.day-number {
-    left: 0 !important;
-    top: 22px !important;
-    width: 42px !important;
-    height: 42px !important;
-    border-radius: 999px !important;
-    border: 2px solid var(--ts-line) !important;
-    background: var(--ts-surface) !important;
-    box-shadow: 0 0 0 7px var(--ts-bg) !important;
-    z-index: 2 !important;
-}
-.day-number-main { font-size: .92rem !important; color: var(--ts-brand) !important; font-weight: 900 !important; }
-.day-number-label { display: none !important; }
-.duration-badge { background: var(--ts-brand) !important; }
-.day-content {
-    overflow: hidden !important;
-    transition: transform .25s ease, box-shadow .25s ease !important;
-}
-.day-content:hover { transform: translateY(-2px) !important; box-shadow: var(--ts-shadow-soft) !important; }
-.day-header {
-    padding: 24px 26px !important;
-    background: var(--ts-surface) !important;
-    border-bottom: 1px solid var(--ts-line) !important;
-}
-.day-title {
-    font-family: 'Inter', sans-serif !important;
-    font-size: clamp(1.25rem, 2vw, 1.7rem) !important;
-    line-height: 1.2 !important;
-    letter-spacing: -.025em !important;
-    margin-bottom: 12px !important;
-    color: var(--ts-text) !important;
-}
-.day-meta-row { display: flex !important; gap: 8px !important; flex-wrap: wrap !important; margin: 0 0 12px !important; }
-.day-meta-pill {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 7px !important;
-    border-radius: 999px !important;
-    padding: 7px 11px !important;
-    background: var(--ts-surface-soft) !important;
-    border: 1px solid var(--ts-line) !important;
-    color: var(--ts-muted) !important;
-    font-size: .82rem !important;
-    font-weight: 700 !important;
-}
-.day-meta-pill-primary { background: var(--ts-brand-soft) !important; color: var(--ts-brand-dark) !important; border-color: var(--ts-line) !important; }
-
-.secondary-locations-new {
-    background: transparent !important;
-    padding: 0 !important;
-    border: 0 !important;
-    margin-top: 10px !important;
-}
-.secondary-header { display: none !important; }
-.locations-list { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; list-style: none !important; }
-.location-item {
-    display: inline-flex !important;
-    align-items: center !important;
-    width: auto !important;
-    gap: 8px !important;
-    background: var(--ts-surface-soft) !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: 999px !important;
-    padding: 7px 11px !important;
-}
-.location-marker {
-    width: 22px !important;
-    height: 22px !important;
-    min-width: 22px !important;
-    border-radius: 999px !important;
-    background: var(--ts-brand) !important;
-    color: #fff !important;
-    font-size: .72rem !important;
-}
-.location-name { font-size: .86rem !important; color: var(--ts-text) !important; font-weight: 800 !important; }
-.location-coords { display: none !important; }
-
-.day-images {
-    display: grid !important;
-    grid-template-columns: 1.4fr .8fr .8fr !important;
-    gap: 8px !important;
-    padding: 10px !important;
-    background: var(--ts-surface) !important;
-    height: 330px !important;
-    margin: 0 !important;
-}
-.day-image {
-    height: 100% !important;
-    min-height: 0 !important;
-    border-radius: 22px !important;
-    box-shadow: none !important;
-    border: 0 !important;
-}
-.day-image:first-child { grid-row: span 2 !important; }
-.day-images:has(.day-image:only-child) { grid-template-columns: 1fr !important; }
-.day-images:has(.day-image:only-child) .day-image { grid-row: auto !important; }
-.day-images:has(.day-image:nth-child(2):last-child) { grid-template-columns: 1fr 1fr !important; }
-
-.day-services { padding: 0 !important; background: var(--ts-surface) !important; }
-.day-description {
-    margin: 0 !important;
-    padding: 24px 26px !important;
-    background: var(--ts-surface) !important;
-    border: 0 !important;
-    color: var(--ts-text) !important;
-}
-.day-description p { color: var(--ts-muted) !important; font-size: 1rem !important; line-height: 1.75 !important; }
-.stay-info-box {
-    background: var(--ts-brand-soft) !important;
-    border: 1px solid #d7ebe8 !important;
-    color: var(--ts-brand-dark) !important;
-    border-radius: 18px !important;
-    padding: 16px !important;
-}
-.day-meals {
-    margin: 0 26px 22px !important;
-    background: var(--ts-brand-faint) !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: 18px !important;
-    border-left: 0 !important;
-}
-.meal-item, .HEYhtiHcWlyddgJIa1VU span, .IVSjZUG0WMuWij1KUjRW {
-    border-radius: 999px !important;
-    background: var(--ts-surface) !important;
-    border: 1px solid var(--ts-line) !important;
-    color: #9a5c1c !important;
-}
-
-.service-group {
-    margin: 0 26px 16px !important;
-    border-radius: 22px !important;
-    border: 1px solid var(--ts-line) !important;
-    overflow: hidden !important;
-    box-shadow: none !important;
-}
-.service-item {
-    padding: 18px !important;
-    gap: 14px !important;
-    background: var(--ts-surface-soft) !important;
-}
-.service-item.principal { border-left: 0 !important; }
-.service-icon {
-    width: 42px !important;
-    height: 42px !important;
-    border-radius: 14px !important;
-    background: var(--ts-brand-soft) !important;
-    color: var(--ts-brand) !important;
-}
-.service-icon.actividad, .service-icon.transporte, .service-icon.alojamiento { background: var(--ts-brand-soft) !important; color: var(--ts-brand) !important; }
-.service-details h4 { color: var(--ts-text) !important; font-size: 1rem !important; line-height: 1.25 !important; }
-.service-details p { color: var(--ts-muted) !important; }
-.service-meta span {
-    background: var(--ts-surface) !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: 999px !important;
-    padding: 6px 9px !important;
-    color: var(--ts-muted) !important;
-}
-.service-image {
-    width: 116px !important;
-    height: 92px !important;
-    border-radius: 16px !important;
-    box-shadow: none !important;
-}
-.alternatives-header {
-    background: var(--ts-surface) !important;
-    color: var(--ts-brand) !important;
-    font-weight: 800 !important;
-}
-.alternatives-list { background: var(--ts-surface) !important; }
-.alternative-item { background: var(--ts-surface) !important; border-top: 1px solid var(--ts-line) !important; }
-
-.pricing-section {
-    border-radius: var(--ts-radius-lg) !important;
-    background: var(--ts-brand-dark) !important;
-    padding: 34px !important;
-    box-shadow: var(--ts-shadow-soft) !important;
-}
-.pricing-header h2 { font-family: 'Inter', sans-serif !important; letter-spacing: -.03em !important; }
-.price-main-card { color: var(--ts-text) !important; }
-.price-category { border-radius: 20px !important; border: 1px solid var(--ts-line) !important; box-shadow: none !important; }
-.price-total-section { border-radius: 20px !important; }
-.pricing-accordion { overflow: hidden !important; }
-.accordion-header { padding: 18px 22px !important; }
-
-.footer {
-    background: var(--ts-brand-dark) !important;
-    border-top-left-radius: 34px !important;
-    border-top-right-radius: 34px !important;
-}
-.btn {
-    border-radius: 999px !important;
-    font-weight: 800 !important;
-    box-shadow: none !important;
-}
-.btn-outline { border-color: rgba(255,255,255,.45) !important; }
-
-
-
-/* Limpieza de color: todo lo decorativo hereda la paleta del usuario */
-.overview-content > h3,
-.pricing-header h2,
-.pricing-header p {
-    color: inherit !important;
-}
-.overview-content > h3 { color: var(--ts-text) !important; }
-.detail-icon[style],
-.service-icon[style],
-.day-icon[style] {
-    background: var(--ts-brand-soft) !important;
-    color: var(--ts-brand) !important;
-}
-.btn-primary,
-.btn:not(.btn-outline),
-.select-accommodation-button,
-.accommodation-select-btn,
-.price-action-btn {
-    background: var(--ts-brand) !important;
-    border-color: var(--ts-brand) !important;
-    color: #fff !important;
-}
-.btn-primary:hover,
-.btn:not(.btn-outline):hover {
-    background: var(--ts-brand-dark) !important;
-    border-color: var(--ts-brand-dark) !important;
-}
-.btn-outline {
-    background: transparent !important;
-    color: var(--ts-brand) !important;
-    border-color: var(--ts-line) !important;
-}
-.btn-outline:hover {
-    background: var(--ts-brand-soft) !important;
-    color: var(--ts-brand-dark) !important;
-}
-.day-meals,
-.meal-item,
-.HEYhtiHcWlyddgJIa1VU span,
-.IVSjZUG0WMuWij1KUjRW {
-    background: var(--ts-brand-faint) !important;
-    border-color: var(--ts-line) !important;
-    color: var(--ts-brand-dark) !important;
-}
-
-@media (max-width: 900px) {
-    .hero-section { height: auto !important; min-height: 620px !important; padding-bottom: 44px !important; }
-    .overview-grid { grid-template-columns: 1fr !important; }
-    .overview-details { grid-template-columns: 1fr !important; }
-    .navbar-content { padding: 0 14px !important; }
-    .navbar-nav { gap: 12px !important; overflow-x: auto !important; }
-    .day-card { padding-left: 0 !important; }
-    .itinerary-timeline::before, .day-number { display: none !important; }
-    .day-images { height: auto !important; grid-template-columns: 1fr !important; }
-    .day-image, .day-image:first-child { height: 220px !important; grid-row: auto !important; }
-    .service-item { flex-direction: column !important; }
-    .service-image { width: 100% !important; height: 180px !important; }
-    .pricing-section { padding: 24px 16px !important; }
-}
-
-@media print {
-    body { background: var(--ts-surface) !important; }
-    .hero-section { height: auto !important; min-height: 360px !important; }
-    .day-card { padding-left: 0 !important; break-inside: avoid !important; }
-    .day-number, .itinerary-timeline::before, .navbar { display: none !important; }
-    .day-content, .overview-content, .price-main-card, .pricing-accordion { box-shadow: none !important; }
-}
-
-
-
-/* =====================================================
-   AJUSTE FINAL: PALETA ÚNICA + FECHAS TIPO EVANEOS
-   ===================================================== */
-:root {
-    --ts-brand: <?= htmlspecialchars($brand_primary) ?> !important;
-    --ts-brand-dark: <?= htmlspecialchars($brand_secondary) ?> !important;
-    --ts-bg: color-mix(in srgb, var(--ts-brand) 5%, #fff) !important;
-    --ts-surface: #fff !important;
-    --ts-surface-soft: color-mix(in srgb, var(--ts-brand) 4%, #fff) !important;
-    --ts-brand-soft: color-mix(in srgb, var(--ts-brand) 10%, #fff) !important;
-    --ts-brand-faint: color-mix(in srgb, var(--ts-brand) 6%, #fff) !important;
-    --ts-line: color-mix(in srgb, var(--ts-brand) 15%, #e9e9e9) !important;
-    --ts-text: #20292d !important;
-    --ts-muted: #687276 !important;
-}
-
-body,
-.main-content,
-.section,
-.overview-content,
-.day-content,
-.service-card,
-.accommodation-card,
-.flight-card,
-.clean-flight-card,
-.pricing-accordion,
-.price-main-card,
-.map-container,
-.footer {
-    color: var(--ts-text) !important;
-}
-
-.hero-section {
-    background-image: linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.34) 48%, rgba(0,0,0,.72) 100%), url('<?= addslashes($imagen_portada) ?>') !important;
-}
-
-.hero-subtitle,
-.hero-stat,
-.day-meta-pill,
-.location-item,
-.secondary-locations-new,
-.service-card,
-.accommodation-card,
-.flight-card,
-.clean-flight-card,
-.detail-item,
-.price-main-card,
-.pricing-accordion,
-.overview-content,
-.day-content {
-    border-color: var(--ts-line) !important;
-}
-
-.hero-stat-number,
-.navbar-brand,
-.navbar-nav a:hover,
-.section-title,
-.overview-summary h3,
-.day-title,
-.day-main-title,
-.service-title,
-.accommodation-title,
-.price-amount,
-.clean-flight-time,
-.day-flight-header small,
-.day-flights-title i,
-.day-flight-route i,
-.day-flight-meta i,
-.detail-icon i,
-.detail-icon,
-.secondary-header i,
-.location-marker,
-.btn-link,
-.moment-card-opener-button,
-.accordion-header i,
-.footer a {
-    color: var(--ts-brand) !important;
-}
-
-.detail-icon,
-.detail-icon[style],
-.service-icon,
-.service-icon[style],
-.clean-flight-order,
-.day-number,
-.location-marker,
-.btn-primary,
-.accommodation-selected,
-.selected-badge,
-.gallery-counter,
-.duration-badge {
-    background: var(--ts-brand-soft) !important;
-    color: var(--ts-brand) !important;
-    border-color: var(--ts-line) !important;
-    box-shadow: none !important;
-}
-
-.btn-primary,
-.accommodation-selected,
-.selected-badge,
-.clean-flight-order {
-    background: var(--ts-brand) !important;
-    color: #fff !important;
-}
-
-.btn-primary:hover {
-    background: var(--ts-brand-dark) !important;
-    color: #fff !important;
-}
-
-.day-card::before,
-.itinerary-timeline::before,
-.timeline-line,
-.progress-bar,
-.accordion-header::before {
-    background: var(--ts-line) !important;
-    border-color: var(--ts-line) !important;
-}
-
-.day-card {
-    display: grid !important;
-    grid-template-columns: 86px minmax(0, 1fr) !important;
-    gap: 22px !important;
-    align-items: start !important;
-}
-
-.day-number {
-    position: sticky !important;
-    top: 92px !important;
-    width: 72px !important;
-    min-height: 72px !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: 24px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    background: var(--ts-surface) !important;
-}
-
-.day-number-main {
-    font-size: .98rem !important;
-    line-height: 1 !important;
-    color: var(--ts-brand) !important;
-}
-
-.day-number-label {
-    color: var(--ts-muted) !important;
-    font-size: .62rem !important;
-    letter-spacing: .12em !important;
-}
-
-.duration-badge {
-    position: static !important;
-    margin-top: 6px !important;
-    padding: 3px 7px !important;
-    border-radius: 999px !important;
-    font-size: .62rem !important;
-    font-weight: 700 !important;
-}
-
-.day-content {
-    overflow: hidden !important;
-    padding: 0 !important;
-}
-
-.day-header {
-    padding: 0 !important;
-}
-
-.day-heading-overlay {
-    display: flex !important;
-    align-items: flex-end !important;
-    justify-content: space-between !important;
-    gap: 16px !important;
-    padding: 26px 28px 18px !important;
-    background: linear-gradient(180deg, var(--ts-surface) 0%, var(--ts-surface-soft) 100%) !important;
-    border-bottom: 1px solid var(--ts-line) !important;
-}
-
-.day-title {
-    margin: 0 !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: clamp(1.45rem, 2.5vw, 2.15rem) !important;
-    font-weight: 850 !important;
-    letter-spacing: -.045em !important;
-    line-height: 1.05 !important;
-}
-
-.day-date-text {
-    margin: 8px 0 0 !important;
-    color: var(--ts-muted) !important;
-    font-size: 1rem !important;
-    font-weight: 500 !important;
-}
-
-.day-stay-chip {
-    flex: 0 0 auto !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 9px 13px !important;
-    border: 1px solid var(--ts-line) !important;
-    border-radius: 999px !important;
-    background: #fff !important;
-    color: var(--ts-brand) !important;
-    font-size: .82rem !important;
-    font-weight: 800 !important;
-}
-
-.day-main-title {
-    margin: 24px 28px 8px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: clamp(1.15rem, 2vw, 1.55rem) !important;
-    font-weight: 800 !important;
-    line-height: 1.25 !important;
-    letter-spacing: -.025em !important;
-}
-
-.day-location,
-.day-description,
-.day-services,
-.services-section,
-.accommodations-section,
-.day-flights-section,
-.clean-flights-section {
-    padding-left: 28px !important;
-    padding-right: 28px !important;
-}
-
-.day-images {
-    margin: 18px 28px 24px !important;
-    border-radius: 24px !important;
-    overflow: hidden !important;
-    border: 1px solid var(--ts-line) !important;
-}
-
-.day-image::after {
-    background: linear-gradient(transparent 62%, rgba(0,0,0,.52)) !important;
-}
-
-.day-meta-row { display: none !important; }
-
-.secondary-locations-new {
-    background: transparent !important;
-    border: 0 !important;
-    padding: 10px 0 0 !important;
-}
-
-.secondary-header h4 {
-    color: var(--ts-text) !important;
-}
-
-.locations-list {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    margin-top: 10px !important;
-}
-
-.location-item {
-    width: auto !important;
-    padding: 8px 12px !important;
-    border-radius: 999px !important;
-    background: var(--ts-surface-soft) !important;
-    gap: 8px !important;
-}
-
-.location-marker {
-    width: 22px !important;
-    height: 22px !important;
-    min-width: 22px !important;
-    border-radius: 999px !important;
-    font-size: .72rem !important;
-    background: #fff !important;
-}
-
-.location-name {
-    color: var(--ts-text) !important;
-    font-weight: 700 !important;
-}
-
-.location-coords { display: none !important; }
-
-/* Quitar restos de colores semánticos antiguos: azul, verde, amarillo, rojo, morado. */
-[class*="success"], [class*="warning"], [class*="danger"], [class*="info"],
-.meal-badge, .service-type-badge, .transport-badge, .included-badge,
-.status-badge, .price-badge, .tag, .badge {
-    background: var(--ts-brand-soft) !important;
-    color: var(--ts-brand) !important;
-    border-color: var(--ts-line) !important;
-}
-
-svg, svg path, .fa, .fas, .far, .fab {
-    color: inherit;
-}
-
-@media (max-width: 768px) {
-    .day-card {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-    }
-
-    .day-number {
-        position: relative !important;
-        top: auto !important;
-        width: fit-content !important;
-        min-height: auto !important;
-        flex-direction: row !important;
-        gap: 6px !important;
-        padding: 9px 12px !important;
-        border-radius: 999px !important;
-    }
-
-    .day-heading-overlay {
-        align-items: flex-start !important;
-        flex-direction: column !important;
-        padding: 22px 20px 16px !important;
-    }
-
-    .day-main-title,
-    .day-images {
-        margin-left: 20px !important;
-        margin-right: 20px !important;
-    }
-
-    .day-location,
-    .day-description,
-    .day-services,
-    .services-section,
-    .accommodations-section,
-    .day-flights-section,
-    .clean-flights-section {
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-    }
-}
-</style>
+    </style>
 </head>
 
 <body>
@@ -4624,7 +3709,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                 </div>
                 
                 <div class="overview-content">
-                    <h3 style="margin-bottom: 20px; color: var(--brand-text);">Lo que incluye</h3>
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">Lo que incluye</h3>
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <?php 
                         $total_actividades = 0;
@@ -4657,7 +3742,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                         
                         <?php if ($total_alojamientos > 0): ?>
                         <div class="detail-item">
-                            <div class="detail-icon" style="background: var(--brand-primary);">
+                            <div class="detail-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                                 <i class="fas fa-bed"></i>
                             </div>
                             <div class="detail-info">
@@ -4679,7 +3764,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                         
                         <?php if ($total_transportes > 0): ?>
                         <div class="detail-item">
-                            <div class="detail-icon" >
+                            <div class="detail-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
                                 <i class="fas fa-car"></i>
                             </div>
                             <div class="detail-info">
@@ -4691,7 +3776,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                         
                         <?php if ($total_actividades > 0): ?>
                         <div class="detail-item">
-                            <div class="detail-icon" >
+                            <div class="detail-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
                                 <i class="fas fa-hiking"></i>
                             </div>
                             <div class="detail-info">
@@ -4738,35 +3823,68 @@ svg, svg path, .fa, .fas, .far, .fab {
                 <?php 
                 $diaActual = 1;
                 foreach ($dias as $index => $dia): 
-                    $duracion = max(1, (int)($dia['duracion_estancia'] ?? 1));
+                    $duracion = (int)($dia['duracion_estancia'] ?? 1);
                     $diaFinal = $diaActual + $duracion - 1;
-                    $rangoTexto = ts_day_range_label($diaActual, $duracion);
-                    $fechaInicioDia = $dia['fecha_calculada'] ?? null;
-                    $fechaFinDia = $dia['fecha_fin_calculada'] ?? $fechaInicioDia;
-                    $fechaTexto = ts_date_range_label($fechaInicioDia, $fechaFinDia, $duracion);
+                    
+                    // Texto del rango
+                    $rangoTexto = $duracion === 1 
+                        ? "Día {$diaActual}" 
+                        : "Días {$diaActual}-{$diaFinal}";
+                    
+                    $duracionTexto = $duracion > 1 ? " ({$duracion} días)" : '';
                 ?>
                 <div class="day-card" style="animation-delay: <?= $index * 0.1 ?>s;">
                     <div class="day-number">
                         <div class="day-number-main">
-                            <?= $duracion === 1 ? $diaActual : $diaActual . '–' . $diaFinal ?>
+                            <?= $duracion === 1 ? $diaActual : "{$diaActual}-{$diaFinal}" ?>
                         </div>
                         <div class="day-number-label">
                             <?= $duracion === 1 ? 'DÍA' : 'DÍAS' ?>
                         </div>
+                        <?php if ($duracion > 1): ?>
+                            <div class="duration-badge"><?= $duracion ?>d</div>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="day-content">
                         <div class="day-header">
-                            <div class="day-heading-overlay">
-                                <div>
-                                    <h3 class="day-title"><?= htmlspecialchars($rangoTexto) ?></h3>
-                                    <?php if (!empty($fechaTexto)): ?>
-                                        <p class="day-date-text"><?= htmlspecialchars($fechaTexto) ?></p>
+                            <!---------Aquí cambiamos para visualizar adecuadamente las fechas exactas------>
+                            <h3 class="day-title">
+                                <?= $rangoTexto ?>: <?= htmlspecialchars($dia['titulo']) ?>
+                            </h3>
+
+                            <?php
+                            $fechaInicioDia = $dia['fecha_calculada'] ?? null;
+                            $fechaFinDia = $dia['fecha_fin_calculada'] ?? null;
+                            ?>
+
+                            <?php if ($duracion > 1 || !empty($fechaInicioDia)): ?>
+                                <div class="day-meta-row">
+                                    <?php if (!empty($fechaInicioDia)): ?>
+                                        <span class="day-meta-pill">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <?php if ($duracion > 1 && !empty($fechaFinDia)): ?>
+                                                <?= date('d/m/Y', strtotime($fechaInicioDia)) ?> - <?= date('d/m/Y', strtotime($fechaFinDia)) ?>
+                                            <?php else: ?>
+                                                <?= date('d/m/Y', strtotime($fechaInicioDia)) ?>
+                                            <?php endif; ?>
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if ($duracion > 1): ?>
+                                        <span class="day-meta-pill">
+                                            <?= $duracion ?> días
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php if ($duracion > 1): ?>
+                                        <span class="day-meta-pill day-meta-pill-primary">
+                                            <i class="fas fa-bed"></i>
+                                            Estancia de <?= $duracion ?> días
+                                        </span>
                                     <?php endif; ?>
                                 </div>
-                            </div>
-
-                            <h4 class="day-main-title"><?= htmlspecialchars($dia['titulo']) ?></h4>
+                            <?php endif; ?>
 
                             <div class="day-location">
                                 
@@ -4844,6 +3962,11 @@ svg, svg path, .fa, .fas, .far, .fab {
                             <?php if (!empty($dia['descripcion'])): ?>
                             <div class="day-description">
                                 <p><?= nl2br(htmlspecialchars($dia['descripcion'])) ?></p>
+                                <?php if ($duracion > 1): ?>
+                                <div class="stay-info-box">
+                                    <strong>Estancia Extendida:</strong> Estos servicios y actividades están disponibles durante toda tu estancia de <?= $duracion ?> días en <?= htmlspecialchars($dia['ubicacion']) ?>. Podrás disfrutar con total flexibilidad y sin prisas.
+                                </div>
+                                <?php endif; ?>
                             </div>
                             <?php endif; ?>
 
@@ -4878,10 +4001,10 @@ svg, svg path, .fa, .fas, .far, .fab {
                             <?php endif; ?>
                             
                             <?php if (!empty($dia['servicios'])): ?>
-                            <h4 style="margin-bottom: 20px; color: var(--brand-text); font-size: 1.2rem; font-weight: 600;">
+                            <h4 style="margin-bottom: 20px; color: #2c3e50; font-size: 1.2rem; font-weight: 600;">
                                 <i class="fas fa-list-ul"></i> Servicios incluidos
                                 <?php if ($duracion > 1): ?>
-                                    <span style="font-size: 0.8rem; color: var(--brand-muted); font-weight: normal;">
+                                    <span style="font-size: 0.8rem; color: #6c757d; font-weight: normal;">
                                         (Disponibles durante <?= $duracion ?> días)
                                     </span>
                                 <?php endif; ?>
@@ -5146,12 +4269,12 @@ svg, svg path, .fa, .fas, .far, .fab {
                                                 </div>
                                                 
                                                 <div class="service-details">
-                                                    <h4 style="color: var(--brand-text); margin-bottom: 5px;">
+                                                    <h4 style="color: #495057; margin-bottom: 5px;">
                                                         <?= htmlspecialchars($alternativa['nombre']) ?>
                                                     </h4>
                                                     
                                                     <?php if ($alternativa['descripcion']): ?>
-                                                    <p style="font-size: 0.9rem; color: var(--brand-muted);">
+                                                    <p style="font-size: 0.9rem; color: #6c757d;">
                                                         <?= htmlspecialchars($alternativa['descripcion']) ?>
                                                     </p>
                                                     <?php endif; ?>
@@ -5307,7 +4430,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     <div class="pricing-accordion">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div class="accordion-title">
-                                <i class="fas fa-check-circle" style="color: var(--brand-primary);"></i>
+                                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
                                 <span>¿Qué incluye el precio?</span>
                             </div>
                             <i class="fas fa-chevron-down accordion-icon"></i>
@@ -5321,7 +4444,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                                     if (empty($item)) continue;
                                 ?>
                                 <li>
-                                    <i class="fas fa-check" style="color: var(--brand-primary);"></i>
+                                    <i class="fas fa-check" style="color: #27ae60;"></i>
                                     <?= nl2br(htmlspecialchars($item)) ?>
                                 </li>
                                 <?php endforeach; ?>
@@ -5335,7 +4458,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     <div class="pricing-accordion">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div class="accordion-title">
-                                <i class="fas fa-times-circle" style="color: var(--brand-primary);"></i>
+                                <i class="fas fa-times-circle" style="color: #e74c3c;"></i>
                                 <span>¿Qué NO incluye?</span>
                             </div>
                             <i class="fas fa-chevron-down accordion-icon"></i>
@@ -5349,7 +4472,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                                     if (empty($item)) continue;
                                 ?>
                                 <li>
-                                    <i class="fas fa-times" style="color: var(--brand-primary);"></i>
+                                    <i class="fas fa-times" style="color: #e74c3c;"></i>
                                     <?= nl2br(htmlspecialchars($item)) ?>
                                 </li>
                                 <?php endforeach; ?>
@@ -5363,7 +4486,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     <div class="pricing-accordion">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div class="accordion-title">
-                                <i class="fas fa-file-contract" style="color: var(--brand-primary);"></i>
+                                <i class="fas fa-file-contract" style="color: #3498db;"></i>
                                 <span>Condiciones Generales</span>
                             </div>
                             <i class="fas fa-chevron-down accordion-icon"></i>
@@ -5516,12 +4639,12 @@ svg, svg path, .fa, .fas, .far, .fab {
                 }).addTo(map);
                 
                 const iconColors = {
-                    'dia': 'var(--brand-primary)',
-                    'ubicacion_secundaria': 'var(--brand-primary)'
+                    'dia': '#27ae60',
+                    'ubicacion_secundaria': '#2ecc71'
                 };
                 
                 puntosMapa.forEach(function(punto, index) {
-                    const color = iconColors[punto.tipo] || 'var(--brand-muted)';
+                    const color = iconColors[punto.tipo] || '#95a5a6';
                     
                     const customIcon = L.divIcon({
                         html: `
@@ -5594,7 +4717,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     puntosPerDia[punto.dia].push(punto);
                 });
                 
-                const colores = ['var(--brand-primary)', 'var(--brand-primary)', 'var(--brand-primary)', 'var(--brand-primary)', '#9b59b6', '#1abc9c'];
+                const colores = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
                 
                 Object.keys(puntosPerDia).forEach((dia, index) => {
                     const puntosDia = puntosPerDia[dia];
@@ -5702,17 +4825,17 @@ function toggleAccordion(element) {
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 ">
                     <div style="font-size: 2.5rem; margin-bottom: 15px;">✈️</div>
-                    <h3 style="margin-bottom: 10px; color: var(--brand-text);">¡Solicita tu cotización!</h3>
-                    <p style="color: var(--brand-muted); margin-bottom: 25px; font-size: 0.9rem;">
+                    <h3 style="margin-bottom: 10px; color: #2c3e50;">¡Solicita tu cotización!</h3>
+                    <p style="color: #7f8c8d; margin-bottom: 25px; font-size: 0.9rem;">
                         Nos pondremos en contacto contigo para personalizar este increíble viaje
                     </p>
                     <div style="display: flex; gap: 10px; justify-content: center;">
                         <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" 
-                                style="padding: 10px 20px; background: var(--brand-muted); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
                             Cerrar
                         </button>
                         <button onclick="window.location.href='mailto:info@agencia.com?subject=Cotización Itinerario'" 
-                                style="padding: 10px 20px; background: var(--brand-primary); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
                             Enviar Email
                         </button>
                     </div>
@@ -6058,7 +5181,7 @@ document.addEventListener('click', function(e) {
             /* Mejoras para accesibilidad */
             .accordion-header:focus,
             .alternatives-header:focus {
-                outline: 2px solid var(--brand-primary);
+                outline: 2px solid #3498db;
                 outline-offset: 2px;
             }
             

@@ -16,8 +16,7 @@ $backgroundColor = '#061f2f';
 $textColor = '#ffffff';
 
 // Imagen editable para el lado visual del login. Cambia esta ruta cuando subas tu imagen.
-$loginHeroImage = APP_URL . '/assets/uploads/hero_login1.webp';
-$loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
+$loginHeroImage = APP_URL . '/assets/uploads/hero_login.jpg';
 ?>
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($defaultLanguage) ?>">
@@ -68,7 +67,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             grid-template-columns: minmax(360px, 42%) minmax(420px, 58%);
             align-items: center;
             gap: 32px;
-            padding: 36px clamp(28px, 7vw, 110px);
+            padding: 56px clamp(28px, 7vw, 110px);
             position: relative;
         }
 
@@ -90,14 +89,12 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
         }
 
         .company-brand {
-            margin-bottom: 8px;
+            margin-bottom: 44px;
         }
 
         .brand-logo {
-            max-width: 360px;
-            max-height: 250px;
-            margin-left: 13px !important;
-            filter: brightness(0) invert(1) !important;
+            max-width: 260px;
+            max-height: 110px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -290,104 +287,139 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             justify-content: center;
         }
 
-        .minimal-visual {
-            width: min(100%, 560px);
-            min-height: 590px;
+        .hero-experience-card {
+            width: min(100%, 640px);
+            min-height: 560px;
             position: relative;
-        }
-
-        .minimal-photo {
-            position: absolute;
-            right: -62px;
-            top:16px;
-            width: min(92%, 790px);
-            height: 470px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.08);
+            border-radius: 34px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)),
+                radial-gradient(circle at 18% 18%, rgba(255,255,255,0.16), transparent 28%),
+                linear-gradient(135deg, var(--brand-secondary), var(--login-bg));
+            box-shadow: 0 34px 90px rgba(0, 0, 0, 0.32);
+            isolation: isolate;
         }
 
-        .minimal-photo img {
+        .hero-experience-card::before,
+        .hero-experience-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(4px);
+            opacity: 0.72;
+            z-index: 1;
+        }
+
+        .hero-experience-card::before {
+            width: 320px;
+            height: 320px;
+            right: -92px;
+            top: -86px;
+            background: color-mix(in srgb, var(--brand-primary) 76%, white 24%);
+        }
+
+        .hero-experience-card::after {
+            width: 260px;
+            height: 260px;
+            left: -84px;
+            bottom: -80px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .hero-photo {
+            position: absolute;
+            inset: 34px 34px 168px 34px;
+            border-radius: 28px;
+            overflow: hidden;
+            z-index: 2;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)),
+                radial-gradient(circle at 30% 20%, var(--brand-primary), transparent 34%),
+                radial-gradient(circle at 82% 74%, var(--brand-secondary), transparent 34%);
+            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.22);
+        }
+
+        .hero-photo img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
 
-        .minimal-photo img[src=''],
-        .minimal-photo img:not([src]) {
+        .hero-photo img[src=''],
+        .hero-photo img:not([src]) {
             display: none;
         }
 
-        .minimal-photo::after {
-            content: '';
+        .hero-map-lines {
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,0.34) 100%);
+            z-index: 3;
             pointer-events: none;
+            opacity: 0.82;
         }
 
-        .minimal-card {
+        .hero-content {
             position: absolute;
-            left: 0;
-            bottom: 74px;
-            width: min(82%, 430px);
-            padding: 34px 36px;
-            background: url('<?= APP_URL ?>/assets/uploads/hero_login2.webp') center/cover no-repeat;
-            color: #051623;
-            text-shadow:
-                -0.5px -0.5px 0 rgba(255,255,255,0.2),
-                0.5px -0.5px 0 rgba(255,255,255,0.2),
-                -0.5px  0.5px 0 rgba(255,255,255,0.1),
-                0.5px  0.5px 0 rgba(255,255,255,0.1);
-            z-index: 2;
+            left: 38px;
+            right: 38px;
+            bottom: 36px;
+            z-index: 4;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 26px;
+            align-items: end;
         }
 
-        .minimal-kicker {
-            display: block;
-            margin-bottom: 16px;
-            font-size: 12px;
-            line-height: 1;
-            font-weight: 900;
-            letter-spacing: 2.4px;
-            text-transform: uppercase;
-            opacity: 0.76;
-        }
-
-        .minimal-title {
-            font-size: clamp(34px, 4.2vw, 58px);
-            line-height: 0.92;
+        .hero-title {
+            font-size: clamp(38px, 4.6vw, 64px);
+            line-height: 0.9;
             font-weight: 950;
-            letter-spacing: -2px;
-            max-width: 330px;
+            letter-spacing: -2.5px;
+            color: var(--white);
+            max-width: 410px;
         }
 
-        .minimal-caption {
-            margin-top: 20px;
-            max-width: 320px;
+        .hero-title span {
+            color: var(--white);
+        }
+
+        .hero-caption {
+            margin-top: 16px;
+            max-width: 360px;
+            color: rgba(255,255,255,0.78);
             font-size: 15px;
             line-height: 1.45;
-            font-weight: 600;
-            opacity: 0.78;
         }
 
-        .minimal-line {
-            position: absolute;
-            left: 72px;
-            top: 70px;
-            width: 150px;
-            height: 2px;
-            background: var(--brand-primary);
-            opacity: 0.92;
+        .hero-pill {
+            min-width: 132px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(14px);
+            color: var(--white);
+            text-align: center;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.16);
         }
 
-        .minimal-dot {
-            position: absolute;
-            left: 42px;
-            top: 58px;
-            width: 26px;
-            height: 26px;
-            border-radius: 999px;
-            border: 2px solid var(--brand-primary);
+        .hero-pill strong {
+            display: block;
+            font-size: 24px;
+            line-height: 1;
+            color: var(--brand-primary);
+        }
+
+        .hero-pill span {
+            display: block;
+            margin-top: 6px;
+            font-size: 11px;
+            line-height: 1.25;
+            font-weight: 800;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
         }
 
         @media (max-width: 980px) {
@@ -412,19 +444,18 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 margin: 0 auto;
             }
 
-            .minimal-visual {
-                min-height: 500px;
-                width: min(100%, 560px);
+            .hero-experience-card {
+                min-height: 480px;
             }
 
-            .minimal-photo {
-                right: 0;
-                width: min(74%, 390px);
-                height: 410px;
+            .hero-photo {
+                inset: 28px 28px 150px 28px;
             }
 
-            .minimal-card {
-                bottom: 34px;
+            .hero-content {
+                left: 30px;
+                right: 30px;
+                bottom: 30px;
             }
         }
 
@@ -554,18 +585,28 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
         </section>
 
         <section class="visual-panel" aria-hidden="true">
-            <div class="minimal-visual">
-                <span class="minimal-dot"></span>
-                <span class="minimal-line"></span>
-
-                <figure class="minimal-photo">
+            <div class="hero-experience-card">
+                <div class="hero-photo">
                     <img src="<?= htmlspecialchars($loginHeroImage) ?>" alt="" onerror="this.style.display='none';">
-                </figure>
+                </div>
 
-                <div class="minimal-card" >
-                    <span class="minimal-kicker" data-translate="visual_badge">Travel Suite</span>
-                    <h2 class="minimal-title"><span data-translate="visual_word">Crea</span><br><span data-translate="visual_copy">viajes memorables.</span></h2>
-                    <p class="minimal-caption" data-translate="visual_caption">Gestiona itinerarios, clientes y experiencias desde una plataforma diseñada para agencias modernas.</p>
+                <svg class="hero-map-lines" viewBox="0 0 640 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M82 374C170 246 252 446 362 302C438 203 505 256 570 146" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="10 12" opacity="0.48"/>
+                    <circle cx="82" cy="374" r="9" fill="white" opacity="0.82"/>
+                    <circle cx="362" cy="302" r="9" fill="white" opacity="0.82"/>
+                    <circle cx="570" cy="146" r="9" fill="white" opacity="0.82"/>
+                    <path d="M464 104l40 16-34 26 6-26-12-16Z" fill="currentColor" opacity="0.92"/>
+                </svg>
+
+                <div class="hero-content">
+                    <div>
+                        <h2 class="hero-title"><span data-translate="visual_word">Crea</span><br><span data-translate="visual_copy">viajes memorables.</span></h2>
+                        <p class="hero-caption" data-translate="visual_caption">Gestiona itinerarios, clientes y experiencias desde una plataforma diseñada para agencias modernas.</p>
+                    </div>
+                    <div class="hero-pill">
+                        <strong>360°</strong>
+                        <span data-translate="visual_badge">Travel Suite</span>
+                    </div>
                 </div>
             </div>
         </section>

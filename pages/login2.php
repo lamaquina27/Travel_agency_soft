@@ -15,9 +15,10 @@ $secondaryColor = '#1976D2';
 $backgroundColor = '#061f2f';
 $textColor = '#ffffff';
 
-// Imagen editable para el lado visual del login. Cambia esta ruta cuando subas tu imagen.
-$loginHeroImage = APP_URL . '/assets/uploads/hero_login1.webp';
-$loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
+// Imágenes editables para el login. Puedes cambiar estas rutas cuando subas tus fotos.
+$loginHeroMain = APP_URL . '/assets/uploads/login/hero-main.jpg';
+$loginHeroTop = APP_URL . '/assets/uploads/login/hero-top.jpg';
+$loginHeroSide = APP_URL . '/assets/uploads/login/hero-side.jpg';
 ?>
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($defaultLanguage) ?>">
@@ -68,7 +69,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             grid-template-columns: minmax(360px, 42%) minmax(420px, 58%);
             align-items: center;
             gap: 32px;
-            padding: 36px clamp(28px, 7vw, 110px);
+            padding: 56px clamp(28px, 7vw, 110px);
             position: relative;
         }
 
@@ -90,14 +91,12 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
         }
 
         .company-brand {
-            margin-bottom: 8px;
+            margin-bottom: 44px;
         }
 
         .brand-logo {
-            max-width: 360px;
-            max-height: 250px;
-            margin-left: 13px !important;
-            filter: brightness(0) invert(1) !important;
+            max-width: 260px;
+            max-height: 110px;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -285,109 +284,90 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             min-height: 620px;
             position: relative;
             z-index: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .minimal-visual {
-            width: min(100%, 560px);
-            min-height: 590px;
-            position: relative;
-        }
-
-        .minimal-photo {
+        .photo-card {
             position: absolute;
-            right: -62px;
-            top:16px;
-            width: min(92%, 790px);
-            height: 470px;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
         }
 
-        .minimal-photo img {
+        .photo-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
 
-        .minimal-photo img[src=''],
-        .minimal-photo img:not([src]) {
-            display: none;
+        .photo-card.main {
+            width: min(48vw, 520px);
+            height: 342px;
+            left: 7%;
+            bottom: 0;
         }
 
-        .minimal-photo::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0) 34%, rgba(0,0,0,0.34) 100%);
-            pointer-events: none;
+        .photo-card.top {
+            width: 172px;
+            height: 260px;
+            left: 26%;
+            top: 0;
         }
 
-        .minimal-card {
-            position: absolute;
-            left: 0;
-            bottom: 74px;
-            width: min(82%, 430px);
-            padding: 34px 36px;
-            background: url('<?= APP_URL ?>/assets/uploads/hero_login2.webp') center/cover no-repeat;
-            color: #051623;
-            text-shadow:
-                -0.5px -0.5px 0 rgba(255,255,255,0.2),
-                0.5px -0.5px 0 rgba(255,255,255,0.2),
-                -0.5px  0.5px 0 rgba(255,255,255,0.1),
-                0.5px  0.5px 0 rgba(255,255,255,0.1);
-            z-index: 2;
+        .photo-card.side {
+            width: 248px;
+            height: 372px;
+            right: 0;
+            top: 116px;
         }
 
-        .minimal-kicker {
-            display: block;
-            margin-bottom: 16px;
-            font-size: 12px;
-            line-height: 1;
-            font-weight: 900;
-            letter-spacing: 2.4px;
-            text-transform: uppercase;
-            opacity: 0.76;
+        .fallback-art {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.03)),
+                radial-gradient(circle at 24% 24%, var(--brand-primary), transparent 34%),
+                radial-gradient(circle at 74% 68%, var(--brand-secondary), transparent 30%);
         }
 
-        .minimal-title {
-            font-size: clamp(34px, 4.2vw, 58px);
-            line-height: 0.92;
-            font-weight: 950;
-            letter-spacing: -2px;
-            max-width: 330px;
-        }
-
-        .minimal-caption {
-            margin-top: 20px;
-            max-width: 320px;
-            font-size: 15px;
-            line-height: 1.45;
-            font-weight: 600;
-            opacity: 0.78;
-        }
-
-        .minimal-line {
-            position: absolute;
-            left: 72px;
-            top: 70px;
-            width: 150px;
-            height: 2px;
-            background: var(--brand-primary);
+        .fallback-art svg {
+            width: 72%;
+            max-width: 290px;
             opacity: 0.92;
         }
 
-        .minimal-dot {
+        .visual-copy {
             position: absolute;
-            left: 42px;
-            top: 58px;
-            width: 26px;
-            height: 26px;
+            left: 17%;
+            bottom: 118px;
+            z-index: 3;
+            max-width: 340px;
+            font-size: clamp(34px, 4vw, 54px);
+            line-height: 0.92;
+            font-weight: 950;
+            letter-spacing: -2px;
+            color: var(--brand-primary);
+            text-transform: uppercase;
+            text-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
+        }
+
+        .visual-badge {
+            position: absolute;
+            right: 8%;
+            bottom: 44px;
+            z-index: 4;
+            padding: 12px 16px;
             border-radius: 999px;
-            border: 2px solid var(--brand-primary);
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            color: var(--white);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
 
         @media (max-width: 980px) {
@@ -406,25 +386,29 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             }
 
             .visual-panel {
-                min-height: 500px;
+                min-height: 420px;
                 max-width: 620px;
                 width: 100%;
                 margin: 0 auto;
             }
 
-            .minimal-visual {
-                min-height: 500px;
-                width: min(100%, 560px);
+            .photo-card.main {
+                width: 78%;
+                height: 290px;
+                left: 0;
             }
 
-            .minimal-photo {
+            .photo-card.top {
+                width: 148px;
+                height: 210px;
+                left: 12%;
+            }
+
+            .photo-card.side {
+                width: 220px;
+                height: 300px;
                 right: 0;
-                width: min(74%, 390px);
-                height: 410px;
-            }
-
-            .minimal-card {
-                bottom: 34px;
+                top: 70px;
             }
         }
 
@@ -463,6 +447,46 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             .visual-panel {
                 display: none;
             }
+        }
+
+        .login-visual {
+            position: relative;
+            width: 50%;
+            height: 100%;
+            background: url('<?= APP_URL ?>/assets/uploads/login/hero.jpg') center/cover no-repeat;
+            display: flex;
+            align-items: flex-end;
+            padding: 60px;
+            overflow: hidden;
+        }
+
+        /* Overlay elegante */
+        .visual-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(0,0,0,0.1) 0%,
+                rgba(0,0,0,0.6) 100%
+            );
+        }
+
+        /* Contenido */
+        .visual-content {
+            position: relative;
+            color: #fff;
+            max-width: 400px;
+        }
+
+        .visual-content h2 {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .visual-content p {
+            font-size: 16px;
+            opacity: 0.85;
         }
     </style>
 </head>
@@ -553,22 +577,14 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             </footer>
         </section>
 
-        <section class="visual-panel" aria-hidden="true">
-            <div class="minimal-visual">
-                <span class="minimal-dot"></span>
-                <span class="minimal-line"></span>
+        <div class="login-visual">
+            <div class="visual-overlay"></div>
 
-                <figure class="minimal-photo">
-                    <img src="<?= htmlspecialchars($loginHeroImage) ?>" alt="" onerror="this.style.display='none';">
-                </figure>
-
-                <div class="minimal-card" >
-                    <span class="minimal-kicker" data-translate="visual_badge">Travel Suite</span>
-                    <h2 class="minimal-title"><span data-translate="visual_word">Crea</span><br><span data-translate="visual_copy">viajes memorables.</span></h2>
-                    <p class="minimal-caption" data-translate="visual_caption">Gestiona itinerarios, clientes y experiencias desde una plataforma diseñada para agencias modernas.</p>
-                </div>
+            <div class="visual-content">
+                <h2><?= __('Explora sin límites') ?></h2>
+                <p><?= __('Construye experiencias únicas con tu plataforma') ?></p>
             </div>
-        </section>
+        </div>
     </main>
 
     <script>
@@ -583,10 +599,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 forgotten_password: '¿Olvidaste tu contraseña?',
                 session_expired: 'Tu sesión ha expirado por inactividad. Por favor, inicia sesión nuevamente.',
                 rights: 'Todos los derechos reservados',
-                visual_word: 'Crea',
-                visual_copy: 'viajes memorables.',
-                visual_caption: 'Gestiona itinerarios, clientes y experiencias desde una plataforma diseñada para agencias modernas.',
-                visual_badge: 'Travel Suite',
+                visual_copy: 'Diseña viajes memorables.',
                 subscription_expired: 'La suscripción de su agencia ha expirado',
                 contact_admin: 'Contacte al administrador para renovarla',
                 agency_inactive: 'Su agencia ha sido desactivada. Contacte al administrador',
@@ -603,10 +616,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 forgotten_password: 'Forgotten password?',
                 session_expired: 'Your session has expired due to inactivity. Please sign in again.',
                 rights: 'All rights reserved',
-                visual_word: 'Create',
-                visual_copy: 'memorable trips.',
-                visual_caption: 'Manage itineraries, clients, and experiences from a platform designed for modern agencies.',
-                visual_badge: 'Travel Suite',
+                visual_copy: 'Design memorable trips.',
                 subscription_expired: 'Your agency subscription has expired',
                 contact_admin: 'Contact the administrator to renew it',
                 agency_inactive: 'Your agency has been deactivated. Contact the administrator',
@@ -623,10 +633,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 forgotten_password: 'Mot de passe oublié ?',
                 session_expired: 'Votre session a expiré en raison d\'inactivité. Veuillez vous reconnecter.',
                 rights: 'Tous droits réservés',
-                visual_word: 'Créez',
-                visual_copy: 'des voyages mémorables.',
-                visual_caption: 'Gérez les itinéraires, clients et expériences depuis une plateforme conçue pour les agences modernes.',
-                visual_badge: 'Travel Suite',
+                visual_copy: 'Créez des voyages mémorables.',
                 subscription_expired: 'L\'abonnement de votre agence a expiré',
                 contact_admin: 'Contactez l\'administrateur pour le renouveler',
                 agency_inactive: 'Votre agence a été désactivée. Contactez l\'administrateur',
@@ -643,10 +650,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 forgotten_password: 'Esqueceu sua senha?',
                 session_expired: 'Sua sessão expirou devido à inatividade. Por favor, faça login novamente.',
                 rights: 'Todos os direitos reservados',
-                visual_word: 'Crie',
-                visual_copy: 'viagens memoráveis.',
-                visual_caption: 'Gerencie roteiros, clientes e experiências em uma plataforma criada para agências modernas.',
-                visual_badge: 'Travel Suite',
+                visual_copy: 'Crie viagens memoráveis.',
                 subscription_expired: 'A assinatura de sua agência expirou',
                 contact_admin: 'Entre em contato com o administrador para renová-la',
                 agency_inactive: 'Sua agência foi desativada. Entre em contato com o administrador',

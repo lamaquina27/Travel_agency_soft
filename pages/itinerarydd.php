@@ -483,20 +483,6 @@ if ($programa['fecha_llegada']) {
     <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
     
     <style>
-        :root {
-            --brand-primary: <?= $brand_primary ?>;
-            --brand-secondary: <?= $brand_secondary ?>;
-            --brand-surface: #ffffff;
-            --brand-surface-soft: #f8f9fa;
-            --brand-border: #e9ecef;
-            --brand-text: #2f3437;
-            --brand-muted: var(--brand-muted);
-            --brand-soft: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
-            --brand-soft-strong: color-mix(in srgb, var(--brand-primary) 14%, #ffffff);
-            --brand-shadow: 0 18px 45px rgba(20, 24, 28, 0.08);
-            --brand-radius: 22px;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -506,7 +492,7 @@ if ($programa['fecha_llegada']) {
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: var(--brand-text);
+            color: #2c3e50;
             background: #ffffff;
         }
         
@@ -685,7 +671,7 @@ if ($programa['fecha_llegada']) {
             font-family: 'Playfair Display', serif;
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             text-decoration: none;
         }
         
@@ -701,14 +687,14 @@ if ($programa['fecha_llegada']) {
         }
         
         .navbar-nav a {
-            color: var(--brand-text);
+            color: #2c3e50;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s ease;
         }
         
         .navbar-nav a:hover {
-            color: var(--brand-primary);
+            color: #3498db;
         }
         
         /* ========================================
@@ -734,13 +720,13 @@ if ($programa['fecha_llegada']) {
             font-family: 'Playfair Display', serif;
             font-size: 3rem;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 15px;
         }
         
         .section-subtitle {
             font-size: 1.2rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
             max-width: 600px;
             margin: 0 auto;
         }
@@ -781,7 +767,7 @@ if ($programa['fecha_llegada']) {
 .VIpgJd-ZVi9od-xl07Ob-lTBxed {
     background: transparent !important;
     border: none !important;
-    color: var(--brand-text) !important;
+    color: #2c3e50 !important;
     text-decoration: none !important;
     font-family: inherit !important;
     font-size: 14px !important;
@@ -796,8 +782,8 @@ if ($programa['fecha_llegada']) {
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed:hover {
-    background: color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
-    color: var(--brand-primary) !important;
+    background: rgba(52, 152, 219, 0.1) !important;
+    color: #3498db !important;
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed img {
@@ -809,14 +795,14 @@ if ($programa['fecha_llegada']) {
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed span[aria-hidden="true"] {
-    color: var(--brand-muted) !important;
+    color: #6b7280 !important;
     font-size: 12px !important;
     margin-left: 6px !important;
     transition: all 0.2s ease !important;
 }
 
 .VIpgJd-ZVi9od-xl07Ob-lTBxed:hover span[aria-hidden="true"] {
-    color: var(--brand-primary) !important;
+    color: #3498db !important;
     transform: translateY(1px) !important;
 }
 
@@ -845,7 +831,7 @@ if ($programa['fecha_llegada']) {
     font-family: 'Inter', sans-serif !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    color: var(--brand-text) !important;
+    color: #374151 !important;
     padding: 12px 18px !important;
     transition: all 0.15s ease !important;
     cursor: pointer !important;
@@ -855,13 +841,13 @@ if ($programa['fecha_llegada']) {
 }
 
 .goog-te-menu2-item:hover {
-    background: color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
-    color: var(--brand-primary) !important;
+    background: rgba(52, 152, 219, 0.1) !important;
+    color: #3498db !important;
     transform: translateX(3px) !important;
 }
 
 .goog-te-menu2-item-selected {
-    background: var(--brand-primary) !important;
+    background: #3498db !important;
     color: white !important;
     font-weight: 600 !important;
 }
@@ -878,11 +864,11 @@ if ($programa['fecha_llegada']) {
 }
 
 .VIpgJd-ZVi9od-vH1Gmf-ibnC6b-gk6SMd div {
-    color: var(--brand-primary) !important;
+    color: #3498db !important;
 }
 
 .VIpgJd-ZVi9od-vH1Gmf-ibnC6b div{
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 body { 
@@ -948,7 +934,7 @@ body {
         .detail-icon {
             width: 50px;
             height: 50px;
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -960,11 +946,11 @@ body {
         .detail-info h4 {
             font-weight: 600;
             margin-bottom: 5px;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
         
         .detail-info p {
-            color: var(--brand-muted);
+            color: #7f8c8d;
             margin: 0;
         }
         
@@ -972,17 +958,17 @@ body {
             background: #f8f9fa;
             padding: 30px;
             border-radius: 15px;
-            border-left: 5px solid var(--brand-primary);
+            border-left: 5px solid #3498db;
         }
         
         .overview-summary h3 {
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 15px;
             font-size: 1.3rem;
         }
         
         .overview-summary p {
-            color: var(--brand-muted);
+            color: #5a6c7d;
             line-height: 1.8;
         }
         
@@ -1010,7 +996,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.95);
-    color: var(--brand-text);
+    color: #2c3e50;
     padding: 12px 20px;
     border-radius: 8px;
     font-size: 13px;
@@ -1021,16 +1007,16 @@ body {
     z-index: 1000;
     pointer-events: none;
     box-shadow: 0 3px 15px rgba(0,0,0,0.2);
-    border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    border: 1px solid rgba(52, 152, 219, 0.3);
 }
 
 .map-tooltip i {
     font-size: 16px;
-    color: var(--brand-primary);
+    color: #3498db;
 }
 
 .map-tooltip strong {
-    color: var(--brand-primary);
+    color: #3498db;
 }
 
 .map-container:hover .map-tooltip {
@@ -1082,13 +1068,13 @@ body {
             width: 100px;
             height: 80px;
             background: #ffffff;
-            border: 2px solid var(--brand-primary);
+            border: 2px solid #3498db;
             border-radius: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: var(--brand-text);
+            color: #2c3e50;
             font-weight: 700;
             box-shadow: 0 3px 15px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
@@ -1102,12 +1088,12 @@ body {
         .day-number-main {
             font-size: 1.4rem;
             line-height: 1;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
         
         .day-number-label {
             font-size: 0.7rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 2px;
@@ -1118,7 +1104,7 @@ body {
             position: absolute;
             top: -8px;
             right: -8px;
-            background: var(--brand-primary);
+            background: #3498db;
             color: white;
             padding: 4px 8px;
             border-radius: 12px;
@@ -1137,8 +1123,8 @@ body {
             padding: 8px 16px;
             font-size: 13px;
             border-radius: 20px;
-            background: var(--brand-primary);
-            box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
         }
 
      
@@ -1179,7 +1165,7 @@ body {
             font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
@@ -1198,16 +1184,16 @@ body {
     gap: 12px;
     padding: 15px 20px;
     background: #ffffff;
-    border: 2px solid var(--brand-primary);
+    border: 2px solid #3498db;
     border-radius: 12px;
     margin-bottom: 15px;
-    box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
 }
 
 .location-icon {
     width: 40px;
     height: 40px;
-    background: var(--brand-primary);
+    background: #3498db;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1222,13 +1208,13 @@ body {
 
 .location-title {
     font-weight: 600;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 16px;
     margin-bottom: 4px;
 }
 
 .location-subtitle {
-    color: var(--brand-muted);
+    color: #7f8c8d;
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1238,9 +1224,9 @@ body {
 .secondary-locations-new {
     margin-top: 15px;
     padding: 20px;
-    background: var(--brand-surface-soft);
+    background: #f8fffe;
     border-radius: 12px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e8f5e8;
 }
 
 .secondary-header {
@@ -1249,12 +1235,12 @@ body {
     gap: 10px;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--brand-border);
+    border-bottom: 1px solid #e8f5e8;
 }
 
 .secondary-header h4 {
     margin: 0;
-    color: var(--brand-primary);
+    color: #27ae60;
     font-size: 14px;
     font-weight: 600;
 }
@@ -1280,7 +1266,7 @@ body {
 .location-marker {
     width: 24px;
     height: 24px;
-    background: var(--brand-primary);
+    background: #27ae60;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1297,7 +1283,7 @@ body {
 
 .location-name {
     font-weight: 500;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 14px;
     line-height: 1.4;
     margin-bottom: 4px;
@@ -1305,7 +1291,7 @@ body {
 
 .location-coords {
     font-size: 11px;
-    color: var(--brand-muted);
+    color: #7f8c8d;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -1316,7 +1302,7 @@ body {
             display: inline-flex;
             align-items: center;
             background: #f8f9fa;
-            color: var(--brand-muted);
+            color: #6c757d;
             padding: 4px 12px;
             border-radius: 15px;
             font-size: 0.8rem;
@@ -1329,7 +1315,7 @@ body {
             align-items: center;
             gap: 6px;
             background: #f8f9fa;
-            color: var(--brand-muted);
+            color: #6c757d;
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 0.85rem;
@@ -1354,8 +1340,8 @@ body {
             gap: 7px;
             padding: 7px 13px;
             border-radius: 999px;
-            background: var(--brand-surface-soft);
-            color: var(--brand-text);
+            background: #f8fafc;
+            color: #475569;
             border: 1px solid #e2e8f0;
             font-size: 0.86rem;
             font-weight: 600;
@@ -1363,10 +1349,10 @@ body {
         }
 
         .day-meta-pill-primary {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 6px 16px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.22);
         }
 
         .day-meta-pill i {
@@ -1475,7 +1461,7 @@ body {
     position: absolute;
     top: -15px;
     right: -15px;
-    background: var(--brand-primary);
+    background: #e74c3c;
     color: white;
     border: none;
     width: 35px;
@@ -1490,7 +1476,7 @@ body {
 }
 
 .simple-modal-close:hover {
-    background: var(--brand-primary);
+    background: #c0392b;
 }
 
 @media (max-width: 768px) {
@@ -1520,12 +1506,12 @@ body {
             padding: 20px;
             background: #f8f9fa;
             border-radius: 12px;
-            border-left: 4px solid var(--brand-primary);
+            border-left: 4px solid #3498db;
         }
         
         .day-description p {
             margin: 0;
-            color: var(--brand-muted);
+            color: #5a6c7d;
             line-height: 1.7;
         }
         
@@ -1535,7 +1521,7 @@ body {
             background: #ffffff;
             border-radius: 8px;
             border: 1px solid #e9ecef;
-            color: var(--brand-muted);
+            color: #6c757d;
             font-size: 14px;
         }
         
@@ -1558,7 +1544,7 @@ body {
         
         .service-group:hover {
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            border-color: var(--brand-primary);
+            border-color: #3498db;
         }
         
         .service-item {
@@ -1571,7 +1557,7 @@ body {
         
         .service-item.principal {
             background: #ffffff;
-            border-left: 4px solid var(--brand-primary);
+            border-left: 4px solid #3498db;
         }
         
         .service-item:hover {
@@ -1593,15 +1579,15 @@ body {
         }
         
         .service-icon.actividad {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
         
         .service-icon.transporte {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
         }
         
         .service-icon.alojamiento {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #f39c12, #e67e22);
         }
         
         .service-details {
@@ -1611,7 +1597,7 @@ body {
         
         .service-details h4 {
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 8px;
             font-size: 1.1rem;
             display: flex;
@@ -1621,7 +1607,7 @@ body {
         }
         
         .service-details p {
-            color: var(--brand-muted);
+            color: #7f8c8d;
             margin-bottom: 8px;
             font-size: 0.95rem;
             line-height: 1.5;
@@ -1636,7 +1622,7 @@ body {
         
         .service-meta span {
             font-size: 0.85rem;
-            color: var(--brand-muted);
+            color: #95a5a6;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -1690,7 +1676,7 @@ body {
             align-items: center;
             gap: 4px;
             background: #f8f9fa;
-            color: var(--brand-muted);
+            color: #6c757d;
             padding: 3px 8px;
             border-radius: 10px;
             font-size: 0.75rem;
@@ -1705,15 +1691,15 @@ body {
         .day-meals {
             margin-top: 20px;
             padding: 20px;
-            background: var(--brand-surface-soft);
+            background: #fff9f0;
             border-radius: 12px;
-            border-left: 4px solid var(--brand-primary);
-            border: 1px solid var(--brand-border);
+            border-left: 4px solid #f39c12;
+            border: 1px solid #fef5e7;
         }
         
         .day-meals h4 {
             margin-bottom: 15px;
-            color: var(--brand-primary);
+            color: #d35400;
             font-size: 1.1rem;
             display: flex;
             align-items: center;
@@ -1733,9 +1719,9 @@ body {
             background: #ffffff;
             border-radius: 20px;
             font-size: 13px;
-            color: var(--brand-primary);
+            color: #d35400;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid var(--brand-border);
+            border: 1px solid #fef5e7;
             transition: all 0.3s ease;
         }
         
@@ -1746,7 +1732,7 @@ body {
         
         .meal-item i {
             margin-right: 6px;
-            color: var(--brand-primary);
+            color: #27ae60;
             font-size: 12px;
         }
         
@@ -1761,7 +1747,7 @@ body {
             align-items: center;
             gap: 10px;
             font-weight: 500;
-            color: var(--brand-muted);
+            color: #6c757d;
             font-size: 0.9rem;
             border-top: 1px solid #e9ecef;
             transition: all 0.3s ease;
@@ -1769,11 +1755,11 @@ body {
         
         .alternatives-header:hover {
             background: #e9ecef;
-            color: var(--brand-text);
+            color: #495057;
         }
         
         .alternatives-header i {
-            color: var(--brand-muted);
+            color: #6c757d;
         }
         
         .alternatives-toggle {
@@ -1798,7 +1784,7 @@ body {
         .service-item.alternativa {
             background: #fafbfc;
             border-bottom: 1px solid #e9ecef;
-            border-left: 3px solid var(--brand-muted);
+            border-left: 3px solid #6c757d;
             position: relative;
         }
         
@@ -1807,7 +1793,7 @@ body {
         }
         
         .service-item.alternativa .service-icon {
-            background: linear-gradient(135deg, var(--brand-muted), var(--brand-text)) !important;
+            background: linear-gradient(135deg, #6c757d, #495057) !important;
             width: 45px;
             height: 45px;
             font-size: 1rem;
@@ -1817,7 +1803,7 @@ body {
             position: absolute;
             top: 8px;
             right: 8px;
-            background: var(--brand-muted);
+            background: #6c757d;
             color: white;
             font-size: 9px;
             padding: 2px 6px;
@@ -1830,10 +1816,10 @@ body {
             margin-top: 8px;
             padding: 8px 12px;
             background: rgba(108, 117, 125, 0.1);
-            border-left: 3px solid var(--brand-muted);
+            border-left: 3px solid #6c757d;
             border-radius: 4px;
             font-size: 0.85rem;
-            color: var(--brand-text);
+            color: #495057;
             font-style: italic;
         }
         
@@ -1861,13 +1847,13 @@ body {
         .pricing-header h2 {
             font-family: 'Playfair Display', serif;
             font-size: 2.5rem;
-            color: var(--brand-text);
+            color: #2c3e50;
             margin-bottom: 15px;
         }
 
         .pricing-header p {
             font-size: 1.1rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
         }
 
         .price-main-card {
@@ -1898,18 +1884,18 @@ body {
         .price-currency {
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--brand-muted);
+            color: #7f8c8d;
         }
 
         .price-value {
             font-size: 3.5rem;
             font-weight: 700;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
 
         .price-per {
             font-size: 1.2rem;
-            color: var(--brand-muted);
+            color: #7f8c8d;
         }
 
         .nights-included {
@@ -1917,7 +1903,7 @@ body {
             align-items: center;
             gap: 10px;
             padding: 15px 25px;
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
             border-radius: 50px;
             font-weight: 600;
@@ -1959,7 +1945,7 @@ body {
         }
 
         .accordion-header.active {
-            background: var(--brand-surface-soft);
+            background: #f0f7ff;
         }
 
         .accordion-title {
@@ -1967,7 +1953,7 @@ body {
             align-items: center;
             gap: 15px;
             font-weight: 600;
-            color: var(--brand-text);
+            color: #2c3e50;
             font-size: 1.1rem;
         }
 
@@ -1976,7 +1962,7 @@ body {
         }
 
         .accordion-arrow {
-            color: var(--brand-muted);
+            color: #7f8c8d;
             transition: transform 0.3s ease;
         }
 
@@ -2015,17 +2001,17 @@ body {
         }
 
         .pricing-list.included i {
-            color: var(--brand-primary);
+            color: #27ae60;
             margin-top: 2px;
         }
 
         .pricing-list.excluded i {
-            color: var(--brand-primary);
+            color: #e74c3c;
             margin-top: 2px;
         }
 
         .pricing-list span {
-            color: var(--brand-text);
+            color: #2c3e50;
             line-height: 1.5;
         }
 
@@ -2038,8 +2024,8 @@ body {
             border-radius: 10px;
             margin-top: 15px;
             line-height: 1.6;
-            color: var(--brand-muted);
-            border-left: 4px solid var(--brand-primary);
+            color: #5a6c7d;
+            border-left: 4px solid #3498db;
         }
 
         .accessibility-info {
@@ -2061,25 +2047,25 @@ body {
         }
 
         .status-badge.fully-accessible {
-            background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
-            color: var(--brand-primary);
+            background: #d5f4e6;
+            color: #27ae60;
         }
 
         .status-badge.partially-accessible {
-            background: var(--brand-surface-soft);
-            color: var(--brand-primary);
+            background: #fef9e7;
+            color: #f39c12;
         }
 
         .status-badge.not-accessible {
-            background: var(--brand-surface-soft);
-            color: var(--brand-primary);
+            background: #fdf2f2;
+            color: #e74c3c;
         }
 
         .accessibility-details {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            color: var(--brand-muted);
+            color: #5a6c7d;
             line-height: 1.6;
         }
 
@@ -2094,7 +2080,7 @@ body {
            FOOTER
            ======================================== */
         .footer {
-            background: var(--brand-text);
+            background: #2c3e50;
             color: white;
             text-align: center;
             padding: 60px 20px 30px;
@@ -2139,13 +2125,13 @@ body {
         }
         
         .btn-primary {
-            background: var(--brand-primary);
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
             color: white;
         }
         
@@ -2157,11 +2143,11 @@ body {
         
         .btn-outline:hover {
             background: white;
-            color: var(--brand-text);
+            color: #2c3e50;
         }
         
         .footer-bottom {
-            border-top: 1px solid var(--brand-text);
+            border-top: 1px solid #34495e;
             padding-top: 20px;
             font-size: 0.9rem;
             opacity: 0.7;
@@ -2320,16 +2306,16 @@ body {
    ======================================== */
 .main-location {
     font-weight: 600;
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 .secondary-locations-section {
     margin-top: 15px;
     padding: 15px;
-    background: var(--brand-surface-soft);
+    background: #f8fffe;
     border-radius: 12px;
-    border-left: 4px solid var(--brand-primary);
-    border: 1px solid var(--brand-border);
+    border-left: 4px solid #27ae60;
+    border: 1px solid #e8f5e8;
 }
 
 .secondary-locations-header {
@@ -2338,7 +2324,7 @@ body {
     gap: 8px;
     margin-bottom: 12px;
     font-weight: 600;
-    color: var(--brand-primary);
+    color: #27ae60;
     font-size: 0.9rem;
 }
 
@@ -2359,20 +2345,20 @@ body {
     padding: 10px 12px;
     background: #ffffff;
     border-radius: 8px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e8f5e8;
     transition: all 0.3s ease;
 }
 
 .secondary-location-item:hover {
     transform: translateX(3px);
     box-shadow: 0 3px 10px rgba(39, 174, 96, 0.1);
-    border-color: var(--brand-primary);
+    border-color: #27ae60;
 }
 
 .location-marker {
     width: 24px;
     height: 24px;
-    background: var(--brand-primary);
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2392,14 +2378,14 @@ body {
 
 .location-name {
     font-weight: 500;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 0.9rem;
     line-height: 1.3;
 }
 
 .location-coords {
     font-size: 0.75rem;
-    color: var(--brand-muted);
+    color: #7f8c8d;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -2407,7 +2393,7 @@ body {
 
 .location-coords i {
     font-size: 10px;
-    color: var(--brand-muted);
+    color: #95a5a6;
 }
 
 /* Responsive para ubicaciones secundarias */
@@ -2486,23 +2472,23 @@ body {
 
 /* Adultos - Azul coherente con el diseño */
 .price-category.adulto {
-    border-color: var(--brand-primary);
-    background: linear-gradient(135deg, var(--brand-surface-soft) 0%, #ffffff 100%);
+    border-color: #3498db;
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
 }
 
 .price-category.adulto .category-icon {
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary) 100%);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 /* Niños - Verde coherente con ubicaciones secundarias */
 .price-category.nino {
-    border-color: var(--brand-primary);
-    background: linear-gradient(135deg, var(--brand-surface-soft) 0%, #ffffff 100%);
+    border-color: #27ae60;
+    background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
 }
 
 .price-category.nino .category-icon {
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary) 100%);
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
     box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
@@ -2524,7 +2510,7 @@ body {
 
 .category-label {
     font-size: 14px;
-    color: var(--brand-muted);
+    color: #5a6c7d;
     font-weight: 600;
     margin-bottom: 8px;
     text-transform: uppercase;
@@ -2541,23 +2527,23 @@ body {
 .category-price .price-currency {
     font-size: 16px;
     font-weight: 600;
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 .category-price .price-value {
     font-size: 28px;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #2c3e50;
 }
 
 .category-price .price-per {
     font-size: 12px;
-    color: var(--brand-muted);
+    color: #7f8c8d;
 }
 
 .category-subtotal {
     font-size: 12px;
-    color: var(--brand-muted);
+    color: #95a5a6;
     font-style: italic;
 }
 
@@ -2577,7 +2563,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px 30px;
-    background: linear-gradient(135deg, var(--brand-text) 0%, var(--brand-text) 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     border-radius: 12px;
     color: #ffffff;
     box-shadow: 0 5px 20px rgba(44, 62, 80, 0.3);
@@ -2613,7 +2599,7 @@ body {
 .nights-included {
     text-align: center;
     padding: 12px 20px;
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary) 100%);
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
     color: white;
     border-radius: 8px;
     font-weight: 600;
@@ -2702,12 +2688,12 @@ body {
 
 /* Estados de hover más refinados */
 .price-category.adulto:hover {
-    border-color: var(--brand-primary);
-    box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+    border-color: #2980b9;
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.2);
 }
 
 .price-category.nino:hover {
-    border-color: var(--brand-primary);
+    border-color: #2ecc71;
     box-shadow: 0 8px 20px rgba(39, 174, 96, 0.2);
 }
 
@@ -2793,10 +2779,10 @@ body {
     gap: 8px;
     padding: 8px 16px;
     background: #f8f9fa;
-    color: var(--brand-text);
+    color: #495057;
     text-decoration: none;
     border-radius: 6px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #dee2e6;
     font-weight: 500;
     font-size: 13px;
     transition: all 0.2s ease;
@@ -2804,8 +2790,8 @@ body {
 
 .service-website a:hover {
     background: #e9ecef;
-    border-color: var(--brand-muted);
-    color: var(--brand-text);
+    border-color: #adb5bd;
+    color: #212529;
 }
 
 .service-website a i {
@@ -2918,7 +2904,7 @@ body {
 }
 
 .modal-title {
-    color: var(--brand-text);
+    color: #2c3e50;
     margin-bottom: 30px;
     font-size: 24px;
     font-weight: 600;
@@ -2930,7 +2916,7 @@ body {
     top: 50%;
     transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.05);
-    color: var(--brand-text);
+    color: #2c3e50;
     border: 1px solid rgba(0, 0, 0, 0.1);
     width: 50px;
     height: 50px;
@@ -2958,7 +2944,7 @@ body {
     position: absolute;
     top: 30px;
     right: 40px;
-    color: var(--brand-text);
+    color: #2c3e50;
     font-size: 36px;
     font-weight: 300;
     cursor: pointer;
@@ -2980,7 +2966,7 @@ body {
 }
 
 .modal-counter {
-    color: var(--brand-muted);
+    color: #6c757d;
     margin-top: 20px;
     font-size: 15px;
     font-weight: 500;
@@ -3352,7 +3338,7 @@ body {
     .day-card {
         page-break-inside: avoid;
         margin-bottom: 15px !important;
-        border: 1px solid var(--brand-border) !important;
+        border: 1px solid #e0e0e0 !important;
         padding: 12px !important;
     }
     
@@ -3369,7 +3355,7 @@ body {
     
     /* Footer compacto */
     .footer {
-        background: var(--brand-text) !important;
+        background: #2c3e50 !important;
         color: #fff !important;
         padding: 15px !important;
         text-align: center !important;
@@ -3422,8 +3408,8 @@ body {
     margin: 6px 0 8px 0;
     padding: 6px 11px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
-    color: var(--brand-primary);
+    background: rgba(52, 152, 219, 0.10);
+    color: #2563eb;
     font-size: 13px;
     font-weight: 600;
 }
@@ -3434,15 +3420,15 @@ body {
 
 .accommodation-detail.muted {
     background: rgba(107, 114, 128, 0.10);
-    color: var(--brand-muted);
+    color: #6b7280;
 }
 
 .day-flights-section {
     margin: 24px 0;
     padding: 18px;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e5e7eb;
     border-radius: 16px;
-    background: var(--brand-surface-soft);
+    background: #f8fafc;
 }
 
 .day-flights-title {
@@ -3451,12 +3437,12 @@ body {
     gap: 8px;
     margin-bottom: 14px;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #1f2937;
     font-size: 16px;
 }
 
 .day-flights-title i {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
 }
 
 .day-flights-list {
@@ -3467,8 +3453,8 @@ body {
 
 .day-flight-card {
     background: #ffffff;
-    border: 1px solid var(--brand-border);
-    border-left: 4px solid var(--primary-color, var(--brand-primary));
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid var(--primary-color, #667eea);
     border-radius: 12px;
     padding: 14px 16px;
 }
@@ -3483,17 +3469,17 @@ body {
 
 .day-flight-header strong {
     font-size: 15px;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .day-flight-header span {
     margin-left: 6px;
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 14px;
 }
 
 .day-flight-header small {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
     font-weight: 700;
     white-space: nowrap;
 }
@@ -3517,28 +3503,28 @@ body {
 .day-flight-route strong {
     display: block;
     font-size: 18px;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .day-flight-route span {
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 13px;
 }
 
 .day-flight-route i {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
 }
 
 .day-flight-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    color: var(--brand-muted);
+    color: #4b5563;
     font-size: 13px;
 }
 
 .day-flight-meta i {
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
     margin-right: 4px;
 }
 
@@ -3565,7 +3551,7 @@ body {
 
 .clean-flight-card {
     background: #ffffff;
-    border: 1px solid var(--brand-border);
+    border: 1px solid #e5e7eb;
     border-radius: 18px;
     padding: 18px;
     box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
@@ -3582,17 +3568,17 @@ body {
 .clean-flight-code {
     font-size: 18px;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .clean-flight-airline {
     margin-top: 2px;
     font-size: 13px;
-    color: var(--brand-muted);
+    color: #6b7280;
 }
 
 .clean-flight-order {
-    background: var(--primary-color, var(--brand-primary));
+    background: var(--primary-color, #667eea);
     color: white;
     border-radius: 999px;
     padding: 6px 10px;
@@ -3613,18 +3599,18 @@ body {
     font-size: 34px;
     line-height: 1;
     font-weight: 800;
-    color: var(--brand-text);
+    color: #111827;
 }
 
 .clean-airport-city {
     margin-top: 6px;
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 13px;
 }
 
 .clean-flight-time {
     margin-top: 10px;
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
     font-size: 22px;
     font-weight: 800;
 }
@@ -3639,7 +3625,7 @@ body {
 
 .clean-duration {
     font-size: 12px;
-    color: var(--brand-muted);
+    color: #6b7280;
     margin-bottom: 8px;
 }
 
@@ -3647,12 +3633,12 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--primary-color, var(--brand-primary));
+    color: var(--primary-color, #667eea);
 }
 
 .clean-line span {
     height: 1px;
-    background: var(--brand-border);
+    background: #d1d5db;
     flex: 1;
 }
 
@@ -3664,25 +3650,25 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr .45fr;
     gap: 12px;
-    border-top: 1px solid var(--brand-border);
+    border-top: 1px solid #e5e7eb;
     padding-top: 14px;
 }
 
 .clean-flight-details div {
-    background: var(--brand-surface-soft);
+    background: #f8fafc;
     border-radius: 12px;
     padding: 10px 12px;
 }
 
 .clean-flight-details strong {
     display: block;
-    color: var(--brand-text);
+    color: #374151;
     font-size: 11px;
     margin-bottom: 4px;
 }
 
 .clean-flight-details span {
-    color: var(--brand-muted);
+    color: #6b7280;
     font-size: 12px;
 }
 
@@ -4624,7 +4610,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                 </div>
                 
                 <div class="overview-content">
-                    <h3 style="margin-bottom: 20px; color: var(--brand-text);">Lo que incluye</h3>
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">Lo que incluye</h3>
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         <?php 
                         $total_actividades = 0;
@@ -4657,7 +4643,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                         
                         <?php if ($total_alojamientos > 0): ?>
                         <div class="detail-item">
-                            <div class="detail-icon" style="background: var(--brand-primary);">
+                            <div class="detail-icon" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                                 <i class="fas fa-bed"></i>
                             </div>
                             <div class="detail-info">
@@ -4744,6 +4730,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     $fechaInicioDia = $dia['fecha_calculada'] ?? null;
                     $fechaFinDia = $dia['fecha_fin_calculada'] ?? $fechaInicioDia;
                     $fechaTexto = ts_date_range_label($fechaInicioDia, $fechaFinDia, $duracion);
+                    $duracionTexto = $duracion > 1 ? "Estancia de {$duracion} días" : '';
                 ?>
                 <div class="day-card" style="animation-delay: <?= $index * 0.1 ?>s;">
                     <div class="day-number">
@@ -4753,6 +4740,9 @@ svg, svg path, .fa, .fas, .far, .fab {
                         <div class="day-number-label">
                             <?= $duracion === 1 ? 'DÍA' : 'DÍAS' ?>
                         </div>
+                        <?php if ($duracion > 1): ?>
+                            <div class="duration-badge"><?= $duracion ?> días</div>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="day-content">
@@ -4764,6 +4754,9 @@ svg, svg path, .fa, .fas, .far, .fab {
                                         <p class="day-date-text"><?= htmlspecialchars($fechaTexto) ?></p>
                                     <?php endif; ?>
                                 </div>
+                                <?php if ($duracion > 1): ?>
+                                    <span class="day-stay-chip"><?= htmlspecialchars($duracionTexto) ?></span>
+                                <?php endif; ?>
                             </div>
 
                             <h4 class="day-main-title"><?= htmlspecialchars($dia['titulo']) ?></h4>
@@ -4844,6 +4837,11 @@ svg, svg path, .fa, .fas, .far, .fab {
                             <?php if (!empty($dia['descripcion'])): ?>
                             <div class="day-description">
                                 <p><?= nl2br(htmlspecialchars($dia['descripcion'])) ?></p>
+                                <?php if ($duracion > 1): ?>
+                                <div class="stay-info-box">
+                                    <strong>Estancia Extendida:</strong> Estos servicios y actividades están disponibles durante toda tu estancia de <?= $duracion ?> días en <?= htmlspecialchars($dia['ubicacion']) ?>. Podrás disfrutar con total flexibilidad y sin prisas.
+                                </div>
+                                <?php endif; ?>
                             </div>
                             <?php endif; ?>
 
@@ -4878,10 +4876,10 @@ svg, svg path, .fa, .fas, .far, .fab {
                             <?php endif; ?>
                             
                             <?php if (!empty($dia['servicios'])): ?>
-                            <h4 style="margin-bottom: 20px; color: var(--brand-text); font-size: 1.2rem; font-weight: 600;">
+                            <h4 style="margin-bottom: 20px; color: #2c3e50; font-size: 1.2rem; font-weight: 600;">
                                 <i class="fas fa-list-ul"></i> Servicios incluidos
                                 <?php if ($duracion > 1): ?>
-                                    <span style="font-size: 0.8rem; color: var(--brand-muted); font-weight: normal;">
+                                    <span style="font-size: 0.8rem; color: #6c757d; font-weight: normal;">
                                         (Disponibles durante <?= $duracion ?> días)
                                     </span>
                                 <?php endif; ?>
@@ -5146,12 +5144,12 @@ svg, svg path, .fa, .fas, .far, .fab {
                                                 </div>
                                                 
                                                 <div class="service-details">
-                                                    <h4 style="color: var(--brand-text); margin-bottom: 5px;">
+                                                    <h4 style="color: #495057; margin-bottom: 5px;">
                                                         <?= htmlspecialchars($alternativa['nombre']) ?>
                                                     </h4>
                                                     
                                                     <?php if ($alternativa['descripcion']): ?>
-                                                    <p style="font-size: 0.9rem; color: var(--brand-muted);">
+                                                    <p style="font-size: 0.9rem; color: #6c757d;">
                                                         <?= htmlspecialchars($alternativa['descripcion']) ?>
                                                     </p>
                                                     <?php endif; ?>
@@ -5307,7 +5305,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     <div class="pricing-accordion">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div class="accordion-title">
-                                <i class="fas fa-check-circle" style="color: var(--brand-primary);"></i>
+                                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
                                 <span>¿Qué incluye el precio?</span>
                             </div>
                             <i class="fas fa-chevron-down accordion-icon"></i>
@@ -5321,7 +5319,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                                     if (empty($item)) continue;
                                 ?>
                                 <li>
-                                    <i class="fas fa-check" style="color: var(--brand-primary);"></i>
+                                    <i class="fas fa-check" style="color: #27ae60;"></i>
                                     <?= nl2br(htmlspecialchars($item)) ?>
                                 </li>
                                 <?php endforeach; ?>
@@ -5335,7 +5333,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     <div class="pricing-accordion">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div class="accordion-title">
-                                <i class="fas fa-times-circle" style="color: var(--brand-primary);"></i>
+                                <i class="fas fa-times-circle" style="color: #e74c3c;"></i>
                                 <span>¿Qué NO incluye?</span>
                             </div>
                             <i class="fas fa-chevron-down accordion-icon"></i>
@@ -5349,7 +5347,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                                     if (empty($item)) continue;
                                 ?>
                                 <li>
-                                    <i class="fas fa-times" style="color: var(--brand-primary);"></i>
+                                    <i class="fas fa-times" style="color: #e74c3c;"></i>
                                     <?= nl2br(htmlspecialchars($item)) ?>
                                 </li>
                                 <?php endforeach; ?>
@@ -5363,7 +5361,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     <div class="pricing-accordion">
                         <div class="accordion-header" onclick="toggleAccordion(this)">
                             <div class="accordion-title">
-                                <i class="fas fa-file-contract" style="color: var(--brand-primary);"></i>
+                                <i class="fas fa-file-contract" style="color: #3498db;"></i>
                                 <span>Condiciones Generales</span>
                             </div>
                             <i class="fas fa-chevron-down accordion-icon"></i>
@@ -5516,12 +5514,12 @@ svg, svg path, .fa, .fas, .far, .fab {
                 }).addTo(map);
                 
                 const iconColors = {
-                    'dia': 'var(--brand-primary)',
-                    'ubicacion_secundaria': 'var(--brand-primary)'
+                    'dia': '#27ae60',
+                    'ubicacion_secundaria': '#2ecc71'
                 };
                 
                 puntosMapa.forEach(function(punto, index) {
-                    const color = iconColors[punto.tipo] || 'var(--brand-muted)';
+                    const color = iconColors[punto.tipo] || '#95a5a6';
                     
                     const customIcon = L.divIcon({
                         html: `
@@ -5594,7 +5592,7 @@ svg, svg path, .fa, .fas, .far, .fab {
                     puntosPerDia[punto.dia].push(punto);
                 });
                 
-                const colores = ['var(--brand-primary)', 'var(--brand-primary)', 'var(--brand-primary)', 'var(--brand-primary)', '#9b59b6', '#1abc9c'];
+                const colores = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
                 
                 Object.keys(puntosPerDia).forEach((dia, index) => {
                     const puntosDia = puntosPerDia[dia];
@@ -5702,17 +5700,17 @@ function toggleAccordion(element) {
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 ">
                     <div style="font-size: 2.5rem; margin-bottom: 15px;">✈️</div>
-                    <h3 style="margin-bottom: 10px; color: var(--brand-text);">¡Solicita tu cotización!</h3>
-                    <p style="color: var(--brand-muted); margin-bottom: 25px; font-size: 0.9rem;">
+                    <h3 style="margin-bottom: 10px; color: #2c3e50;">¡Solicita tu cotización!</h3>
+                    <p style="color: #7f8c8d; margin-bottom: 25px; font-size: 0.9rem;">
                         Nos pondremos en contacto contigo para personalizar este increíble viaje
                     </p>
                     <div style="display: flex; gap: 10px; justify-content: center;">
                         <button onclick="this.closest('[style*=\"position: fixed\"]').remove()" 
-                                style="padding: 10px 20px; background: var(--brand-muted); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
                             Cerrar
                         </button>
                         <button onclick="window.location.href='mailto:info@agencia.com?subject=Cotización Itinerario'" 
-                                style="padding: 10px 20px; background: var(--brand-primary); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
+                                style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9rem;">
                             Enviar Email
                         </button>
                     </div>
@@ -6058,7 +6056,7 @@ document.addEventListener('click', function(e) {
             /* Mejoras para accesibilidad */
             .accordion-header:focus,
             .alternatives-header:focus {
-                outline: 2px solid var(--brand-primary);
+                outline: 2px solid #3498db;
                 outline-offset: 2px;
             }
             
