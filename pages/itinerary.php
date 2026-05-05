@@ -4082,7 +4082,7 @@ body {
 .accordion-header { padding: 18px 22px !important; }
 
 .footer {
-    background: var(--ts-brand-dark) !important;
+    background: var(--brand-surface-soft) !important;
     border-top-left-radius: 34px !important;
     border-top-right-radius: 34px !important;
 }

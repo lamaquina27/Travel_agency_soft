@@ -400,6 +400,10 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 padding: 36px 24px;
             }
 
+            .brand-logo{
+                margin-left: 65px !important;
+            }
+
             .login-panel {
                 max-width: 520px;
                 margin: 0 auto;
@@ -410,6 +414,7 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                 max-width: 620px;
                 width: 100%;
                 margin: 0 auto;
+                display: none !important;
             }
 
             .minimal-visual {
