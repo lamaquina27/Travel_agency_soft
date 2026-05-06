@@ -28,12 +28,14 @@ if (!$programa_id) {
 // --------------------------------------------------------------------
 // Helpers
 // --------------------------------------------------------------------
-function preview_config_value(array $keys, $fallback = '') {
+function preview_config_value(array $keys, $fallback = '')
+{
     foreach ($keys as $key) {
         try {
             if (class_exists('ConfigManager') && method_exists('ConfigManager', $key)) {
                 $value = ConfigManager::$key();
-                if ($value !== null && $value !== '') return $value;
+                if ($value !== null && $value !== '')
+                    return $value;
             }
         } catch (Throwable $e) {
             error_log("Preview ConfigManager::{$key}: " . $e->getMessage());
@@ -42,26 +44,32 @@ function preview_config_value(array $keys, $fallback = '') {
     return $fallback;
 }
 
-function preview_sanitize_hex($hex, string $fallback = '#1f2937'): string {
-    $hex = trim((string)$hex);
-    if ($hex === '') return $fallback;
-    if ($hex[0] !== '#') $hex = '#' . $hex;
+function preview_sanitize_hex($hex, string $fallback = '#1f2937'): string
+{
+    $hex = trim((string) $hex);
+    if ($hex === '')
+        return $fallback;
+    if ($hex[0] !== '#')
+        $hex = '#' . $hex;
     return preg_match('/^#[0-9a-fA-F]{6}$/', $hex) ? $hex : $fallback;
 }
 
-function preview_hex_to_rgb(string $hex): array {
+function preview_hex_to_rgb(string $hex): array
+{
     $hex = ltrim(preview_sanitize_hex($hex), '#');
     return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
 }
 
-function preview_readable_text(string $hex): string {
+function preview_readable_text(string $hex): string
+{
     [$r, $g, $b] = preview_hex_to_rgb($hex);
     $luminance = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
     return $luminance > 150 ? '#111827' : '#ffffff';
 }
 
-function preview_asset_url(?string $raw, string $fallback = ''): string {
-    $raw = trim((string)$raw);
+function preview_asset_url(?string $raw, string $fallback = ''): string
+{
+    $raw = trim((string) $raw);
 
     if ($raw === '') {
         return $fallback;
@@ -93,14 +101,25 @@ function preview_asset_url(?string $raw, string $fallback = ''): string {
     return rtrim(APP_URL, '/') . '/' . ltrim($raw, '/');
 }
 
-function preview_format_date(?string $date): string {
-    if (!$date) return '';
+function preview_format_date(?string $date): string
+{
+    if (!$date)
+        return '';
     try {
         $dt = new DateTime($date);
         $months = [
-            '01' => 'ene', '02' => 'feb', '03' => 'mar', '04' => 'abr',
-            '05' => 'may', '06' => 'jun', '07' => 'jul', '08' => 'ago',
-            '09' => 'sep', '10' => 'oct', '11' => 'nov', '12' => 'dic'
+            '01' => 'ene',
+            '02' => 'feb',
+            '03' => 'mar',
+            '04' => 'abr',
+            '05' => 'may',
+            '06' => 'jun',
+            '07' => 'jul',
+            '08' => 'ago',
+            '09' => 'sep',
+            '10' => 'oct',
+            '11' => 'nov',
+            '12' => 'dic'
         ];
         return $dt->format('d') . ' ' . $months[$dt->format('m')] . ' ' . $dt->format('Y');
     } catch (Throwable $e) {
@@ -119,11 +138,18 @@ $company_logo = preview_asset_url(preview_config_value(['getLogo', 'getCompanyLo
 
 // Colores de marca. No se usan colores decorativos fijos: toda la interfaz toma estos valores.
 $brand_primary = preview_sanitize_hex(preview_config_value([
-    'getPrimaryColor', 'getColorPrimario', 'getBrandColor', 'getMainColor', 'getColorPrincipal'
+    'getPrimaryColor',
+    'getColorPrimario',
+    'getBrandColor',
+    'getMainColor',
+    'getColorPrincipal'
 ], '#1f2937'));
 
 $brand_secondary = preview_sanitize_hex(preview_config_value([
-    'getSecondaryColor', 'getColorSecundario', 'getAccentColor', 'getColorAcento'
+    'getSecondaryColor',
+    'getColorSecundario',
+    'getAccentColor',
+    'getColorAcento'
 ], $brand_primary), $brand_primary);
 
 $brand_text = preview_readable_text($brand_primary);
@@ -187,8 +213,9 @@ $imagen_portada = preview_asset_url(
     APP_URL . '/assets/images/default-travel.jpg'
 );
 
-$num_pasajeros = (int)($programa['numero_pasajeros'] ?? 1);
-if ($num_pasajeros <= 0) $num_pasajeros = 1;
+$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
+if ($num_pasajeros <= 0)
+    $num_pasajeros = 1;
 
 $fecha_inicio_formatted = preview_format_date($programa['fecha_llegada'] ?? null);
 $fecha_fin_formatted = '';
@@ -202,24 +229,26 @@ if (!empty($programa['fecha_llegada'])) {
     }
 }
 
-$mostrar_precios = $precios && (!isset($precios['mostrar_precio']) || (int)$precios['mostrar_precio'] === 1);
+$mostrar_precios = $precios && (!isset($precios['mostrar_precio']) || (int) $precios['mostrar_precio'] === 1);
 $precio_adulto = $precios['precio_adulto'] ?? null;
 $moneda = $precios['moneda'] ?? '';
-
+$vendido = ($programa['comprado']) ? 1 : 0;
 $share_token = md5($programa_id . 'travel_preview_' . date('Y-m-d'));
-$share_url = APP_URL . '/preview?id=' . urlencode((string)$programa_id) . '&token=' . $share_token;
+$share_url = APP_URL . '/preview?id=' . urlencode((string) $programa_id) . '&token=' . $share_token;
 $is_public_access = $is_public_access ?? false;
 $idioma = $programa['idioma_predeterminado'] ?? 'es';
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title><?= htmlspecialchars($titulo_programa) ?> - Vista Previa</title>
 
     <meta property="og:title" content="<?= htmlspecialchars($titulo_programa) ?>">
-    <meta property="og:description" content="Programa de viaje personalizado para <?= htmlspecialchars($nombre_viajero) ?> a <?= htmlspecialchars($destino) ?>">
+    <meta property="og:description"
+        content="Programa de viaje personalizado para <?= htmlspecialchars($nombre_viajero) ?> a <?= htmlspecialchars($destino) ?>">
     <meta property="og:image" content="<?= htmlspecialchars($imagen_portada) ?>">
     <meta property="og:url" content="<?= htmlspecialchars($share_url) ?>">
     <meta property="og:type" content="website">
@@ -240,16 +269,36 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
     </script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
     <style>
         :root {
-            --brand-primary: <?= htmlspecialchars($brand_primary) ?>;
-            --brand-secondary: <?= htmlspecialchars($brand_secondary) ?>;
-            --brand-text: <?= htmlspecialchars($brand_text) ?>;
-            --brand-rgb: <?= $brand_r ?>, <?= $brand_g ?>, <?= $brand_b ?>;
-            --brand-secondary-rgb: <?= $brand2_r ?>, <?= $brand2_g ?>, <?= $brand2_b ?>;
+            --brand-primary:
+                <?= htmlspecialchars($brand_primary) ?>
+            ;
+            --brand-secondary:
+                <?= htmlspecialchars($brand_secondary) ?>
+            ;
+            --brand-text:
+                <?= htmlspecialchars($brand_text) ?>
+            ;
+            --brand-rgb:
+                <?= $brand_r ?>
+                ,
+                <?= $brand_g ?>
+                ,
+                <?= $brand_b ?>
+            ;
+            --brand-secondary-rgb:
+                <?= $brand2_r ?>
+                ,
+                <?= $brand2_g ?>
+                ,
+                <?= $brand2_b ?>
+            ;
             --surface: rgba(255, 255, 255, 0.94);
             --surface-soft: rgba(255, 255, 255, 0.72);
             --text-main: color-mix(in srgb, var(--brand-primary) 70%, black 30%);
@@ -258,9 +307,16 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             --shadow-soft: 0 24px 70px rgba(var(--brand-rgb), 0.18);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        html, body { min-height: 100%; }
+        html,
+        body {
+            min-height: 100%;
+        }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -326,7 +382,10 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             line-height: 1.2;
         }
 
-        .content { display: grid; gap: 28px; }
+        .content {
+            display: grid;
+            gap: 28px;
+        }
 
         .eyebrow {
             font-size: 13px;
@@ -401,7 +460,10 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             font-weight: 650;
         }
 
-        .actions { display: grid; gap: 12px; }
+        .actions {
+            display: grid;
+            gap: 12px;
+        }
 
         .primary-button,
         .secondary-button {
@@ -452,7 +514,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .center-mark {
-            color: rgba(255,255,255,0.92);
+            color: rgba(255, 255, 255, 0.92);
             text-align: center;
             text-shadow: 0 18px 55px rgba(var(--brand-rgb), 0.42);
             max-width: 620px;
@@ -528,12 +590,22 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
                 padding: 34px 26px;
             }
 
-            .visual { display: none; }
-            .title { font-size: clamp(42px, 14vw, 64px); }
-            .translate-container { top: 14px; right: 14px; }
+            .visual {
+                display: none;
+            }
+
+            .title {
+                font-size: clamp(42px, 14vw, 64px);
+            }
+
+            .translate-container {
+                top: 14px;
+                right: 14px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="translate-container">
         <div id="google_translate_element"></div>
@@ -543,12 +615,9 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         <aside class="panel">
             <div class="brand">
                 <?php if ($company_logo): ?>
-                    <img
-                        class="brand-logo"
-                        src="<?= htmlspecialchars($company_logo) ?>"
+                    <img class="brand-logo" src="<?= htmlspecialchars($company_logo) ?>"
                         alt="<?= htmlspecialchars($company_name) ?>"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"
-                    >
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
                     <div class="brand-fallback" style="display:none;">
                         <?= htmlspecialchars(mb_strtoupper(mb_substr($company_name, 0, 1))) ?>
                     </div>
@@ -581,18 +650,25 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
                     </div>
 
                     <?php if ($fecha_inicio_formatted && $fecha_fin_formatted): ?>
-                    <div class="fact">
-                        <i class="fas fa-plane-departure"></i>
-                        <span><?= htmlspecialchars($fecha_inicio_formatted) ?> — <?= htmlspecialchars($fecha_fin_formatted) ?></span>
-                    </div>
+                        <div class="fact">
+                            <i class="fas fa-plane-departure"></i>
+                            <span><?= htmlspecialchars($fecha_inicio_formatted) ?> —
+                                <?= htmlspecialchars($fecha_fin_formatted) ?></span>
+                        </div>
                     <?php endif; ?>
 
-                    <?php if ($mostrar_precios && !empty($precio_adulto)): ?>
-                    <div class="fact">
-                        <i class="fas fa-tag"></i>
-                        <span>Desde <?= number_format((float)$precio_adulto, 0) ?> <?= htmlspecialchars($moneda) ?> por persona</span>
-                    </div>
+
+                    <?php if (!$vendido): ?>
+
+                        <?php if ($mostrar_precios && !empty($precios['precio_adulto'])): ?>
+                            <div class="summary-item">
+                                <i class="fas fa-tag"></i>
+                                <span>Desde <?= number_format($precios['precio_adulto'], 0) ?>         <?= $precios['moneda'] ?> por
+                                    persona</span>
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
+
                 </div>
             </section>
 
@@ -614,12 +690,12 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
     <script>
         function abrirPrograma() {
-            window.location.href = '<?= APP_URL ?>/programa?id=<?= urlencode((string)$programa_id) ?>';
+            window.location.href = '<?= APP_URL ?>/programa?id=<?= urlencode((string) $programa_id) ?>';
         }
 
         function verItinerarioCompleto() {
             const isPublic = new URLSearchParams(window.location.search).get('public') === '1';
-            const programaId = '<?= addslashes((string)$programa_id) ?>';
+            const programaId = '<?= addslashes((string) $programa_id) ?>';
 
             if (isPublic) {
                 const timestamp = Date.now();
@@ -674,7 +750,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             setTimeout(() => notificacion.remove(), 2600);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const img = new Image();
             img.src = '<?= addslashes($imagen_portada) ?>';
 
@@ -695,7 +771,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             setTimeout(() => {
                 const select = document.querySelector('.goog-te-combo');
                 if (select) {
-                    select.addEventListener('change', function() {
+                    select.addEventListener('change', function () {
                         if (this.value) {
                             sessionStorage.setItem('language', this.value);
                             localStorage.setItem('preferredLanguage', this.value);
@@ -707,12 +783,12 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
     </script>
 
     <?php if ($is_public_access): ?>
-    <script>
-        window.addEventListener('beforeunload', function() {
-            fetch('<?= APP_URL ?>/api/clear_public_session.php');
-        });
-    </script>
-    <?php
+        <script>
+            window.addEventListener('beforeunload', function () {
+                fetch('<?= APP_URL ?>/api/clear_public_session.php');
+            });
+        </script>
+        <?php
         unset($_SESSION['public_programa_id']);
         unset($_SESSION['is_public_access']);
     endif;
@@ -720,4 +796,5 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
+
 </html>
