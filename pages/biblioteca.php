@@ -3659,10 +3659,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
                 else {
                     //----------------Logica para alamcenar ubicaciones en BD LOCAL para cada agencia -----------------
-                    const nombre = result['data']['ubicacion'];
-                    const la = result['data']['latitud'];
-                    const lo = result['data']['longitud'];
-                    if (nombre && la && lo && type != "transportes") {
+                    if (result['data']) {
+                        const nombre = result['data']['ubicacion'];
+                        const la = result['data']['latitud'];
+                        const lo = result['data']['longitud'];
+                        if (nombre && la && lo && type != "transportes") {
                         try {
                             await fetch(`${APP_URL}/modules/ubicaciones/ubicaciones_api.php?action=save`, {
                                 method: 'POST',
@@ -3679,6 +3680,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         }
                     }
                 }
+            }
                 // Éxito
                 alert(result.message || 'Operación exitosa');
                 closeModal();

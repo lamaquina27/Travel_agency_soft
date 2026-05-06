@@ -349,7 +349,7 @@ class BibliotecaAPI
             try {
                 $this->db->update($table, $data, 'id = ?', [$id]);
                 error_log("✅ Update ejecutado correctamente");
-                return ['success' => true, 'message' => 'Recurso actualizado correctamente'];
+                return ['success' => true, 'message' => 'Recurso actualizado correctamente', 'data' => $data];
             } catch (Exception $dbException) {
                 error_log("❌ Database exception: " . $dbException->getMessage());
                 throw new Exception('Error de base de datos: ' . $dbException->getMessage());
