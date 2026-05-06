@@ -1959,6 +1959,386 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         .btn-add-ubicacion:active {
             transform: scale(0.98);
         }
+
+
+        /* =========================================================
+           Biblioteca rediseñada: limpia, profesional y con paleta
+           ========================================================= */
+        body {
+            background: #f6f8fb !important;
+            color: #1f2937 !important;
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+        }
+
+        .main-content {
+            margin-top: 76px !important;
+            padding: 32px !important;
+            background:
+                radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 8%, transparent), transparent 34%),
+                linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important;
+        }
+
+        .tabs-container {
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 28px !important;
+            padding: 24px !important;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08) !important;
+            overflow: visible !important;
+        }
+
+        .tabs-nav {
+            display: grid !important;
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            padding: 8px !important;
+            margin: 0 0 22px 0 !important;
+            background: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 22px !important;
+            border-bottom: 0 !important;
+        }
+
+        .tab-btn {
+            min-height: 48px !important;
+            padding: 12px 14px !important;
+            border-radius: 16px !important;
+            border: 1px solid transparent !important;
+            background: transparent !important;
+            color: #64748b !important;
+            font-size: 13.5px !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.01em !important;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #ffffff !important;
+            color: var(--primary-color) !important;
+            border-color: color-mix(in srgb, var(--primary-color) 12%, transparent) !important;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 12px 28px color-mix(in srgb, var(--primary-color) 22%, transparent) !important;
+        }
+
+        .filters-section {
+            display: grid !important;
+            grid-template-columns: minmax(240px, 1fr) 190px auto !important;
+            gap: 12px !important;
+            align-items: center !important;
+            margin: 0 0 24px 0 !important;
+            padding: 18px !important;
+            background: #f8fafc !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 22px !important;
+        }
+
+        .search-input,
+        .filter-select,
+        .form-control,
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            border: 1px solid #dbe3ef !important;
+            border-radius: 16px !important;
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+        }
+
+        .search-input,
+        .filter-select {
+            min-height: 46px !important;
+            padding: 0 15px !important;
+            font-size: 14px !important;
+        }
+
+        .search-input:focus,
+        .filter-select:focus,
+        .form-control:focus,
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 12%, transparent) !important;
+            transform: none !important;
+        }
+
+        .add-btn,
+        .btn-primary {
+            min-height: 46px !important;
+            border-radius: 16px !important;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-weight: 800 !important;
+            box-shadow: 0 14px 30px color-mix(in srgb, var(--primary-color) 22%, transparent) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+        }
+
+        .add-btn:hover,
+        .btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 18px 36px color-mix(in srgb, var(--primary-color) 26%, transparent) !important;
+        }
+
+        .btn-icon-svg,
+        .inline-svg-icon,
+        .action-icon {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .btn-icon-svg svg,
+        .inline-svg-icon,
+        .empty-state-icon svg,
+        .library-placeholder-icon {
+            fill: none !important;
+            stroke: currentColor !important;
+            stroke-width: 2 !important;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+        }
+
+        .btn-icon-svg svg {
+            width: 18px !important;
+            height: 18px !important;
+        }
+
+        .inline-svg-icon {
+            width: 16px !important;
+            height: 16px !important;
+            color: var(--primary-color) !important;
+            vertical-align: -3px !important;
+            margin-right: 5px !important;
+        }
+
+        .content-grid {
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)) !important;
+            gap: 18px !important;
+        }
+
+        .item-card {
+            border-radius: 24px !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.07) !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+        }
+
+        .item-card::before {
+            height: 3px !important;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+
+        .item-card:hover {
+            transform: translateY(-4px) !important;
+            border-color: color-mix(in srgb, var(--primary-color) 25%, #e5e7eb) !important;
+            box-shadow: 0 22px 50px rgba(15, 23, 42, 0.11) !important;
+        }
+
+        .card-image {
+            height: 185px !important;
+            background:
+                radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--secondary-color) 28%, transparent), transparent 42%),
+                linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 16%, #ffffff), color-mix(in srgb, var(--secondary-color) 14%, #ffffff)) !important;
+            color: var(--primary-color) !important;
+            font-size: 0 !important;
+        }
+
+        .library-placeholder-icon {
+            width: 56px !important;
+            height: 56px !important;
+            color: var(--primary-color) !important;
+        }
+
+        .card-content {
+            padding: 18px 18px 16px !important;
+        }
+
+        .card-title {
+            color: #0f172a !important;
+            font-size: 17px !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.02em !important;
+            line-height: 1.25 !important;
+        }
+
+        .card-description {
+            color: #64748b !important;
+            font-size: 13.5px !important;
+            line-height: 1.6 !important;
+        }
+
+        .card-location,
+        .card-category,
+        .card-type,
+        .card-transport,
+        .card-price,
+        .card-route {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            color: #475569 !important;
+            font-size: 12.5px !important;
+            font-weight: 650 !important;
+            margin-top: 8px !important;
+        }
+
+        .image-count {
+            position: absolute !important;
+            top: 12px !important;
+            right: 12px !important;
+            padding: 6px 10px !important;
+            border-radius: 999px !important;
+            background: rgba(255,255,255,0.92) !important;
+            color: var(--primary-color) !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            box-shadow: 0 8px 20px rgba(15,23,42,0.12) !important;
+        }
+
+        .card-actions {
+            padding: 14px 18px 18px !important;
+            gap: 10px !important;
+            border-top: 1px solid #eef2f7 !important;
+            background: #fbfdff !important;
+        }
+
+        .action-btn {
+            border-radius: 14px !important;
+            min-height: 40px !important;
+            font-weight: 800 !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            color: #475569 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 7px !important;
+        }
+
+        .action-btn.edit:hover {
+            color: var(--primary-color) !important;
+            border-color: color-mix(in srgb, var(--primary-color) 28%, #e2e8f0) !important;
+            background: color-mix(in srgb, var(--primary-color) 8%, #ffffff) !important;
+        }
+
+        .action-btn.delete:hover {
+            color: #b91c1c !important;
+            border-color: #fecaca !important;
+            background: #fef2f2 !important;
+        }
+
+        .edit-icon::before,
+        .delete-icon::before {
+            content: '' !important;
+            width: 14px !important;
+            height: 14px !important;
+            display: block !important;
+            background: currentColor !important;
+            mask-size: contain !important;
+            mask-repeat: no-repeat !important;
+            mask-position: center !important;
+        }
+
+        .edit-icon::before {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E") !important;
+        }
+
+        .delete-icon::before {
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M8 6V4h8v2'/%3E%3Cpath d='M19 6l-1 14H6L5 6'/%3E%3Cpath d='M10 11v6'/%3E%3Cpath d='M14 11v6'/%3E%3C/svg%3E") !important;
+        }
+
+        .empty-state {
+            border: 1px dashed color-mix(in srgb, var(--primary-color) 28%, #cbd5e1) !important;
+            background: color-mix(in srgb, var(--primary-color) 5%, #ffffff) !important;
+            border-radius: 24px !important;
+            padding: 44px 24px !important;
+            color: #475569 !important;
+        }
+
+        .empty-state-icon {
+            width: 72px !important;
+            height: 72px !important;
+            margin: 0 auto 18px !important;
+            border-radius: 22px !important;
+            background: color-mix(in srgb, var(--primary-color) 11%, #ffffff) !important;
+            color: var(--primary-color) !important;
+            display: grid !important;
+            place-items: center !important;
+            font-size: 0 !important;
+        }
+
+        .empty-state-icon svg {
+            width: 34px !important;
+            height: 34px !important;
+        }
+
+        .modal {
+            background: rgba(15, 23, 42, 0.42) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        .modal-content {
+            border-radius: 28px !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            box-shadow: 0 30px 90px rgba(15, 23, 42, 0.22) !important;
+            overflow: hidden !important;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            color: #ffffff !important;
+            padding: 22px 26px !important;
+        }
+
+        .modal-title {
+            color: #ffffff !important;
+            font-size: 20px !important;
+            font-weight: 850 !important;
+            letter-spacing: -0.03em !important;
+        }
+
+        .close-btn {
+            background: rgba(255,255,255,0.18) !important;
+            color: #ffffff !important;
+            border-radius: 14px !important;
+        }
+
+        .btn-secondary {
+            border-radius: 16px !important;
+            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            color: #475569 !important;
+            font-weight: 800 !important;
+        }
+
+        .plantilla-precios-container,
+        .plantilla-section,
+        .plantilla-card {
+            border-radius: 24px !important;
+        }
+
+        @media (max-width: 1024px) {
+            .tabs-nav,
+            .filters-section {
+                grid-template-columns: 1fr !important;
+            }
+
+            .main-content {
+                padding: 20px !important;
+            }
+        }
+
     </style>
     <script src="<?= APP_URL ?>/assets/js/ubicacion-search-widget.js"></script>
 </head>
@@ -1996,7 +2376,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <option value="fr">Français</option>
                     <option value="pt">Português</option>
                 </select>
-                <button class="add-btn" onclick="openModal('create')">➕ Agregar Nuevo</button>
+                <button class="add-btn" onclick="openModal('create')"><span class="btn-icon-svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>Agregar nuevo</span></button>
             </div>
 
             <!-- Content Grid -->
@@ -2006,7 +2386,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             <!-- Empty State -->
             <div class="empty-state" id="emptyState" style="display: none;">
-                <div class="empty-state-icon">📂</div>
+                <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg></div>
                 <h3>No hay recursos disponibles</h3>
                 <p>Comienza agregando tu primer recurso haciendo clic en "Agregar Nuevo"</p>
             </div>
@@ -2105,7 +2485,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <p style="color: #e53e3e;">Error al cargar la plantilla de precios</p>
                 <button class="btn-primary" onclick="loadPlantillaPrecios()" style="margin-top: 15px;">
                     Reintentar
-                </button>
+              </button>
             </div>
         `;
             }
@@ -2121,7 +2501,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <div style="background: white; padding: 30px 35px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
                 <div style="display: flex; align-items: center; gap: 20px;">
                     <div style="width: 60px; height: 60px; background: #f7fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 2px solid #e2e8f0;">
-                        💰
+                        
                     </div>
                     <div style="flex: 1;">
                         <h2 style="margin: 0 0 6px 0; font-size: 24px; font-weight: 700; color: #1a202c;">
@@ -2140,7 +2520,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <!-- Campo: Precio Incluye -->
                 <div class="form-group" style="margin-bottom: 32px;">
                     <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
-                        <span style="font-size: 18px;">✅</span>
+                        <span style="font-size: 18px;"></span>
                         ¿Qué incluye el precio?
                     </label>
                     <div style="position: relative;">
@@ -2158,14 +2538,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
-                        💡 Describe todos los servicios incluidos en el precio del programa
+                         Describe todos los servicios incluidos en el precio del programa
                     </small>
                 </div>
                 
                 <!-- Campo: Precio NO Incluye -->
                 <div class="form-group" style="margin-bottom: 32px;">
                     <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
-                        <span style="font-size: 18px;">❌</span>
+                        <span style="font-size: 18px;"></span>
                         ¿Qué NO incluye el precio?
                     </label>
                     <div style="position: relative;">
@@ -2183,14 +2563,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
-                        💡 Especifica claramente qué gastos NO están cubiertos
+                         Especifica claramente qué gastos NO están cubiertos
                     </small>
                 </div>
                 
                 <!-- Campo: Condiciones Generales -->
                 <div class="form-group" style="margin-bottom: 32px;">
                     <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
-                        <span style="font-size: 18px;">📋</span>
+                        <span style="font-size: 18px;"></span>
                         Condiciones Generales
                     </label>
                     <div style="position: relative;">
@@ -2208,14 +2588,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
-                        💡 Políticas de reserva, pago y cancelación
+                         Políticas de reserva, pago y cancelación
                     </small>
                 </div>
                 
                 <!-- Campo: Info Pasaporte -->
                 <div class="form-group" style="margin-bottom: 32px;">
                     <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
-                        <span style="font-size: 18px;">🛂</span>
+                        <span style="font-size: 18px;"></span>
                         Información de Pasaporte
                     </label>
                     <div style="position: relative;">
@@ -2233,14 +2613,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
-                        💡 Requisitos de documentación para viajar
+                         Requisitos de documentación para viajar
                     </small>
                 </div>
                 
                 <!-- Campo: Info Seguros -->
                 <div class="form-group" style="margin-bottom: 32px;">
                     <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
-                        <span style="font-size: 18px;">🏥</span>
+                        <span style="font-size: 18px;"></span>
                         Información de Seguros
                     </label>
                     <div style="position: relative;">
@@ -2258,7 +2638,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
-                        💡 Requisitos y detalles del seguro de viaje
+                         Requisitos y detalles del seguro de viaje
                     </small>
                 </div>
                 
@@ -2287,11 +2667,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             <polyline points="7 3 7 8 15 8"></polyline>
                         </svg>
                         <span>${exists ? 'Actualizar' : 'Guardar'} Plantilla</span>
-                    </button>
+                  </button>
                     
                     ${exists ? `
                         <p style="margin-top: 12px; font-size: 12px; color: #a0aec0;">
-                            ℹ️ Los cambios se aplicarán solo a nuevos programas
+                            ℹ Los cambios se aplicarán solo a nuevos programas
                         </p>
                     ` : ''}
                 </div>
@@ -2364,7 +2744,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <button class="read-more-btn" onclick="toggleDescription('${cardId}', event)">
                 <span class="read-more-text">Leer más</span>
                 <i class="fas fa-chevron-down"></i>
-            </button>
+          </button>
         </div>
     `;
         }
@@ -2518,21 +2898,32 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         };
 
         // Función para obtener icono correcto del medio de transporte
+
+        function getLibraryIcon(type) {
+            const icons = {
+                dias: '<svg class="library-placeholder-icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M4 10h16"/></svg>',
+                alojamientos: '<svg class="library-placeholder-icon" viewBox="0 0 24 24"><path d="M4 21V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13"/><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>',
+                actividades: '<svg class="library-placeholder-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>',
+                transportes: '<svg class="library-placeholder-icon" viewBox="0 0 24 24"><path d="M5 17h14"/><path d="M6 17l1.5-6h9L18 17"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>',
+                file: '<svg class="library-placeholder-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>'
+            };
+            return icons[type] || icons.file;
+        }
+
         function getTransportIcon(medio) {
             const transportIcons = {
-                'bus': '🚌',
-                'avion': '✈️',
-                'coche': '🚗',
-                'barco': '🚢',
-                'tren': '🚂',
-                'metro': '🚇',
-                'taxi': '🚕',
-                'bicicleta': '🚲',
-                'moto': '🏍️',
-                'walking': '🚶'
+                'bus': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><path d="M6 20h12"/><path d="M8 20v-2"/><path d="M16 20v-2"/><rect x="5" y="3" width="14" height="15" rx="3"/><path d="M5 10h14"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/></svg>',
+                'avion': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><path d="M2 16l20-8-20-8 5 8-5 8z"/><path d="M7 8h15"/></svg>',
+                'coche': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><path d="M5 17h14"/><path d="M6 17l1.5-6h9L18 17"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>',
+                'barco': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><path d="M4 17h16l-2 4H6l-2-4z"/><path d="M8 17V7l8 4v6"/><path d="M8 7h7"/></svg>',
+                'tren': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="13" rx="2"/><path d="M6 10h12"/><path d="M8 21l3-5"/><path d="M16 21l-3-5"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>',
+                'metro': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M8 21l2-4"/><path d="M16 21l-2-4"/><path d="M5 10h14"/></svg>',
+                'taxi': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><path d="M5 17h14"/><path d="M6 17l1.5-6h9L18 17"/><path d="M9 8h6"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>',
+                'bicicleta': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M8.5 17H12l3-6H9l3 6"/><path d="M13 8h3"/></svg>',
+                'moto': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M9 17h4l3-5h3"/><path d="M13 12h-2"/></svg>',
+                'walking': '<svg class="inline-svg-icon" viewBox="0 0 24 24"><circle cx="13" cy="5" r="2"/><path d="M12 7l-2 6 4 2 2 6"/><path d="M10 13l-3 2"/><path d="M14 15l-3 6"/></svg>'
             };
-
-            return transportIcons[medio] || '🚗';
+            return transportIcons[medio] || transportIcons['coche'];
         }
 
         // Inicialización
@@ -2551,14 +2942,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const mainContent = document.getElementById('mainContent');
 
             // Debug para verificar elementos
-            console.log('🔍 Elementos sidebar:', {
+            console.log(' Elementos sidebar:', {
                 sidebar: !!sidebar,
                 overlay: !!overlay,
                 mainContent: !!mainContent
             });
 
             if (!sidebar) {
-                console.error('❌ Sidebar no encontrado con clase .enhanced-sidebar');
+                console.error(' Sidebar no encontrado con clase .enhanced-sidebar');
                 return;
             }
 
@@ -2570,12 +2961,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 if (mainContent && window.innerWidth > 768) {
                     mainContent.classList.add('sidebar-open');
                 }
-                console.log('✅ Sidebar abierto');
+                console.log(' Sidebar abierto');
             } else {
                 sidebar.classList.remove('open');
                 if (overlay) overlay.classList.remove('show');
                 if (mainContent) mainContent.classList.remove('sidebar-open');
-                console.log('✅ Sidebar cerrado');
+                console.log(' Sidebar cerrado');
             }
         }
 
@@ -2603,7 +2994,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         function agregarUbicacionSecundaria() {
             const container = document.getElementById('ubicaciones-secundarias-container');
             if (!container) {
-                console.error('❌ Contenedor de ubicaciones secundarias no encontrado');
+                console.error(' Contenedor de ubicaciones secundarias no encontrado');
                 return;
             }
 
@@ -2626,7 +3017,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                    name="ubicaciones_secundarias[]" 
                    id="ubicacion-${index}"
                    class="form-control ubicacion-input"
-                   placeholder="🔍 Buscar otra ubicación..."
+                   placeholder="Buscar otra ubicación..."
                    style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;">
             <input type="hidden" name="ubicaciones_secundarias_lat[]" id="latitud-${index}">
             <input type="hidden" name="ubicaciones_secundarias_lng[]" id="longitud-${index}">
@@ -2654,8 +3045,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 onmouseover="this.style.background='#c53030'"
                 onmouseout="this.style.background='#e53e3e'"
                 title="Eliminar ubicación">
-            ✕
-        </button>
+            
+      </button>
     `;
 
             container.appendChild(div);
@@ -2673,7 +3064,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php', // ← URL CORRECTA CON PHP
                         latInputId: `latitud-${index}`,
                         lngInputId: `longitud-${index}`,
-                        placeholder: '🔍 Buscar otra ubicación...',
+                        placeholder: ' Buscar otra ubicación...',
                         showPreview: true,
                         previewContainerId: `preview-ubicacion-${index}`,
                         autoSave: true
@@ -2684,7 +3075,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         widget: widget
                     });
 
-                    console.log(`✅ Widget secundario inicializado para index ${index}`);
+                    console.log(` Widget secundario inicializado para index ${index}`);
                 }
             }, 100);
         }
@@ -2704,7 +3095,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 // Remover del DOM
                 item.remove();
 
-                console.log(`✅ Ubicación eliminada`);
+                console.log(` Ubicación eliminada`);
             }
         }
 
@@ -2717,11 +3108,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     updateSecondaryLocationsSectionClass();
                 }, 300);
             }
-            console.log('🗑️ Ubicación secundaria removida:', index);
+            console.log(' Ubicación secundaria removida:', index);
         }
 
         function getUbicacionSecundariaTemplate(index) {
-            console.log(`📝 Generando template para índice: ${index}`);
+            console.log(` Generando template para índice: ${index}`);
 
             return `
         <div class="ubicacion-secundaria-item" data-index="${index}">
@@ -2739,8 +3130,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <button type="button" class="btn-remove-ubicacion" 
                         onclick="removerUbicacionSecundaria(${index})" 
                         title="Eliminar ubicación">
-                    🗑️
-                </button>
+                    
+              </button>
             </div>
             <div class="ubicacion-preview" id="preview-secundaria-${index}"></div>
         </div>
@@ -2790,7 +3181,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         function searchLocationForSecondary(query, inputElement, latInput, lngInput, preview, index) {
-            console.log(`🔍 Buscando ubicación para secundaria ${index}:`, query);
+            console.log(` Buscando ubicación para secundaria ${index}:`, query);
 
             // Mostrar indicador de carga
             inputElement.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23667eea\' stroke-width=\'2\'%3E%3Cpath d=\'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z\'/%3E%3Ccircle cx=\'12\' cy=\'10\' r=\'3\'/%3E%3C/svg%3E")';
@@ -2804,7 +3195,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(`📍 Resultados para secundaria ${index}:`, data.length);
+                    console.log(` Resultados para secundaria ${index}:`, data.length);
 
                     // Limpiar indicador de carga
                     inputElement.style.backgroundImage = '';
@@ -2812,17 +3203,17 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     if (data && data.length > 0) {
                         showSuggestionsForSecondary(data, inputElement, latInput, lngInput, preview, index);
                     } else {
-                        console.log(`ℹ️ No se encontraron resultados para: ${query}`);
+                        console.log(`ℹ No se encontraron resultados para: ${query}`);
                     }
                 })
                 .catch(error => {
-                    console.error('❌ Error buscando ubicación:', error);
+                    console.error(' Error buscando ubicación:', error);
                     inputElement.style.backgroundImage = '';
                 });
         }
 
         function showSuggestionsForSecondary(locations, inputElement, latInput, lngInput, preview, index) {
-            console.log(`📋 Mostrando ${locations.length} sugerencias para secundaria ${index}`);
+            console.log(` Mostrando ${locations.length} sugerencias para secundaria ${index}`);
 
             // Limpiar sugerencias anteriores
             hideSuggestionsForElement(inputElement);
@@ -2870,7 +3261,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 // Click handler
                 item.addEventListener('click', () => {
-                    console.log(`✅ Ubicación secundaria ${index} seleccionada:`, location.display_name);
+                    console.log(` Ubicación secundaria ${index} seleccionada:`, location.display_name);
 
                     inputElement.value = location.display_name;
                     latInput.value = location.lat;
@@ -2890,7 +3281,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             inputElement.parentElement.style.position = 'relative';
             inputElement.parentElement.appendChild(suggestionsContainer);
 
-            console.log(`✅ Sugerencias mostradas para secundaria ${index}`);
+            console.log(` Sugerencias mostradas para secundaria ${index}`);
         }
 
         function hideSuggestionsForElement(inputElement) {
@@ -2905,11 +3296,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         function setupLocationAutocompleteForElement(input, latInput, lngInput, preview) {
             if (!input) {
-                console.error('❌ setupLocationAutocompleteForElement: input no válido');
+                console.error(' setupLocationAutocompleteForElement: input no válido');
                 return;
             }
 
-            console.log('🔧 Configurando autocompletado para:', input.id || input.name || 'input sin id');
+            console.log(' Configurando autocompletado para:', input.id || input.name || 'input sin id');
 
             let timeout;
             let suggestionsList = null;
@@ -2918,7 +3309,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 clearTimeout(timeout);
                 const query = this.value.trim();
 
-                console.log('📝 Usuario escribiendo:', query, 'en campo:', this.id);
+                console.log(' Usuario escribiendo:', query, 'en campo:', this.id);
 
                 // Limpiar sugerencias anteriores
                 removeSuggestionsFromInput(this);
@@ -2928,7 +3319,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
 
                 timeout = setTimeout(() => {
-                    console.log('🔍 Iniciando búsqueda para:', query);
+                    console.log(' Iniciando búsqueda para:', query);
                     searchLocationForInput(query, this, latInput, lngInput, preview);
                 }, 500);
             });
@@ -2945,11 +3336,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
             });
 
-            console.log('✅ Autocompletado configurado correctamente para:', input.id);
+            console.log(' Autocompletado configurado correctamente para:', input.id);
         }
 
 
-        // 🧠 FUNCIÓN PARA GENERAR CONSULTAS INTELIGENTES
+        //  FUNCIÓN PARA GENERAR CONSULTAS INTELIGENTES
         function generateSmartQueries(originalQuery) {
             const queries = [];
             const cleanQuery = originalQuery.trim().toLowerCase();
@@ -2987,7 +3378,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             return [...new Set(queries)].slice(0, 6);
         }
 
-        // 🔍 FUNCIÓN PARA REALIZAR UNA BÚSQUEDA INDIVIDUAL
+        //  FUNCIÓN PARA REALIZAR UNA BÚSQUEDA INDIVIDUAL
         function performSingleSearch(query) {
             const url = `https://nominatim.openstreetmap.org/search?` +
                 `format=json&` +
@@ -3002,12 +3393,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             return fetch(url)
                 .then(response => response.json())
                 .catch(error => {
-                    console.warn('⚠️ Error en búsqueda individual:', error);
+                    console.warn(' Error en búsqueda individual:', error);
                     return [];
                 });
         }
 
-        // 🔄 FUNCIÓN PARA COMBINAR Y FILTRAR RESULTADOS
+        //  FUNCIÓN PARA COMBINAR Y FILTRAR RESULTADOS
         function combineAndFilterResults(resultsArray, originalQuery) {
             const allResults = [];
             const seenPlaces = new Set();
@@ -3054,7 +3445,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 .slice(0, 10);
         }
 
-        // 📭 FUNCIÓN PARA MOSTRAR MENSAJE CUANDO NO HAY RESULTADOS
+        //  FUNCIÓN PARA MOSTRAR MENSAJE CUANDO NO HAY RESULTADOS
         function showNoResultsMessage(inputElement) {
             const parent = inputElement.parentElement;
             const messageContainer = document.createElement('div');
@@ -3076,7 +3467,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             messageContainer.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <span>🔍</span>
+            <span></span>
             <span>No se encontraron resultados. Intenta con otro término.</span>
         </div>
     `;
@@ -3149,7 +3540,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 });
 
                 item.addEventListener('click', () => {
-                    console.log('✅ Ubicación seleccionada:', location.display_name);
+                    console.log(' Ubicación seleccionada:', location.display_name);
 
                     inputElement.value = location.display_name;
                     latInput.value = location.lat;
@@ -3176,7 +3567,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         function showLocationPreview(preview, locationText) {
             if (preview && locationText) {
-                preview.innerHTML = `📍 ${locationText}`;
+                preview.innerHTML = ` ${locationText}`;
                 preview.classList.add('show');
             }
         }
@@ -3195,7 +3586,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         function limpiarUbicacionesSecundarias() {
-            console.log('🧹 Limpiando ubicaciones secundarias...');
+            console.log(' Limpiando ubicaciones secundarias...');
 
             const container = document.getElementById('ubicaciones-secundarias-container');
             const section = document.getElementById('ubicaciones-secundarias-section');
@@ -3212,7 +3603,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             // RESETEAR el contador a 0
             ubicacionesSecundariasCount = 0;
 
-            console.log('✅ Ubicaciones secundarias limpiadas. Contador reseteado a 0');
+            console.log(' Ubicaciones secundarias limpiadas. Contador reseteado a 0');
         }
 
 
@@ -3314,12 +3705,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const grid = document.getElementById('contentGrid');
             grid.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef2f2; border-radius: 15px; border: 1px solid #fecaca;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                    <div style="font-size: 48px; margin-bottom: 20px;"></div>
                     <h3 style="color: #dc2626; margin-bottom: 10px;">Error en la búsqueda</h3>
                     <p style="color: #b91c1c; margin-bottom: 20px;">${message}</p>
                     <button onclick="loadResources()" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 500;">
-                        🔄 Intentar de nuevo
-                    </button>
+                         Intentar de nuevo
+                  </button>
                 </div>
             `;
         }
@@ -3334,7 +3725,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     grid.style.display = 'none';
                     emptyState.style.display = 'block';
                     emptyState.innerHTML = `
-                        <div class="empty-state-icon">📂</div>
+                        <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg></div>
                         <h3>No hay recursos disponibles</h3>
                         <p>Comienza agregando tu primer recurso haciendo clic en "Agregar Nuevo"</p>
                     `;
@@ -3362,7 +3753,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 console.error('Error al renderizar recursos:', error);
                 grid.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fed7d7; border-radius: 15px;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                        <div style="font-size: 48px; margin-bottom: 20px;"></div>
                         <h3 style="color: #e53e3e;">Error al mostrar recursos</h3>
                         <p style="color: #c53030;">${error.message}</p>
                     </div>
@@ -3418,16 +3809,16 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         // Crear card de recurso
         function createResourceCard(item) {
             const icons = {
-                dias: '📅',
-                alojamientos: '🏨',
-                actividades: '🎯',
-                transportes: '🚗'
+                dias: getLibraryIcon('dias'),
+                alojamientos: getLibraryIcon('alojamientos'),
+                actividades: getLibraryIcon('actividades'),
+                transportes: getLibraryIcon('transportes')
             };
 
             const title = item.titulo || item.nombre || 'Sin título';
             const location = item.ubicacion || `${item.lugar_salida} → ${item.lugar_llegada}` || '';
 
-            // ✅ NUEVO: Crear carrusel para días y actividades
+            //  NUEVO: Crear carrusel para días y actividades
             let imageHTML = '';
             if (currentTab === 'dias' || currentTab === 'actividades') {
                 const images = [];
@@ -3443,7 +3834,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             } else {
                 // Para alojamientos y transportes, usar lógica específica
                 if (currentTab === 'transportes') {
-                    // ✅ Usar icono específico del medio de transporte
+                    //  Usar icono específico del medio de transporte
                     const transportIcon = getTransportIcon(item.medio);
                     imageHTML = `
             <div class="card-image transport-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 20px;">
@@ -3461,7 +3852,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             `<img src="${primaryImage}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover;">` :
                             icons[currentTab]
                         }
-                    ${getImageCount(item, currentTab) > 0 ? `<div class="image-count">📷 ${getImageCount(item, currentTab)}</div>` : ''}
+                    ${getImageCount(item, currentTab) > 0 ? `<div class="image-count"><span>Imágenes</span> ${getImageCount(item, currentTab)}</div>` : ''}
                 </div>
             `;
                 }
@@ -3474,24 +3865,24 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         <h3 class="card-title">${escapeHtml(title)}</h3>
                         ${createDescriptionWithReadMore(item.descripcion, cardId)}
                         <div class="card-location">
-                            ${currentTab === 'transportes' ? getTransportIcon(item.medio) : '📍'} ${escapeHtml(location)}
+                            ${currentTab === 'transportes' ? getTransportIcon(item.medio) : '<svg class="inline-svg-icon" viewBox="0 0 24 24"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2"/></svg>'} ${escapeHtml(location)}
                             ${item.ubicaciones_secundarias && item.ubicaciones_secundarias.length > 0 ?
                     `<div style="font-size: 11px; color: #10b981; margin-top: 4px; font-weight: 600;">
                                     + ${item.ubicaciones_secundarias.length} ubicación(es) más
                                 </div>` : ''
                 }
                         </div>
-                        ${item.categoria ? `<div class="card-category">⭐ ${item.categoria} estrellas</div>` : ''}
-                        ${item.tipo ? `<div class="card-type">🏷️ ${item.tipo}</div>` : ''}
+                        ${item.categoria ? `<div class="card-category">Categoría: ${item.categoria} estrellas</div>` : ''}
+                        ${item.tipo ? `<div class="card-type">Tipo: ${item.tipo}</div>` : ''}
                         ${item.medio ? `<div class="card-transport">${getTransportIcon(item.medio)} ${item.medio}</div>` : ''}
                     </div>
                     <div class="card-actions">
                         <button class="action-btn edit" onclick="event.stopPropagation(); editResource(${item.id})">
-                            ✏️ Editar
-                        </button>
+                             <span class="action-icon edit-icon"></span> Editar
+                      </button>
                         <button class="action-btn delete" onclick="event.stopPropagation(); deleteResource(${item.id})">
-                            🗑️ Eliminar
-                        </button>
+                             <span class="action-icon delete-icon"></span> Eliminar
+                      </button>
                     </div>
                 </div>
             `;
@@ -3501,13 +3892,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Funciones del modal
         function openModal(mode, id = null) {
-            console.log('🎬 OpenModal:', { mode, id, currentTab });
+            console.log(' OpenModal:', { mode, id, currentTab });
 
             const modal = document.getElementById('resourceModal');
             const title = document.getElementById('modalTitle');
 
             if (!modal || !title) {
-                console.error('❌ Modal o título no encontrado');
+                console.error(' Modal o título no encontrado');
                 return;
             }
 
@@ -3535,13 +3926,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             // Mostrar el modal
             modal.classList.add('show');
-            console.log('✅ Modal mostrado');
+            console.log(' Modal mostrado');
 
             // Inicializar sistema de imágenes para días y actividades
             if (currentTab === 'dias' || currentTab === 'actividades') {
                 setTimeout(() => {
                     if (mode === 'create') {
-                        console.log(`🖼️ Inicializando imágenes para ${currentTab}`);
+                        console.log(` Inicializando imágenes para ${currentTab}`);
                         initImageUploadSystem(currentTab, null, []);
                     }
                 }, 300);
@@ -3549,7 +3940,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             // Si es modo edición, cargar los datos del recurso
             if (mode === 'edit' && id) {
-                console.log(`📝 Cargando datos del recurso ID: ${id}`);
+                console.log(` Cargando datos del recurso ID: ${id}`);
                 loadResourceData(id);
             }
         }
@@ -3570,13 +3961,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             // Limpiar sistema de imágenes moderno
             if (typeof cleanupImageSystem === 'function') {
                 cleanupImageSystem();
-                console.log('✅ Sistema de imágenes moderno limpiado');
+                console.log(' Sistema de imágenes moderno limpiado');
             }
 
         }
         // NUEVA FUNCIÓN: Limpiar sistema de carga múltiple
         function limpiarSistemaCargaMultiple() {
-            console.log('🧹 Limpiando sistema de carga múltiple...');
+            console.log(' Limpiando sistema de carga múltiple...');
 
             // Limpiar array global
             window.selectedImages = [];
@@ -3589,7 +3980,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
 
 
-            console.log('✅ Sistema de carga múltiple limpiado');
+            console.log(' Sistema de carga múltiple limpiado');
         }
 
 
@@ -3622,7 +4013,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 formData.append('type', type);
 
-                // ✅ AGREGAR ESTAS LÍNEAS AQUÍ:
+                //  AGREGAR ESTAS LÍNEAS AQUÍ:
                 // Si es días o actividades, aplicar orden y obtener archivos
                 if (type === 'dias' || type === 'actividades') {
                     // Aplicar orden de imágenes si se reordenaron
@@ -3637,7 +4028,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         // Agregar archivos al FormData
                         Object.keys(imageFiles).forEach(fieldName => {
                             formData.append(fieldName, imageFiles[fieldName]);
-                            console.log(`📤 Agregando archivo ${fieldName} al FormData`);
+                            console.log(` Agregando archivo ${fieldName} al FormData`);
                         });
                     }
                 }
@@ -3695,16 +4086,16 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         });
 
         function setupImagePreviews() {
-            console.log('🔧 Configurando previews de imágenes...');
+            console.log(' Configurando previews de imágenes...');
 
-            // ✅ SOLUCIÓN: Solo configurar para alojamientos si existe
+            //  SOLUCIÓN: Solo configurar para alojamientos si existe
             const alojamientoUpload = document.getElementById('alojamiento-image-upload');
             const alojamientoInput = document.getElementById('imagen');
 
             if (alojamientoUpload && alojamientoInput) {
-                console.log('✅ Configurando preview para alojamiento');
+                console.log(' Configurando preview para alojamiento');
 
-                // ⚠️ CRÍTICO: Limpiar listeners anteriores clonando el elemento
+                //  CRÍTICO: Limpiar listeners anteriores clonando el elemento
                 const newAlojamientoInput = alojamientoInput.cloneNode(true);
                 alojamientoInput.parentNode.replaceChild(newAlojamientoInput, alojamientoInput);
 
@@ -3715,14 +4106,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 // Click en el área (solo si no es botón de remover)
                 cleanUpload.addEventListener('click', function (e) {
                     if (e.target.classList.contains('btn-remove-preview')) {
-                        console.log('🚫 Click en botón remover - ignorando');
+                        console.log(' Click en botón remover - ignorando');
                         return;
                     }
                     if (e.target.closest('.image-preview')) {
-                        console.log('🚫 Click en preview - ignorando');
+                        console.log(' Click en preview - ignorando');
                         return;
                     }
-                    console.log('👆 Click en área de upload');
+                    console.log(' Click en área de upload');
                     cleanInput.click();
                 }, { once: false }); // No usar once aquí
 
@@ -3753,26 +4144,26 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 cleanUpload.addEventListener('drop', function (e) {
                     const files = e.dataTransfer.files;
                     if (files.length > 0) {
-                        console.log('📁 Archivo dropeado');
+                        console.log(' Archivo dropeado');
                         cleanInput.files = files;
-                        // ⚠️ CRÍTICO: Solo llamar handleImagePreview UNA VEZ
+                        //  CRÍTICO: Solo llamar handleImagePreview UNA VEZ
                         handleImagePreview(cleanInput);
                     }
                 });
 
-                // ⚠️ CRÍTICO: Change event - SOLO UNA VEZ
+                //  CRÍTICO: Change event - SOLO UNA VEZ
                 cleanInput.addEventListener('change', function () {
-                    console.log('📷 Archivo seleccionado desde input');
+                    console.log(' Archivo seleccionado desde input');
                     handleImagePreview(this);
                 }, { once: false });
 
-                console.log('✅ Preview de alojamiento configurado correctamente');
+                console.log(' Preview de alojamiento configurado correctamente');
             }
 
             // Para otros tipos (días con múltiples imágenes)
             setTimeout(() => {
                 if (document.getElementById('dropZoneMultiple')) {
-                    console.log('🖼️ Inicializando sistema de múltiples imágenes');
+                    console.log(' Inicializando sistema de múltiples imágenes');
                     initializeMultipleImageUpload();
                 }
             }, 100);
@@ -3780,21 +4171,21 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función mejorada para manejar la vista previa de imágenes
         function handleImagePreview(input) {
-            console.log('🖼️ handleImagePreview llamada');
+            console.log(' handleImagePreview llamada');
 
             const file = input.files[0];
             if (!file) {
-                console.log('⚠️ No hay archivo seleccionado');
+                console.log(' No hay archivo seleccionado');
                 return;
             }
 
             const container = input.closest('.image-upload') || input.parentElement;
 
-            // ⚠️ CRÍTICO: Remover TODOS los previews anteriores
+            //  CRÍTICO: Remover TODOS los previews anteriores
             const existingPreviews = container.querySelectorAll('.image-preview');
             const existingIndicators = container.querySelectorAll('.existing-image-indicator, .new-image-indicator');
 
-            console.log(`🧹 Limpiando ${existingPreviews.length} previews anteriores`);
+            console.log(` Limpiando ${existingPreviews.length} previews anteriores`);
             existingPreviews.forEach(p => p.remove());
             existingIndicators.forEach(i => i.remove());
 
@@ -3811,12 +4202,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 return;
             }
 
-            console.log('✅ Archivo válido:', file.name);
+            console.log(' Archivo válido:', file.name);
 
             // Crear vista previa
             const reader = new FileReader();
             reader.onload = function (e) {
-                console.log('📸 Creando preview visual');
+                console.log(' Creando preview visual');
 
                 // Ocultar el contenido de upload original
                 const uploadContent = container.querySelector('.upload-content');
@@ -3872,19 +4263,19 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     "
                     onmouseover="this.style.background='#dc2626'"
                     onmouseout="this.style.background='#ef4444'">
-                🗑️ Eliminar imagen
-            </button>
+                 Eliminar imagen
+          </button>
         `;
 
                 container.appendChild(preview);
-                console.log('✅ Preview creado exitosamente');
+                console.log(' Preview creado exitosamente');
             };
 
             reader.readAsDataURL(file);
         }
 
         function removeImagePreview(button) {
-            console.log('🗑️ Removiendo preview');
+            console.log(' Removiendo preview');
 
             const container = button.closest('.image-upload');
             const input = container.querySelector('input[type="file"]');
@@ -3906,7 +4297,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 uploadContent.style.display = 'flex';
             }
 
-            console.log('✅ Preview removido');
+            console.log(' Preview removido');
         }
 
         // Función mejorada para cargar campos específicos
@@ -3932,7 +4323,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <!-- UBICACIONES -->
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label style="font-size: 15px; font-weight: 600; color: #2d3748; margin-bottom: 15px; display: block;">
-                    📍 Ubicaciones
+                     Ubicaciones
                     <small style="display: block; color: #718096; font-weight: normal; margin-top: 4px; font-size: 13px;">
                         Agrega una o más ubicaciones para este día
                     </small>
@@ -3947,7 +4338,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                 id="ubicacion-principal"
                                 class="form-control ubicacion-input"
                                 required
-                                placeholder="🔍 Buscar ciudad, lugar, monumento..."
+                                placeholder="Buscar ciudad, lugar, monumento..."
                                 style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;">
                             <input type="hidden" name="latitud" id="latitud-principal">
                             <input type="hidden" name="longitud" id="longitud-principal">
@@ -3966,8 +4357,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         style="margin-top: 12px; padding: 10px 20px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
                         onmouseover="this.style.background='#38a169'"
                         onmouseout="this.style.background='#48bb78'">
-                    ➕ Agregar Otra Ubicación
-                </button>
+                     Agregar Otra Ubicación
+              </button>
             </div>
 
             <!-- DESCRIPCIÓN -->
@@ -3982,7 +4373,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             </div>
 
             <div class="form-group">
-                <label>📸 Imágenes del Día (máximo 3)</label>
+                <label>Imágenes del Día (máximo 3)</label>
                 <div id="imageUploadContainer">
                     <!-- El sistema de imágenes se renderizará aquí -->
                 </div>
@@ -4010,14 +4401,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="ubicacion">📍 Ubicación</label>
+                        <label for="ubicacion">Ubicación</label>
                         <div class="ubicacion-input-wrapper">
                             <input type="text" 
                                 id="ubicacion" 
                                 name="ubicacion" 
                                 class="form-control"
                                 required 
-                                placeholder="🔍 Buscar ubicación del alojamiento...">
+                                placeholder="Buscar ubicación del alojamiento...">
                             <input type="hidden" name="latitud" id="latitud">
                             <input type="hidden" name="longitud" id="longitud">
                             <div id="preview-ubicacion-principal"></div>
@@ -4028,26 +4419,26 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <div class="form-group">
                         <label for="tipo">Tipo de Alojamiento</label>
                         <select id="tipo" name="tipo" required>
-                            <option value="hotel">🏨 Hotel</option>
-                            <option value="camping">⛺ Camping</option>
-                            <option value="casa_huespedes">🏠 Casa de Huéspedes</option>
-                            <option value="crucero">🚢 Crucero</option>
-                            <option value="lodge">🏔️ Lodge</option>
-                            <option value="atipico">✨ Atípico</option>
-                            <option value="campamento">🏕️ Campamento</option>
-                            <option value="camping_car">🚐 Camping Car</option>
-                            <option value="tren">🚂 Tren</option>
+                            <option value="hotel">Hotel</option>
+                            <option value="camping">Camping</option>
+                            <option value="casa_huespedes">Casa de Huéspedes</option>
+                            <option value="crucero">Crucero</option>
+                            <option value="lodge">Lodge</option>
+                            <option value="atipico">Atípico</option>
+                            <option value="campamento">Campamento</option>
+                            <option value="camping_car">Camping Car</option>
+                            <option value="tren">Tren</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="categoria">Categoría (Estrellas)</label>
                         <select id="categoria" name="categoria">
                             <option value="">Sin categoría</option>
-                            <option value="1">⭐ 1 Estrella</option>
-                            <option value="2">⭐⭐ 2 Estrellas</option>
-                            <option value="3">⭐⭐⭐ 3 Estrellas</option>
-                            <option value="4">⭐⭐⭐⭐ 4 Estrellas</option>
-                            <option value="5">⭐⭐⭐⭐⭐ 5 Estrellas</option>
+                            <option value="1"> 1 Estrella</option>
+                            <option value="2"> 2 Estrellas</option>
+                            <option value="3"> 3 Estrellas</option>
+                            <option value="4"> 4 Estrellas</option>
+                            <option value="5"> 5 Estrellas</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -4070,13 +4461,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>🏨 Imagen del Alojamiento</label>
+                    <label>Imagen del Alojamiento</label>
                     <div class="image-upload" id="alojamiento-image-upload">
                         <input type="file" id="imagen" name="imagen" 
                             accept=".jpeg,.jpg,.png,.webp,image/jpeg,image/jpg,image/png,image/webp" 
                             style="display: none;">
                         <div class="upload-content">
-                            <div style="font-size: 32px; margin-bottom: 8px;">🏨</div>
+                            <div style="font-size: 32px; margin-bottom: 8px;"></div>
                             <div>Arrastra tu imagen aquí</div>
                             <div style="font-size: 12px; color: #718096; margin-top: 8px;">
                                 o haz clic para seleccionar<br>
@@ -4102,14 +4493,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="ubicacion">📍 Ubicación de la Actividad</label>
+                        <label for="ubicacion">Ubicación de la Actividad</label>
                         <div class="ubicacion-input-wrapper">
                             <input type="text" 
                                 id="ubicacion" 
                                 name="ubicacion" 
                                 class="form-control"
                                 required 
-                                placeholder="🔍 Buscar lugar, monumento, parque...">
+                                placeholder="Buscar lugar, monumento, parque...">
                             <input type="hidden" name="latitud" id="latitud-principal">
                             <input type="hidden" name="longitud" id="longitud-principal">
                             <div id="preview-ubicacion-principal"></div>
@@ -4126,7 +4517,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>📸 Imágenes de la Actividad (máximo 3)</label>
+                    <label>Imágenes de la Actividad (máximo 3)</label>
                     <div id="imageUploadContainer">
                         <!-- El sistema de imágenes se renderizará aquí -->
                     </div>
@@ -4143,11 +4534,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         <label for="medio">Medio de Transporte</label>
                         <select id="medio" name="medio" required>
                             <option value="">Seleccionar medio</option>
-                            <option value="bus">🚌 Bus</option>
-                            <option value="avion">✈️ Avión</option>
-                            <option value="coche">🚗 Coche</option>
-                            <option value="barco">🚢 Barco</option>
-                            <option value="tren">🚂 Tren</option>
+                            <option value="bus">Bus</option>
+                            <option value="avion">Avión</option>
+                            <option value="coche">Coche</option>
+                            <option value="barco">Barco</option>
+                            <option value="tren">Tren</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -4160,14 +4551,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="lugar_salida">📍 Lugar de Salida</label>
+                        <label for="lugar_salida">Lugar de Salida</label>
                         <div class="ubicacion-input-wrapper">
                             <input type="text" 
                                 id="lugar_salida" 
                                 name="lugar_salida" 
                                 class="form-control"
                                 required 
-                                placeholder="🔍 Buscar aeropuerto, estación, ciudad...">
+                                placeholder="Buscar aeropuerto, estación, ciudad...">
                             <input type="hidden" name="lat_salida" id="lat_salida">
                             <input type="hidden" name="lng_salida" id="lng_salida">
                             <div id="preview-salida"></div>
@@ -4175,14 +4566,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </div>
                     
                     <div class="form-group">
-                        <label for="lugar_llegada">📍 Lugar de Llegada</label>
+                        <label for="lugar_llegada">Lugar de Llegada</label>
                         <div class="ubicacion-input-wrapper">
                             <input type="text" 
                                 id="lugar_llegada" 
                                 name="lugar_llegada" 
                                 class="form-control"
                                 required 
-                                placeholder="🔍 Buscar aeropuerto, estación, ciudad...">
+                                placeholder="Buscar aeropuerto, estación, ciudad...">
                             <input type="hidden" name="lat_llegada" id="lat_llegada">
                             <input type="hidden" name="lng_llegada" id="lng_llegada">
                             <div id="preview-llegada"></div>
@@ -4217,11 +4608,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             // ========================================================
             setTimeout(() => {
                 if (currentTab === 'dias') {
-                    console.log('🔥 Inicializando ubicación principal después de cargar campos...');
+                    console.log(' Inicializando ubicación principal después de cargar campos...');
 
                     const inputPrincipal = document.getElementById('ubicacion-principal');
                     if (inputPrincipal) {
-                        console.log('✅ Input principal encontrado, creando widget...');
+                        console.log(' Input principal encontrado, creando widget...');
 
                         // Destruir widget anterior si existe
                         if (window.widgetUbicacionPrincipal) {
@@ -4233,12 +4624,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                             latInputId: 'latitud-principal',
                             lngInputId: 'longitud-principal',
-                            placeholder: '🔍 Buscar ciudad, monumento, lugar...',
+                            placeholder: ' Buscar ciudad, monumento, lugar...',
                             showPreview: true,
                             previewContainerId: 'preview-ubicacion-principal',
                             autoSave: true,
                             onSelect: (location) => {
-                                console.log('✅ UBICACIÓN SELECCIONADA:', location);
+                                console.log(' UBICACIÓN SELECCIONADA:', location);
 
                                 // Actualizar campos visibles
                                 if (inputPrincipal) {
@@ -4259,13 +4650,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                 if (lngBackend) lngBackend.value = location.lon;
                                 if (ubicBackend) ubicBackend.value = location.display_name;
 
-                                console.log('✅ Todos los campos actualizados');
+                                console.log(' Todos los campos actualizados');
                             }
                         });
 
-                        console.log('✅ Widget principal inicializado correctamente');
+                        console.log(' Widget principal inicializado correctamente');
                     } else {
-                        console.error('❌ No se encontró input ubicacion-principal');
+                        console.error(' No se encontró input ubicacion-principal');
                     }
                 }
 
@@ -4279,7 +4670,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                             latInputId: 'latitud',
                             lngInputId: 'longitud',
-                            placeholder: '🔍 Buscar hotel, ciudad...',
+                            placeholder: ' Buscar hotel, ciudad...',
                             showPreview: true,
                             previewContainerId: 'preview-ubicacion-principal',
                             autoSave: true
@@ -4297,7 +4688,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                             latInputId: 'latitud',
                             lngInputId: 'longitud',
-                            placeholder: '🔍 Buscar lugar de actividad...',
+                            placeholder: ' Buscar lugar de actividad...',
                             showPreview: true,
                             previewContainerId: 'preview-ubicacion-principal',
                             autoSave: true
@@ -4317,7 +4708,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                             latInputId: 'lat_salida',
                             lngInputId: 'lng_salida',
-                            placeholder: '🔍 Buscar lugar de salida...',
+                            placeholder: ' Buscar lugar de salida...',
                             showPreview: true,
                             previewContainerId: 'preview-salida',
                             autoSave: true
@@ -4329,7 +4720,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                             latInputId: 'lat_llegada',
                             lngInputId: 'lng_llegada',
-                            placeholder: '🔍 Buscar lugar de llegada...',
+                            placeholder: ' Buscar lugar de llegada...',
                             showPreview: true,
                             previewContainerId: 'preview-llegada',
                             autoSave: true
@@ -4517,7 +4908,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             }
 
             removeSuggestions();
-            console.log(`📍 ${type} seleccionada:`, suggestion.display_name);
+            console.log(` ${type} seleccionada:`, suggestion.display_name);
         }
 
 
@@ -4621,12 +5012,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 grid.style.display = 'none';
                 emptyState.style.display = 'block';
                 emptyState.innerHTML = `
-                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg></div>
                     <h3>No se encontraron resultados</h3>
                     <p>Intenta con otros términos de búsqueda</p>
                     <button onclick="limpiarFiltros()" style="background: var(--primary-gradient); color: white; border: none; padding: 10px 20px; border-radius: 20px; margin-top: 15px; cursor: pointer;">
-                        🗑️ Limpiar Filtros
-                    </button>
+                         Limpiar Filtros
+                  </button>
                 `;
             } else {
                 grid.style.display = 'grid';
@@ -4656,12 +5047,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 if (search || language) {
                     emptyState.innerHTML = `
-                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg></div>
                 <h3>No se encontraron resultados</h3>
                 <p>No hay recursos que coincidan con "<strong>${escapeHtml(search)}</strong>"</p>
                 <button onclick="clearAllFilters()" style="background: var(--primary-gradient); color: white; border: none; padding: 10px 20px; border-radius: 20px; margin-top: 15px; cursor: pointer;">
-                    🗑️ Limpiar Búsqueda
-                </button>
+                     Limpiar Búsqueda
+              </button>
             `;
                 }
                 return;
@@ -4676,8 +5067,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 grid.innerHTML = `
             <div style="grid-column: 1/-1; background: #e3f2fd; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>🔍 <strong>${filtered.length}</strong> resultado(s) para "<em>${escapeHtml(searchTerm)}</em>"</span>
-                    <button onclick="clearAllFilters()" style="background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: 14px;">✕ Limpiar</button>
+                    <span> <strong>${filtered.length}</strong> resultado(s) para "<em>${escapeHtml(searchTerm)}</em>"</span>
+                    <button onclick="clearAllFilters()" style="background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: 14px;"> Limpiar</button>
                 </div>
             </div>
             ${filtered.map(item => createResourceCard(item)).join('')}
@@ -4700,12 +5091,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const grid = document.getElementById('contentGrid');
             grid.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fef2f2; border-radius: 15px; border: 1px solid #fecaca;">
-            <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+            <div style="font-size: 48px; margin-bottom: 20px;"></div>
             <h3 style="color: #dc2626; margin-bottom: 10px;">Error en la búsqueda</h3>
             <p style="color: #b91c1c; margin-bottom: 20px;">${message}</p>
             <button onclick="loadResources()" style="background: #dc2626; color: white; border: none; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 500;">
-                🔄 Intentar de nuevo
-            </button>
+                 Intentar de nuevo
+          </button>
         </div>
     `;
         }
@@ -4735,7 +5126,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 grid.style.display = 'none';
                 emptyState.style.display = 'block';
                 emptyState.innerHTML = `
-                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg></div>
                     <h3>No se encontraron resultados</h3>
                     <p>Intenta con otros términos de búsqueda</p>
                 `;
@@ -4781,7 +5172,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 margin-top: 8px;
                 border: 1px solid #feb2b2;
             `;
-            errorDiv.textContent = `❌ ${error}`;
+            errorDiv.textContent = ` ${error}`;
 
             container.appendChild(errorDiv);
 
@@ -4813,7 +5204,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             toast.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="font-size: 20px;">✅</div>
+                    <div style="font-size: 20px;"></div>
                     <div>
                         <div style="font-weight: 600; margin-bottom: 2px;">Éxito</div>
                         <div style="font-size: 13px; opacity: 0.9;">${message}</div>
@@ -4860,7 +5251,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             toast.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="font-size: 20px;">❌</div>
+                    <div style="font-size: 20px;"></div>
                     <div>
                         <div style="font-weight: 600; margin-bottom: 2px;">Error</div>
                         <div style="font-size: 13px; opacity: 0.9;">${message}</div>
@@ -4891,7 +5282,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 title: '¿Eliminar recurso?',
                 message: '¿Estás seguro de que quieres eliminar este recurso?',
                 details: 'Esta acción no se puede deshacer.',
-                icon: '🗑️',
+                icon: '',
                 confirmText: 'Eliminar',
                 cancelText: 'Cancelar'
             });
@@ -4933,7 +5324,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         // Cargar datos de recurso para editar - MEJORADO
         async function loadResourceData(id) {
             try {
-                console.log('🔄 Cargando datos del recurso:', id);
+                console.log(' Cargando datos del recurso:', id);
 
                 const response = await fetch(`${APP_URL}/biblioteca/api?action=get&type=${currentTab}&id=${id}`);
 
@@ -4964,7 +5355,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 // Cargar campos específicos por tipo
                 switch (currentTab) {
                     case 'dias':
-                        console.log('📥 Cargando datos de día:', resource);
+                        console.log(' Cargando datos de día:', resource);
 
                         // Cargar título y descripción
                         setFieldValue('titulo', resource.titulo);
@@ -4976,7 +5367,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             const ubicacionPrincipal = document.getElementById('ubicacion-principal');
                             if (ubicacionPrincipal && resource.ubicacion) {
                                 ubicacionPrincipal.value = resource.ubicacion;
-                                console.log('✅ Ubicación principal cargada:', resource.ubicacion);
+                                console.log(' Ubicación principal cargada:', resource.ubicacion);
 
                                 // Mostrar preview
                                 const preview = document.getElementById('preview-ubicacion-principal');
@@ -5012,16 +5403,16 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                         // Cargar ubicaciones secundarias
                         if (resource.ubicaciones_secundarias && resource.ubicaciones_secundarias.length > 0) {
-                            console.log('📍 Cargando ' + resource.ubicaciones_secundarias.length + ' ubicaciones secundarias');
+                            console.log(' Cargando ' + resource.ubicaciones_secundarias.length + ' ubicaciones secundarias');
 
                             setTimeout(() => {
                                 const container = document.getElementById('ubicaciones-secundarias-container');
                                 if (!container) {
-                                    console.error('❌ Container de ubicaciones secundarias NO encontrado');
+                                    console.error(' Container de ubicaciones secundarias NO encontrado');
                                     return;
                                 }
 
-                                console.log('✅ Container encontrado, limpiando...');
+                                console.log(' Container encontrado, limpiando...');
                                 container.innerHTML = '';
 
                                 // Destruir widgets antiguos
@@ -5034,7 +5425,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                                 // Agregar cada ubicación
                                 resource.ubicaciones_secundarias.forEach((ubic, idx) => {
-                                    console.log(`➕ Agregando ubicación ${idx + 1}:`, ubic.ubicacion);
+                                    console.log(` Agregando ubicación ${idx + 1}:`, ubic.ubicacion);
 
                                     const index = Date.now() + idx;
                                     const div = document.createElement('div');
@@ -5049,7 +5440,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                id="ubicacion-${index}"
                                class="form-control"
                                value="${ubic.ubicacion || ''}"
-                               placeholder="🔍 Buscar otra ubicación..."
+                               placeholder="Buscar otra ubicación..."
                                style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px;">
                         <input type="hidden" name="ubicaciones_secundarias_lat[]" id="latitud-${index}" value="${ubic.latitud || ''}">
                         <input type="hidden" name="ubicaciones_secundarias_lng[]" id="longitud-${index}" value="${ubic.longitud || ''}">
@@ -5069,8 +5460,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <button type="button" 
                             onclick="removerUbicacionSecundaria(${index})"
                             style="background: #e53e3e; color: white; border: none; border-radius: 8px; width: 40px; height: 40px; cursor: pointer; font-size: 18px;">
-                        ✕
-                    </button>
+                        
+                  </button>
                 `;
 
                                     container.appendChild(div);
@@ -5083,7 +5474,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                                 apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                                                 latInputId: `latitud-${index}`,
                                                 lngInputId: `longitud-${index}`,
-                                                placeholder: '🔍 Buscar otra ubicación...',
+                                                placeholder: ' Buscar otra ubicación...',
                                                 showPreview: true,
                                                 previewContainerId: `preview-ubicacion-${index}`,
                                                 autoSave: true
@@ -5093,15 +5484,15 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                                 window.widgetsUbicacionesSecundarias = [];
                                             }
                                             widgetsUbicacionesSecundarias.push({ index, widget });
-                                            console.log(`✅ Widget ${idx + 1} inicializado`);
+                                            console.log(` Widget ${idx + 1} inicializado`);
                                         }
                                     }, 150 * (idx + 1));
                                 });
 
-                                console.log(`✅ ${resource.ubicaciones_secundarias.length} ubicaciones secundarias agregadas al DOM`);
+                                console.log(` ${resource.ubicaciones_secundarias.length} ubicaciones secundarias agregadas al DOM`);
                             }, 1000);
                         } else {
-                            console.log('ℹ️ No hay ubicaciones secundarias para este día');
+                            console.log('ℹ No hay ubicaciones secundarias para este día');
                         }
 
                         // Cargar imágenes
@@ -5149,7 +5540,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         break;
                 }
 
-                console.log('✅ Datos cargados correctamente');
+                console.log(' Datos cargados correctamente');
                 // Inicializar sistema de imágenes para editar
                 if (currentTab === 'dias' || currentTab === 'actividades') {
                     // Preparar array de imágenes existentes
@@ -5177,25 +5568,25 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     // Inicializar sistema con imágenes existentes
                     setTimeout(() => {
                         initImageUploadSystem(currentTab, id, existingImages);
-                        console.log('✅ Sistema de imágenes inicializado para EDITAR con', existingImages.length, 'imágenes');
+                        console.log(' Sistema de imágenes inicializado para EDITAR con', existingImages.length, 'imágenes');
                     }, 400);
                 }
 
             } catch (error) {
-                console.error('❌ Error cargando datos:', error);
+                console.error(' Error cargando datos:', error);
                 showToast('Error al cargar los datos del recurso', 'error');
             }
         }
 
         // Función para configurar contadores de caracteres en biblioteca
         function setupBibliotecaCharacterCounters() {
-            // ✅ PREVENIR MÚLTIPLES LLAMADAS
+            //  PREVENIR MÚLTIPLES LLAMADAS
             if (caracteresConfigurados) {
-                console.log('⚠️ Contadores ya configurados, omitiendo...');
+                console.log(' Contadores ya configurados, omitiendo...');
                 return;
             }
 
-            console.log('🔧 Configurando contadores de caracteres...');
+            console.log(' Configurando contadores de caracteres...');
 
             let intentos = 0;
             const maxIntentos = 10;
@@ -5205,7 +5596,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 const descripcion = document.getElementById('descripcion');
                 const nombre = document.getElementById('nombre');
 
-                console.log(`📊 Intento ${intentos + 1} - Elementos:`, {
+                console.log(` Intento ${intentos + 1} - Elementos:`, {
                     titulo: !!titulo,
                     descripcion: !!descripcion,
                     nombre: !!nombre
@@ -5213,13 +5604,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 if (titulo || descripcion || nombre) {
                     configurarContadores();
-                    caracteresConfigurados = true; // ✅ MARCAR COMO CONFIGURADO
-                    console.log('✅ Contadores configurados exitosamente');
+                    caracteresConfigurados = true; //  MARCAR COMO CONFIGURADO
+                    console.log(' Contadores configurados exitosamente');
                 } else if (intentos < maxIntentos) {
                     intentos++;
                     setTimeout(intentarConfigurar, 100);
                 } else {
-                    console.log('❌ No se encontraron elementos después de', maxIntentos, 'intentos');
+                    console.log(' No se encontraron elementos después de', maxIntentos, 'intentos');
                 }
             }
 
@@ -5230,7 +5621,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 if (titulo && tituloCounter) {
                     configurarContador(titulo, tituloCounter, 250);
-                    console.log('✓ Contador de título configurado');
+                    console.log(' Contador de título configurado');
                 }
 
                 // Configurar nombre (para actividades)
@@ -5239,7 +5630,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 if (nombre && nombreCounter) {
                     configurarContador(nombre, nombreCounter, 250);
-                    console.log('✓ Contador de nombre configurado');
+                    console.log(' Contador de nombre configurado');
                 }
 
                 // Configurar sitio web (para alojamientos)
@@ -5248,7 +5639,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 if (sitioWeb && sitioWebCounter) {
                     configurarContador(sitioWeb, sitioWebCounter, 250);
-                    console.log('✓ Contador de sitio web configurado');
+                    console.log(' Contador de sitio web configurado');
                 }
 
                 // Configurar descripción (para todos)
@@ -5257,10 +5648,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 if (descripcion && descripcionCounter) {
                     configurarContador(descripcion, descripcionCounter, 1500);
-                    console.log('✓ Contador de descripción configurado');
+                    console.log(' Contador de descripción configurado');
                 }
 
-                // ✅ ELIMINAR COMPLETAMENTE ESTAS LÍNEAS SI EXISTEN:
+                //  ELIMINAR COMPLETAMENTE ESTAS LÍNEAS SI EXISTEN:
                 // if (currentTab === 'dias' || currentTab === 'actividades' || ...) {
                 //     setTimeout(() => {
                 //         setupBibliotecaCharacterCounters();
@@ -5278,7 +5669,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 // Define la función DESPUÉS, usando elementoLimpio
                 function actualizarContador() {
-                    const longitud = elementoLimpio.value.length;  // ✅ USA elemento NUEVO
+                    const longitud = elementoLimpio.value.length;  //  USA elemento NUEVO
                     contador.textContent = `${longitud}/${maximo}`;
 
                     contador.classList.remove('warning', 'danger');
@@ -5348,7 +5739,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
 
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            const icon = type === 'success' ? '' : type === 'error' ? '' : 'ℹ';
             toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 20px;">${icon}</span>
@@ -5392,8 +5783,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <img src="${imageSrc}" style="max-width: 100%; max-height: 80vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
                     <div style="margin-top: 20px;">
                         <button onclick="this.closest('.image-modal').remove()" style="background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer;">
-                            ✕ Cerrar
-                        </button>
+                             Cerrar
+                      </button>
                     </div>
                 </div>
             `;
@@ -5438,7 +5829,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     margin-top: 8px;
                     border: 1px solid #fbd38d;
                 `;
-                confirmDiv.textContent = '⚠️ Esta imagen será eliminada al guardar';
+                confirmDiv.textContent = ' Esta imagen será eliminada al guardar';
                 container.appendChild(confirmDiv);
             }
         }
@@ -5492,7 +5883,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                                 justify-content: center;
                                 gap: 4px;
                             `;
-                        indicator.innerHTML = '✅ Imagen actual <span style="cursor: pointer;" onclick="removeExistingImage(\'' + field + '\')">🗑️</span>';
+                        indicator.innerHTML = ' Imagen actual <span style="cursor: pointer;" onclick="removeExistingImage(\'' + field + '\')"></span>';
 
                         container.appendChild(preview);
                         container.appendChild(indicator);
@@ -5597,7 +5988,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             // Sobrescribir openModal con mejoras
             window.openModal = function (mode, id = null) {
-                console.log('🎭 Abriendo modal mejorado:', mode, id);
+                console.log(' Abriendo modal mejorado:', mode, id);
 
                 // Llamar función original
                 if (originalOpenModal) {
@@ -5621,7 +6012,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             // Sobrescribir closeModal con mejoras
             window.closeModal = function () {
-                console.log('🎭 Cerrando modal mejorado');
+                console.log(' Cerrando modal mejorado');
 
                 const modal = document.getElementById('resourceModal');
                 if (modal && modal.classList.contains('show')) {
@@ -5656,10 +6047,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             if (title) {
                 const currentTab = window.currentTab || 'dias';
                 const icons = {
-                    'dias': '📅',
-                    'alojamientos': '🏨',
-                    'actividades': '🎯',
-                    'transportes': '🚗'
+                    'dias': '',
+                    'alojamientos': '',
+                    'actividades': '',
+                    'transportes': ''
                 };
 
                 if (!title.textContent.includes(icons[currentTab])) {
@@ -5673,20 +6064,20 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         function enhanceFormLabels() {
             const labelIcons = {
-                'idioma': '🌐',
-                'titulo': '📝',
-                'nombre': '🏷️',
-                'ubicacion': '📍',
-                'descripcion': '📄',
-                'tipo': '🏷️',
-                'categoria': '⭐',
-                'sitio_web': '🌐',
-                'medio': '🚗',
-                'lugar_salida': '🛫',
-                'lugar_llegada': '🛬',
-                'duracion': '⏱️',
-                'distancia_km': '📏',
-                'precio': '💰'
+                'idioma': '',
+                'titulo': '',
+                'nombre': '',
+                'ubicacion': '',
+                'descripcion': '',
+                'tipo': '',
+                'categoria': '',
+                'sitio_web': '',
+                'medio': '',
+                'lugar_salida': '',
+                'lugar_llegada': '',
+                'duracion': '⏱',
+                'distancia_km': '',
+                'precio': ''
             };
 
             Object.keys(labelIcons).forEach(fieldName => {
@@ -5881,7 +6272,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px;" onclick="clearImagePreview(this)">×</div>
             </div>
             <div style="text-align: center;">
-                <div style="font-weight: 600; color: #2d3748; font-size: 14px;">✅ Imagen cargada</div>
+                <div style="font-weight: 600; color: #2d3748; font-size: 14px;"> Imagen cargada</div>
                 <div style="font-size: 12px; color: #718096; margin-top: 2px;">${fileName}</div>
             </div>
         </div>
@@ -5913,14 +6304,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 // Obtener el tipo de campo para restaurar contenido original
                 const fieldName = input.name;
                 const icons = {
-                    'imagen': '📷',
-                    'imagen1': '📷',
-                    'imagen2': '📷',
-                    'imagen3': '📷'
+                    'imagen': '',
+                    'imagen1': '',
+                    'imagen2': '',
+                    'imagen3': ''
                 };
 
                 content.innerHTML = `
-            <div style="font-size: 32px; margin-bottom: 8px;">${icons[fieldName] || '📷'}</div>
+            <div style="font-size: 32px; margin-bottom: 8px;">${icons[fieldName] || ''}</div>
             <div>Subir Imagen</div>
             <div style="font-size: 12px; color: #718096;">Click para seleccionar archivo</div>
         `;
@@ -5941,7 +6332,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const files = Array.from(input.files);
             const maxImages = 3;
 
-            console.log(`📸 ${files.length} imagen(es) seleccionada(s)`);
+            console.log(` ${files.length} imagen(es) seleccionada(s)`);
 
             // Limpiar array de imágenes anteriores
             selectedImages = [];
@@ -5971,7 +6362,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 });
             });
 
-            console.log(`✅ ${selectedImages.length} imágenes válidas agregadas`);
+            console.log(` ${selectedImages.length} imágenes válidas agregadas`);
 
             // Mostrar previsualizaciones
             displayImagePreviews();
@@ -6026,7 +6417,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     font-weight: 600;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 ">
-                    ${index === 0 ? '⭐ Principal' : `#${index + 1}`}
+                    ${index === 0 ? ' Principal' : `#${index + 1}`}
                 </div>
                 
                 <!-- Botón de eliminar -->
@@ -6052,8 +6443,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         "
                         onmouseover="this.style.background='rgba(220, 38, 38, 0.95)'; this.style.transform='scale(1.1)'"
                         onmouseout="this.style.background='rgba(239, 68, 68, 0.95)'; this.style.transform='scale(1)'">
-                    ✕
-                </button>
+                    
+              </button>
             </div>
             
             <!-- Información del archivo -->
@@ -6083,7 +6474,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         function removeImage(index) {
-            console.log(`🗑️ Eliminando imagen en posición ${index}`);
+            console.log(` Eliminando imagen en posición ${index}`);
 
             // Revocar URL del preview para liberar memoria
             if (selectedImages[index]) {
@@ -6104,7 +6495,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             // Actualizar inputs ocultos
             assignFilesToInputs();
 
-            console.log(`✅ Imagen eliminada. Quedan ${selectedImages.length} imágenes`);
+            console.log(` Imagen eliminada. Quedan ${selectedImages.length} imágenes`);
         }
 
         function assignFilesToInputs() {
@@ -6128,7 +6519,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 document.getElementById('imagen3').files = dt3.files;
             }
 
-            console.log('✅ Archivos asignados a inputs:', {
+            console.log(' Archivos asignados a inputs:', {
                 imagen1: selectedImages[0]?.file.name,
                 imagen2: selectedImages[1]?.file.name,
                 imagen3: selectedImages[2]?.file.name
@@ -6292,12 +6683,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             content.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <div style="font-size: 32px; color: #e53e3e;">⚠️</div>
+            <div style="font-size: 32px; color: #e53e3e;"></div>
             <div style="font-weight: 600; color: #e53e3e;">Error</div>
             <div style="font-size: 12px; color: #c53030; text-align: center;">${message}</div>
             <button type="button" onclick="clearImagePreview(this)" style="background: #fed7d7; color: #c53030; border: 1px solid #feb2b2; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">
                 Intentar de nuevo
-            </button>
+          </button>
         </div>
     `;
 
@@ -6403,7 +6794,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función de inicialización principal
         function initializeModalEnhancements() {
-            console.log('🎨 Inicializando mejoras de modals...');
+            console.log(' Inicializando mejoras de modals...');
 
             // Observar cuando se abre un modal
             const modal = document.getElementById('resourceModal');
@@ -6427,7 +6818,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 });
             }
 
-            console.log('✅ Mejoras de modals inicializadas');
+            console.log(' Mejoras de modals inicializadas');
         }
 
         // Auto-inicialización
@@ -6451,13 +6842,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const inputUbicacion = document.getElementById('ubicacion-principal');
 
             if (!inputUbicacion) {
-                console.warn('⚠️ Input de ubicación principal no encontrado');
-                console.log('🔍 Buscando inputs disponibles:',
+                console.warn(' Input de ubicación principal no encontrado');
+                console.log(' Buscando inputs disponibles:',
                     document.querySelectorAll('input[type="text"]'));
                 return;
             }
 
-            console.log('✅ Input de ubicación principal encontrado:', inputUbicacion);
+            console.log(' Input de ubicación principal encontrado:', inputUbicacion);
 
             // Destruir widget anterior si existe
             if (widgetUbicacionPrincipal) {
@@ -6480,12 +6871,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 apiUrl: '<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php',
                 latInputId: 'latitud-principal',
                 lngInputId: 'longitud-principal',
-                placeholder: '🔍 Buscar ciudad, monumento, lugar...',
+                placeholder: ' Buscar ciudad, monumento, lugar...',
                 showPreview: true,
                 previewContainerId: 'preview-ubicacion-principal',
                 autoSave: true,
                 onSelect: (location) => {
-                    console.log('✅ Ubicación principal seleccionada:', location);
+                    console.log(' Ubicación principal seleccionada:', location);
 
                     // Actualizar campos ocultos para backend
                     const latitudField = document.getElementById('latitud');
@@ -6494,20 +6885,20 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                     if (latitudField) {
                         latitudField.value = location.lat;
-                        console.log('📍 Latitud actualizada:', location.lat);
+                        console.log(' Latitud actualizada:', location.lat);
                     }
                     if (longitudField) {
                         longitudField.value = location.lon;
-                        console.log('📍 Longitud actualizada:', location.lon);
+                        console.log(' Longitud actualizada:', location.lon);
                     }
                     if (ubicacionField) {
                         ubicacionField.value = location.display_name;
-                        console.log('📍 Ubicación actualizada:', location.display_name);
+                        console.log(' Ubicación actualizada:', location.display_name);
                     }
                 }
             });
 
-            console.log('✅ Widget de ubicación principal inicializado correctamente');
+            console.log(' Widget de ubicación principal inicializado correctamente');
         }
 
         /**
@@ -6524,13 +6915,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             widgetUbicacionPrincipal = new UbicacionSearchWidget(input, {
                 latInputId: 'latitud',
                 lngInputId: 'longitud',
-                placeholder: '🔍 Buscar hotel, ciudad, dirección...',
+                placeholder: ' Buscar hotel, ciudad, dirección...',
                 showPreview: true,
                 previewContainerId: 'preview-ubicacion-principal',
                 autoSave: true
             });
 
-            console.log('✅ Widget de ubicación para alojamiento inicializado');
+            console.log(' Widget de ubicación para alojamiento inicializado');
         }
 
         /**
@@ -6547,13 +6938,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             widgetUbicacionPrincipal = new UbicacionSearchWidget(input, {
                 latInputId: 'latitud',
                 lngInputId: 'longitud',
-                placeholder: '🔍 Buscar lugar de la actividad...',
+                placeholder: ' Buscar lugar de la actividad...',
                 showPreview: true,
                 previewContainerId: 'preview-ubicacion-principal',
                 autoSave: true
             });
 
-            console.log('✅ Widget de ubicación para actividad inicializado');
+            console.log(' Widget de ubicación para actividad inicializado');
         }
 
         /**
@@ -6572,7 +6963,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 widgetUbicacionPrincipal = new UbicacionSearchWidget(inputSalida, {
                     latInputId: 'lat_salida',
                     lngInputId: 'lng_salida',
-                    placeholder: '🔍 Buscar lugar de salida...',
+                    placeholder: ' Buscar lugar de salida...',
                     showPreview: true,
                     previewContainerId: 'preview-salida',
                     autoSave: true
@@ -6584,7 +6975,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 const widgetLlegada = new UbicacionSearchWidget(inputLlegada, {
                     latInputId: 'lat_llegada',
                     lngInputId: 'lng_llegada',
-                    placeholder: '🔍 Buscar lugar de llegada...',
+                    placeholder: ' Buscar lugar de llegada...',
                     showPreview: true,
                     previewContainerId: 'preview-llegada',
                     autoSave: true
@@ -6593,7 +6984,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 widgetsUbicacionesSecundarias.push(widgetLlegada);
             }
 
-            console.log('✅ Widgets de ubicación para transportes inicializados');
+            console.log(' Widgets de ubicación para transportes inicializados');
         }
 
         // Observar cuando se abre el modal para inicializar widgets
@@ -6605,24 +6996,24 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         if (resourceModal.classList.contains('show')) {
                             // Esperar a que el modal se renderice completamente
                             setTimeout(() => {
-                                console.log('🎬 Modal abierto, tab activo:', currentTab);
+                                console.log(' Modal abierto, tab activo:', currentTab);
 
                                 // Inicializar widget según el tab activo
                                 switch (currentTab) {
                                     case 'dias':
-                                        console.log('📍 Inicializando widgets de ubicación para DÍAS...');
+                                        console.log(' Inicializando widgets de ubicación para DÍAS...');
                                         initUbicacionWidgetDias();
                                         break;
                                     case 'alojamientos':
-                                        console.log('📍 Inicializando widget de ubicación para ALOJAMIENTOS...');
+                                        console.log(' Inicializando widget de ubicación para ALOJAMIENTOS...');
                                         initUbicacionWidgetAlojamiento();
                                         break;
                                     case 'actividades':
-                                        console.log('📍 Inicializando widget de ubicación para ACTIVIDADES...');
+                                        console.log(' Inicializando widget de ubicación para ACTIVIDADES...');
                                         initUbicacionWidgetActividad();
                                         break;
                                     case 'transportes':
-                                        console.log('📍 Inicializando widgets de ubicación para TRANSPORTES...');
+                                        console.log(' Inicializando widgets de ubicación para TRANSPORTES...');
                                         initUbicacionWidgetTransportes();
                                         break;
                                 }
@@ -6637,7 +7028,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 attributeFilter: ['class']
             });
 
-            console.log('✅ Observador de modal de ubicaciones configurado');
+            console.log(' Observador de modal de ubicaciones configurado');
         }
 
         // Función para aplicar tema de colores dinámico
@@ -6647,7 +7038,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const secondaryColor = getComputedStyle(root).getPropertyValue('--secondary-color').trim();
 
             if (primaryColor && secondaryColor) {
-                console.log('🎨 Aplicando tema dinámico:', { primaryColor, secondaryColor });
+                console.log(' Aplicando tema dinámico:', { primaryColor, secondaryColor });
 
                 // Los colores ya están definidos en CSS, solo necesitamos asegurar que se usen
                 const style = document.createElement('style');
@@ -6683,7 +7074,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función global para debugging
         window.debugModalEnhancements = function () {
-            console.log('🔍 DEBUG - Modal Enhancements:', {
+            console.log(' DEBUG - Modal Enhancements:', {
                 modalExists: !!document.getElementById('resourceModal'),
                 enhancementsLoaded: true,
                 currentTab: window.currentTab,
@@ -6840,7 +7231,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             messageDiv.textContent = message;
 
             // Icono según tipo
-            const icon = type === 'error' ? '⚠️' : '✅';
+            const icon = type === 'error' ? '' : '';
             messageDiv.textContent = `${icon} ${message}`;
 
             formGroup.appendChild(messageDiv);
@@ -6868,7 +7259,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             toast.innerHTML = `
        <div style="display: flex; align-items: center; gap: 12px;">
-           <div style="font-size: 20px;">⚠️</div>
+           <div style="font-size: 20px;"></div>
            <div>
                <div style="font-weight: 600; margin-bottom: 4px;">Revisa los campos</div>
                <div style="font-size: 13px; opacity: 0.9;">
@@ -6913,7 +7304,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Inicialización automática cuando se detecten campos
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('📚 Biblioteca con SÚPER autocompletado lista');
+            console.log(' Biblioteca con SÚPER autocompletado lista');
 
             // Verificar si ya hay campos presentes
             const existingFields = document.querySelectorAll('#ubicacion, #lugar_salida, #lugar_llegada');
@@ -6926,7 +7317,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función para debugging desde consola del navegador
         window.debugBibliotecaAutocomplete = function () {
-            console.log('🔍 DEBUG INFO:', {
+            console.log(' DEBUG INFO:', {
                 autocompleteLoaded: !!window.superLocationAutocomplete,
                 debugInfo: window.superLocationAutocomplete ? window.superLocationAutocomplete.getDebugInfo() : null,
                 fieldsFound: document.querySelectorAll('#ubicacion, #lugar_salida, #lugar_llegada').length
@@ -6943,7 +7334,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
     <script>
 
         function showSuggestionsForInput(locations, inputElement, latInput, lngInput, preview) {
-            console.log('📋 Mostrando', locations.length, 'sugerencias mejoradas para:', inputElement.id);
+            console.log(' Mostrando', locations.length, 'sugerencias mejoradas para:', inputElement.id);
 
             // Limpiar sugerencias anteriores
             removeSuggestionsFromInput(inputElement);
@@ -6986,7 +7377,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 const icon = getLocationIcon(location);
 
                 // Indicador de relevancia
-                const relevanceBar = location.score > 15 ? '🌟' : location.score > 10 ? '⭐' : '📍';
+                const relevanceBar = location.score > 15 ? '' : location.score > 10 ? '' : '';
 
                 item.innerHTML = `
             <div style="display: flex; align-items: start; gap: 10px;">
@@ -7000,7 +7391,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         ${restOfAddress}
                     </div>
                     <div style="font-size: 11px; color: #a0aec0; margin-top: 2px;">
-                        📍 ${country} ${location.type ? `• ${location.type}` : ''}
+                         ${country} ${location.type ? `• ${location.type}` : ''}
                     </div>
                 </div>
             </div>
@@ -7021,7 +7412,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 // Click handler
                 item.addEventListener('click', () => {
-                    console.log('✅ Ubicación seleccionada (mejorada):', location.display_name, 'Score:', location.score);
+                    console.log(' Ubicación seleccionada (mejorada):', location.display_name, 'Score:', location.score);
 
                     // Actualizar campo
                     inputElement.value = location.display_name;
@@ -7057,7 +7448,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         color: #4a5568;
         font-weight: 600;
     `;
-            header.textContent = `🔍 ${locations.length} ubicaciones encontradas`;
+            header.textContent = ` ${locations.length} ubicaciones encontradas`;
             suggestionsContainer.insertBefore(header, suggestionsContainer.firstChild);
 
             // Posicionar contenedor
@@ -7065,10 +7456,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             parent.style.position = 'relative';
             parent.appendChild(suggestionsContainer);
 
-            console.log('✅ Sugerencias mejoradas mostradas correctamente');
+            console.log(' Sugerencias mejoradas mostradas correctamente');
         }
 
-        // 🎨 FUNCIÓN PARA OBTENER ICONO SEGÚN TIPO DE LUGAR
+        //  FUNCIÓN PARA OBTENER ICONO SEGÚN TIPO DE LUGAR
         function getLocationIcon(location) {
             const type = location.type || '';
             const category = location.category || '';
@@ -7077,33 +7468,33 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             // Iconos específicos por tipo
             const icons = {
                 // Lugares administrativos
-                'city': '🏙️', 'town': '🏘️', 'village': '🏡', 'hamlet': '🏠',
+                'city': '', 'town': '', 'village': '', 'hamlet': '',
 
                 // Lugares turísticos
-                'attraction': '🎯', 'museum': '🏛️', 'monument': '🗿', 'castle': '🏰',
-                'palace': '🏰', 'cathedral': '⛪', 'church': '⛪', 'temple': '🛕',
+                'attraction': '', 'museum': '', 'monument': '', 'castle': '',
+                'palace': '', 'cathedral': '', 'church': '', 'temple': '',
 
                 // Transporte
-                'airport': '✈️', 'bus_station': '🚌', 'train_station': '🚂',
-                'subway_station': '🚇', 'ferry_terminal': '⛴️',
+                'airport': '', 'bus_station': '', 'train_station': '',
+                'subway_station': '', 'ferry_terminal': '',
 
                 // Naturaleza
-                'park': '🌳', 'garden': '🌺', 'beach': '🏖️', 'mountain': '⛰️',
-                'forest': '🌲', 'lake': '🏞️', 'river': '🌊',
+                'park': '', 'garden': '', 'beach': '', 'mountain': '',
+                'forest': '', 'lake': '', 'river': '',
 
                 // Servicios
-                'hotel': '🏨', 'restaurant': '🍽️', 'cafe': '☕', 'shop': '🛍️',
-                'mall': '🏬', 'hospital': '🏥', 'school': '🎓', 'bank': '🏦',
+                'hotel': '', 'restaurant': '', 'cafe': '', 'shop': '',
+                'mall': '', 'hospital': '', 'school': '', 'bank': '',
 
                 // Por categoría
-                'place': '📍', 'tourism': '🎯', 'amenity': '🏢', 'natural': '🌿',
-                'historic': '🏛️', 'leisure': '🎪'
+                'place': '', 'tourism': '', 'amenity': '', 'natural': '',
+                'historic': '', 'leisure': ''
             };
 
-            return icons[type] || icons[category] || icons[className] || '📍';
+            return icons[type] || icons[category] || icons[className] || '';
         }
 
-        // 🎨 PREVIEW MEJORADO
+        //  PREVIEW MEJORADO
         function showLocationPreviewEnhanced(preview, location) {
             if (!preview || !location) return;
 
@@ -7139,17 +7530,17 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <div class="card-content">
                 <h3 class="card-title">${escapeHtml(title)}</h3>
                 ${createDescriptionWithReadMore(item.descripcion, cardId)}  
-                <div class="card-route">🛣️ ${escapeHtml(route)}</div>
-                ${item.duracion ? `<div class="card-duration">⏱️ ${escapeHtml(item.duracion)}</div>` : ''}
-                ${item.precio ? `<div class="card-price">💰 ${escapeHtml(item.precio)}</div>` : ''}
+                <div class="card-route"> ${escapeHtml(route)}</div>
+                ${item.duracion ? `<div class="card-duration">⏱ ${escapeHtml(item.duracion)}</div>` : ''}
+                ${item.precio ? `<div class="card-price"> ${escapeHtml(item.precio)}</div>` : ''}
             </div>
             <div class="card-actions">
                 <button class="action-btn edit" onclick="event.stopPropagation(); editResource(${item.id})">
-                    ✏️ Editar
-                </button>
+                     Editar
+              </button>
                 <button class="action-btn delete" onclick="event.stopPropagation(); deleteResource(${item.id})">
-                    🗑️ Eliminar
-                </button>
+                     Eliminar
+              </button>
             </div>
         </div>
     `;
@@ -7213,7 +7604,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función para ver detalles del recurso (reemplaza el alert)
         function viewResourceDetails(id, type) {
-            console.log(`📋 Abriendo detalles del ${type} con ID: ${id}`);
+            console.log(` Abriendo detalles del ${type} con ID: ${id}`);
 
             try {
                 // Buscar el recurso en los datos
@@ -7228,7 +7619,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 showResourceDetailsModal(resource, type);
 
             } catch (error) {
-                console.error('❌ Error abriendo detalles:', error);
+                console.error(' Error abriendo detalles:', error);
                 showErrorMessage('Error al cargar los detalles del recurso');
             }
         }
@@ -7288,49 +7679,49 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         function generateResourceDetailsContent(resource, type) {
             const typeConfig = {
                 'dias': {
-                    icon: '📅',
+                    icon: '',
                     title: 'Detalles del Día',
                     fields: [
-                        { key: 'titulo', label: 'Título', icon: '📝' },
-                        { key: 'ubicacion', label: 'Ubicación', icon: '📍' },
-                        { key: 'descripcion', label: 'Descripción', icon: '📄' },
-                        { key: 'idioma', label: 'Idioma', icon: '🌐' }
+                        { key: 'titulo', label: 'Título', icon: '' },
+                        { key: 'ubicacion', label: 'Ubicación', icon: '' },
+                        { key: 'descripcion', label: 'Descripción', icon: '' },
+                        { key: 'idioma', label: 'Idioma', icon: '' }
                     ]
                 },
                 'alojamientos': {
-                    icon: '🏨',
+                    icon: '',
                     title: 'Detalles del Alojamiento',
                     fields: [
-                        { key: 'nombre', label: 'Nombre', icon: '🏨' },
-                        { key: 'tipo', label: 'Tipo', icon: '🏷️' },
-                        { key: 'categoria', label: 'Categoría', icon: '⭐' },
-                        { key: 'ubicacion', label: 'Ubicación', icon: '📍' },
-                        { key: 'descripcion', label: 'Descripción', icon: '📄' },
-                        { key: 'sitio_web', label: 'Sitio Web', icon: '🌐' }
+                        { key: 'nombre', label: 'Nombre', icon: '' },
+                        { key: 'tipo', label: 'Tipo', icon: '' },
+                        { key: 'categoria', label: 'Categoría', icon: '' },
+                        { key: 'ubicacion', label: 'Ubicación', icon: '' },
+                        { key: 'descripcion', label: 'Descripción', icon: '' },
+                        { key: 'sitio_web', label: 'Sitio Web', icon: '' }
                     ]
                 },
                 'actividades': {
-                    icon: '🎯',
+                    icon: '',
                     title: 'Detalles de la Actividad',
                     fields: [
-                        { key: 'titulo', label: 'Título', icon: '🎯' },
-                        { key: 'ubicacion', label: 'Ubicación', icon: '📍' },
-                        { key: 'descripcion', label: 'Descripción', icon: '📄' },
-                        { key: 'duracion', label: 'Duración', icon: '⏱️' },
-                        { key: 'precio', label: 'Precio', icon: '💰' }
+                        { key: 'titulo', label: 'Título', icon: '' },
+                        { key: 'ubicacion', label: 'Ubicación', icon: '' },
+                        { key: 'descripcion', label: 'Descripción', icon: '' },
+                        { key: 'duracion', label: 'Duración', icon: '⏱' },
+                        { key: 'precio', label: 'Precio', icon: '' }
                     ]
                 },
                 'transportes': {
-                    icon: '🚗',
+                    icon: '',
                     title: 'Detalles del Transporte',
                     fields: [
-                        { key: 'titulo', label: 'Título', icon: '📝' },
-                        { key: 'medio', label: 'Medio de Transporte', icon: '🚗' },
-                        { key: 'lugar_salida', label: 'Lugar de Salida', icon: '🛫' },
-                        { key: 'lugar_llegada', label: 'Lugar de Llegada', icon: '🛬' },
-                        { key: 'duracion', label: 'Duración', icon: '⏱️' },
-                        { key: 'precio', label: 'Precio', icon: '💰' },
-                        { key: 'descripcion', label: 'Descripción', icon: '📄' }
+                        { key: 'titulo', label: 'Título', icon: '' },
+                        { key: 'medio', label: 'Medio de Transporte', icon: '' },
+                        { key: 'lugar_salida', label: 'Lugar de Salida', icon: '' },
+                        { key: 'lugar_llegada', label: 'Lugar de Llegada', icon: '' },
+                        { key: 'duracion', label: 'Duración', icon: '⏱' },
+                        { key: 'precio', label: 'Precio', icon: '' },
+                        { key: 'descripcion', label: 'Descripción', icon: '' }
                     ]
                 }
             };
@@ -7349,7 +7740,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <button onclick="closeResourceDetailsModal(this.closest('.resource-details-modal-overlay'))" 
                         style="background: none; border: none; font-size: 24px; cursor: pointer; color: #718096;">
                     ×
-                </button>
+              </button>
             </div>
         </div>
         
@@ -7361,7 +7752,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             if (images.length > 0) {
                 html += `
             <div style="margin-bottom: 24px;">
-                <h3 style="margin-bottom: 12px; color: #2d3748;">📷 Imágenes</h3>
+                <h3 style="margin-bottom: 12px; color: #2d3748;"> Imágenes</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                     ${images.map(img => `
                         <img src="${img}" alt="Imagen" 
@@ -7383,7 +7774,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                     // Formateo especial para ciertos campos
                     if (field.key === 'categoria') {
-                        displayValue = `${'⭐'.repeat(parseInt(value))} (${value} estrellas)`;
+                        displayValue = `${''.repeat(parseInt(value))} (${value} estrellas)`;
                     } else if (field.key === 'sitio_web') {
                         displayValue = `<a href="${value}" target="_blank" style="color: var(--primary-color, #667eea); text-decoration: none;">${value}</a>`;
                     } else if (field.key === 'medio') {
@@ -7408,7 +7799,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             if (resource.latitud && resource.longitud) {
                 html += `
             <div style="margin-top: 24px; padding: 16px; background: #edf2f7; border-radius: 8px;">
-                <h4 style="margin: 0 0 8px 0; color: #2d3748;">📍 Coordenadas</h4>
+                <h4 style="margin: 0 0 8px 0; color: #2d3748;"> Coordenadas</h4>
                 <div style="font-family: monospace; color: #4a5568;">
                     Latitud: ${resource.latitud}<br>
                     Longitud: ${resource.longitud}
@@ -7423,12 +7814,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         <div style="padding: 24px; border-top: 1px solid #e2e8f0; display: flex; gap: 12px; justify-content: flex-end;">
             <button onclick="editResource(${resource.id}); closeResourceDetailsModal(this.closest('.resource-details-modal-overlay'));"
                     style="background: var(--primary-color, #667eea); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
-                ✏️ Editar
-            </button>
+                 Editar
+          </button>
             <button onclick="closeResourceDetailsModal(this.closest('.resource-details-modal-overlay'))"
                     style="background: #e2e8f0; color: #4a5568; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
                 Cerrar
-            </button>
+          </button>
         </div>
     `;
 
@@ -7479,7 +7870,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         z-index: 10001;
         animation: slideInRight 0.3s ease;
     `;
-            toast.textContent = `❌ ${message}`;
+            toast.textContent = ` ${message}`;
 
             document.body.appendChild(toast);
 
@@ -7492,7 +7883,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función para inicializar todas las correcciones
         function initializeBibliotecaFixes() {
-            console.log('🔧 Inicializando correcciones de Biblioteca...');
+            console.log(' Inicializando correcciones de Biblioteca...');
 
             // Agregar CSS para transportes
             document.head.insertAdjacentHTML('beforeend', transportCardCSS);
@@ -7527,7 +7918,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             document.head.insertAdjacentHTML('beforeend', animationCSS);
 
-            console.log('✅ Correcciones de Biblioteca inicializadas');
+            console.log(' Correcciones de Biblioteca inicializadas');
         }
 
         // Sobrescribir la función createResourceCard para usar las nuevas funciones
@@ -7580,14 +7971,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // 1. Función principal de inicialización
         function initializeMultipleImageUpload() {
-            console.log('🖼️ Inicializando sistema de carga múltiple de imágenes...');
+            console.log(' Inicializando sistema de carga múltiple de imágenes...');
 
             const dropZone = document.getElementById('dropZoneMultiple');
             const fileInput = document.getElementById('multipleImages');
             const previewContainer = document.getElementById('imagesPreviewContainer');
 
             if (!dropZone || !fileInput) {
-                console.log('❌ Elementos no encontrados para carga múltiple');
+                console.log(' Elementos no encontrados para carga múltiple');
                 return;
             }
 
@@ -7599,7 +7990,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             setupFileInputEvents(fileInput, previewContainer);
             setupSelectButtonEvents(dropZone);
 
-            console.log('✅ Sistema de carga múltiple inicializado');
+            console.log(' Sistema de carga múltiple inicializado');
         }
 
         // 2. Configurar eventos de la zona de arrastre
@@ -7660,7 +8051,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
 
         function handleNewFiles(files, previewContainer) {
-            console.log(`📁 Procesando ${files.length} archivo(s)...`);
+            console.log(` Procesando ${files.length} archivo(s)...`);
 
             // Filtrar solo imágenes
             const imageFiles = files.filter(file => file.type.startsWith('image/'));
@@ -7701,7 +8092,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             updateImagePreviews(selectedImages, previewContainer);
             updateHiddenInputs(selectedImages);
 
-            console.log(`✅ ${filesToAdd.length} imagen(es) agregada(s)`);
+            console.log(` ${filesToAdd.length} imagen(es) agregada(s)`);
         }
 
 
@@ -7756,7 +8147,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             </div>
             <button type="button" class="image-remove-btn" onclick="removeImageAtIndex(${index})">
                 ×
-            </button>
+          </button>
             <div class="image-slot-indicator">
                 Imagen ${index + 1}
             </div>
@@ -7770,7 +8161,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // 9. Actualizar inputs ocultos
         function updateHiddenInputs(selectedImages) {
-            console.log('🔧 Actualizando inputs ocultos...');
+            console.log(' Actualizando inputs ocultos...');
 
             // Identificar qué slots están ocupados por imágenes existentes
             const existingImages = document.querySelectorAll('.existing-image[data-field]');
@@ -7784,7 +8175,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
             });
 
-            console.log('🔒 Slots ocupados por existentes:', occupiedSlots);
+            console.log(' Slots ocupados por existentes:', occupiedSlots);
 
             // Asignar nuevas imágenes a slots libres
             let fileIndex = 0;
@@ -7798,13 +8189,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         dataTransfer.items.add(selectedImages[fileIndex]);
                         input.files = dataTransfer.files;
 
-                        console.log(`📎 Archivo asignado a ${inputId}:`, selectedImages[fileIndex].name);
+                        console.log(` Archivo asignado a ${inputId}:`, selectedImages[fileIndex].name);
                         fileIndex++;
                     }
                 }
             }
 
-            console.log(`✅ ${fileIndex} archivos asignados de ${selectedImages.length}`);
+            console.log(` ${fileIndex} archivos asignados de ${selectedImages.length}`);
         }
 
         // 10. Actualizar información de la zona de arrastre
@@ -7815,7 +8206,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             if (content) {
                 if (totalCount === 0) {
                     content.innerHTML = `
-                <div style="font-size: 48px; margin-bottom: 15px;">📸</div>
+                <div style="font-size: 48px; margin-bottom: 15px;"></div>
                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
                     Arrastra hasta 3 imágenes aquí
                 </div>
@@ -7823,12 +8214,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     o haz clic para seleccionar archivos
                 </div>
                 <button type="button" class="btn-select-images">
-                    📂 Seleccionar Imágenes
-                </button>
+                     Seleccionar Imágenes
+              </button>
             `;
                 } else if (totalCount < 3) {
                     content.innerHTML = `
-                <div style="font-size: 36px; margin-bottom: 10px;">✅</div>
+                <div style="font-size: 36px; margin-bottom: 10px;"></div>
                 <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
                     ${totalCount} imagen(es) total
                 </div>
@@ -7836,12 +8227,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     Puedes agregar ${3 - totalCount} más
                 </div>
                 <button type="button" class="btn-select-images">
-                    📂 Agregar Más Imágenes
-                </button>
+                     Agregar Más Imágenes
+              </button>
             `;
                 } else {
                     content.innerHTML = `
-                <div style="font-size: 36px; margin-bottom: 10px;">🎉</div>
+                <div style="font-size: 36px; margin-bottom: 10px;"></div>
                 <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">
                     3 imágenes completas
                 </div>
@@ -7880,7 +8271,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 // Actualizar inputs ocultos
                 updateHiddenInputs(selectedImages);
 
-                console.log(`🗑️ Imagen ${index + 1} eliminada. Quedan: ${selectedImages.length}`);
+                console.log(` Imagen ${index + 1} eliminada. Quedan: ${selectedImages.length}`);
             }
         };
 
@@ -7891,7 +8282,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Función para cargar imágenes existentes en el sistema múltiple
         function loadExistingImagesInMultipleSystem(resource) {
-            console.log('📄 Cargando imágenes existentes...', resource);
+            console.log(' Cargando imágenes existentes...', resource);
 
             const previewContainer = document.getElementById('imagesPreviewContainer');
             if (!previewContainer) return;
@@ -7929,7 +8320,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 });
             }
 
-            console.log('📸 Imágenes únicas encontradas:', existingImages.length);
+            console.log(' Imágenes únicas encontradas:', existingImages.length);
 
             // Crear previews SOLO para imágenes únicas
             existingImages.forEach((img, index) => {
@@ -7957,14 +8348,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         </div>
         <button type="button" class="image-remove-btn" onclick="removeExistingImageByField('${fieldName}')">
             ×
-        </button>
+      </button>
         <div class="image-slot-indicator" style="background: rgba(16, 185, 129, 0.9);">
-            ✅ ${fieldName}
+             ${fieldName}
         </div>
     `;
 
             previewContainer.appendChild(previewItem);
-            console.log(`📎 Preview creado para ${fieldName}`);
+            console.log(` Preview creado para ${fieldName}`);
         }
 
         // Crear preview de imagen existente
@@ -7979,9 +8370,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         </div>
         <button type="button" class="image-remove-btn" onclick="removeExistingImageAtIndex(${index})">
             ×
-        </button>
+      </button>
         <div class="image-slot-indicator" style="background: rgba(16, 185, 129, 0.9);">
-            ✅ Imagen ${index + 1}
+             Imagen ${index + 1}
         </div>
     `;
 
@@ -7989,7 +8380,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
         // Remover imagen existente por campo - VERSIÓN CORREGIDA
         window.removeExistingImageByField = function (fieldName) {
-            console.log('🗑️ Eliminando imagen:', fieldName);
+            console.log(' Eliminando imagen:', fieldName);
 
             const previewContainer = document.getElementById('imagesPreviewContainer');
             const imageItem = previewContainer.querySelector(`[data-field="${fieldName}"]`);
@@ -8009,11 +8400,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 const remainingCount = previewContainer.querySelectorAll('.existing-image').length;
                 updateDropZoneInfo(remainingCount);
 
-                console.log(`✅ ${fieldName} marcada para eliminación`);
+                console.log(` ${fieldName} marcada para eliminación`);
             }
         };
         window.removeExistingImageAtIndex = function (index) {
-            console.log('🗑️ Eliminando imagen existente índice:', index);
+            console.log(' Eliminando imagen existente índice:', index);
 
             const previewContainer = document.getElementById('imagesPreviewContainer');
             const existingItems = Array.from(previewContainer.querySelectorAll('.existing-image'));
@@ -8030,7 +8421,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 deleteInput.value = '1';
                 document.getElementById('resourceForm').appendChild(deleteInput);
 
-                console.log(`✅ Imagen existente ${index + 1} marcada para eliminación`);
+                console.log(` Imagen existente ${index + 1} marcada para eliminación`);
             }
         };
 
@@ -8271,7 +8662,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             // Mostrar preview
             if (preview) {
-                preview.innerHTML = `📍 ${location.display_name}`;
+                preview.innerHTML = ` ${location.display_name}`;
                 preview.classList.add('show');
                 preview.style.display = 'block';
             }
@@ -8294,7 +8685,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
     </script>
     <!-- Agregar antes del cierre de </body> -->
     <a href="<?= APP_URL ?>/itinerarios" class="floating-itinerarios-btn" title="Ir a Itinerarios">
-        <span class="btn-icon">🗺️</span>
+        <span class="btn-icon"></span>
         <span class="btn-text">ITINERARIOS</span>
     </a>
 </body>

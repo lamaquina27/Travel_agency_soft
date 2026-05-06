@@ -1005,6 +1005,7 @@ if ($programa['fecha_llegada']) {
             font-size: 1.2rem;
         }
 
+
         .detail-info h4 {
             font-weight: 600;
             margin-bottom: 5px;
@@ -4356,7 +4357,7 @@ if ($programa['fecha_llegada']) {
 
         .pricing-section {
             border-radius: var(--ts-radius-lg) !important;
-            background: var(--ts-brand-dark) !important;
+            background: var(--brand-surface-soft) !important;
             padding: 34px !important;
             box-shadow: var(--ts-shadow-soft) !important;
         }
@@ -4845,7 +4846,6 @@ if ($programa['fecha_llegada']) {
         [class*="success"],
         [class*="warning"],
         [class*="danger"],
-        [class*="info"],
         .meal-badge,
         .service-type-badge,
         .transport-badge,
@@ -4855,6 +4855,11 @@ if ($programa['fecha_llegada']) {
         .tag,
         .badge {
             background: var(--ts-brand-soft) !important;
+            color: var(--ts-brand) !important;
+            border-color: var(--ts-line) !important;
+        }
+
+        [class*="info"]{
             color: var(--ts-brand) !important;
             border-color: var(--ts-line) !important;
         }
@@ -5081,7 +5086,7 @@ if ($programa['fecha_llegada']) {
                                     <h4><?= $total_alojamientos ?> Alojamientos</h4>
                                     <p>Hospedaje confortable y bien ubicado</p>
 
-                                    <?php if (!$is_public): ?>
+                                    <?php if ($vendido && !$is_public): ?>
                                         <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int) $programa_id ?>"
                                             target="_blank" class="btn btn-outline"
                                             style="margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px;">
@@ -5884,16 +5889,22 @@ if ($programa['fecha_llegada']) {
 
             <div class="footer-actions">
 
-                <a href="#" class="btn btn-outline" onclick="downloadItinerary()">
-                    <i class="fas fa-download"></i>
-                    Descargar PDF
-                </a>
+                <?php if ($vendido): ?>
+                    
+
+                    <?php if (!empty($programa_id)): ?>
+                        <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int) $programa_id ?>"
+                            class="btn btn-outline" target="_blank">
+                            <i class="fas fa-file-pdf"></i>
+                            Bono hotelero
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
 
                 <?php if (!empty($programa_id)): ?>
-                    <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int) $programa_id ?>"
-                        class="btn btn-outline" target="_blank">
-                        <i class="fas fa-file-pdf"></i>
-                        Bono hotelero
+                    <a href="#" class="btn btn-outline" onclick="downloadItinerary()">
+                        <i class="fas fa-download"></i>
+                        Descargar PDF
                     </a>
                 <?php endif; ?>
 
