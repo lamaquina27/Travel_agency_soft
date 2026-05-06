@@ -3664,37 +3664,36 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         const la = result['data']['latitud'];
                         const lo = result['data']['longitud'];
                         if (nombre && la && lo && type != "transportes") {
-                        try {
-                            await fetch(`${APP_URL}/modules/ubicaciones/ubicaciones_api.php?action=save`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    nombre: nombre,
-                                    lat: la,
-                                    lon: lo,
-                                })
-                            });
+                            try {
+                                await fetch(`${APP_URL}/modules/ubicaciones/ubicaciones_api.php?action=save`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        nombre: nombre,
+                                        lat: la,
+                                        lon: lo,
+                                    })
+                                });
 
-                        } catch (err) {
-                            console.error('Error al guardar ubicación:', err);
+                            } catch (err) {
+                                console.error('Error al guardar ubicación:', err);
+                            }
                         }
                     }
+                    // Éxito
+                    alert(result.message || 'Operación exitosa');
+                    closeModal();
+                    loadResources();
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error al guardar: ' + error.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
-            }
-                // Éxito
-                alert(result.message || 'Operación exitosa');
-                closeModal();
-                loadResources();
 
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al guardar: ' + error.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-
-        });
+            });
 
         function setupImagePreviews() {
             console.log('🔧 Configurando previews de imágenes...');
