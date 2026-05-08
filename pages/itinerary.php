@@ -328,22 +328,20 @@ if ($_foto_raw) {
 }
 
 
-// Calcular duración ------------------------- También se movió para evitar error de no inicialización
 // Calcular duración real basada en los días del programa
-$duracion_dias = 0;
+$num_noches = 0;
 foreach ($dias as $dia) {
-    $duracion_estancia = intval($dia['duracion_estancia']) ?: 1;
-    $duracion_dias += $duracion_estancia;
+    $num_noches += intval($dia['duracion_estancia']) ?: 1;
 }
 
-// Si no hay días en el programa, usar el conteo de días
-if ($duracion_dias == 0) {
-    $duracion_dias = count($dias);
+if ($num_noches == 0) {
+    $num_noches = count($dias);
 }
 
+$num_dias    = $num_noches + 1;
+$duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_dias = $duracion_dias;
 $num_pasajeros = $programa['numero_pasajeros'];
 
 
@@ -4949,8 +4947,8 @@ if ($programa['fecha_llegada']) {
 
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <span class="hero-stat-number"><?= $duracion_dias ?></span>
-                    <span class="hero-stat-label"><?= $duracion_dias == 1 ? 'Noche' : 'Noches' ?></span>
+                    <span class="hero-stat-number"><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
+                    <span class="hero-stat-label">Duración</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-number"><?= $num_pasajeros ?></span>
@@ -5024,7 +5022,7 @@ if ($programa['fecha_llegada']) {
                             </div>
                             <div class="detail-info">
                                 <h4>Duración</h4>
-                                <p><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'noche increíble' : 'noches' ?></p>
+                                <p><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></p>
                             </div>
                         </div>
                     </div>
@@ -5073,7 +5071,7 @@ if ($programa['fecha_llegada']) {
                             </div>
                             <div class="detail-info">
                                 <h4>Duración</h4>
-                                <p><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'noche' : 'noches' ?> de aventura</p>
+                                <p><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?> de aventura</p>
                             </div>
                         </div>
 
