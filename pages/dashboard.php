@@ -729,6 +729,100 @@ function dashboardIcon($name) {
             .quick-actions { grid-template-columns: 1fr; }
         }
 
+
+/* ===== Sidebar limpia y profesional ===== */
+
+.sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #e5e7eb !important;
+    box-shadow: 8px 0 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+.sidebar-header,
+.sidebar .logo-section {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--primary-color-rgb), 0.08),
+        rgba(var(--secondary-color-rgb), 0.06)
+    ) !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 24px 22px !important;
+}
+
+.sidebar h2,
+.sidebar .logo-text,
+.sidebar .brand-name {
+    color: #111827 !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+}
+
+.sidebar-menu,
+.sidebar nav {
+    padding: 18px 14px !important;
+}
+
+.sidebar a,
+.sidebar .menu-item,
+.sidebar .nav-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 46px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 6px !important;
+    border-radius: 14px !important;
+    color: #475569 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.sidebar a:hover,
+.sidebar .menu-item:hover,
+.sidebar .nav-item:hover {
+    background: rgba(var(--primary-color-rgb), 0.08) !important;
+    color: var(--primary-color) !important;
+    border-color: rgba(var(--primary-color-rgb), 0.12) !important;
+    transform: translateX(3px) !important;
+}
+
+.sidebar a.active,
+.sidebar .menu-item.active,
+.sidebar .nav-item.active {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--primary-color-rgb), 0.14),
+        rgba(var(--secondary-color-rgb), 0.10)
+    ) !important;
+    color: var(--primary-color) !important;
+    border-color: rgba(var(--primary-color-rgb), 0.20) !important;
+    box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.12) !important;
+}
+
+.sidebar svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+    fill: currentColor !important;
+    color: currentColor !important;
+}
+
+.sidebar-footer {
+    border-top: 1px solid #e5e7eb !important;
+    padding: 16px 14px !important;
+    background: #f8fafc !important;
+}
+
+.overlay {
+    background: rgba(15, 23, 42, 0.35) !important;
+    backdrop-filter: blur(2px) !important;
+}
+        
     </style>
 </head>
 <body>

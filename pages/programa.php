@@ -867,7 +867,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             flex-direction: column;
             height: fit-content;
             /* Ajustar al contenido */
-            max-height: calc(100vh - 200px);
+            max-height: calc(200vh - 100px);
             /* Scroll solo si hay muchos días */
         }
 
@@ -4876,14 +4876,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         #bibliotecaModal .modal-header,
         #crearDiaModalPrograma .modal-header {
             background: var(--primary-gradient) !important;
-            color: #fff !important;
+            color: var(--text-primary);
             border: 0 !important;
         }
 
         .toast.success,
         .toast.error {
             background: var(--primary-gradient) !important;
-            color: #fff !important;
+            color: var(--text-primary) !important;
         }
 
         @media (max-width: 768px) {
@@ -4961,13 +4961,6 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 <span>Compartir Enlace</span>
             </button>
 
-            <?php if ($is_editing): ?>
-                <button type="button" class="nav-button" onclick="abrirBonoReservaPrograma()"
-                    style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
-                    <i class="fas fa-file-pdf"></i>
-                    <span>Bono reserva</span>
-                </button>
-            <?php endif; ?>
 
             <button type="button" class="nav-button" onclick="abrirMiBiblioteca()"
                 style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">

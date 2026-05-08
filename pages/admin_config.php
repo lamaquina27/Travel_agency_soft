@@ -19,6 +19,26 @@ $adminColors = ConfigManager::getColorsForRole('admin');
 $companyName = ConfigManager::getCompanyName();
 $logo = ConfigManager::getLogo();
 $defaultLanguage = ConfigManager::getDefaultLanguage();
+
+if (!function_exists('adminConfigIcon')) {
+    function adminConfigIcon($name) {
+        $icons = [
+            'eye' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+            'building' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path><path d="M9 8h1"></path><path d="M14 8h1"></path><path d="M9 12h1"></path><path d="M14 12h1"></path><path d="M10 21v-4h4v4"></path></svg>',
+            'palette' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a10 10 0 1 1 10-10 4 4 0 0 1-4 4h-1.5a2 2 0 0 0-1.7 3.05A2 2 0 0 1 13.1 22H12z"></path><circle cx="7.5" cy="10.5" r="1"></circle><circle cx="10.5" cy="7.5" r="1"></circle><circle cx="14.5" cy="7.5" r="1"></circle><circle cx="16.5" cy="10.5" r="1"></circle></svg>',
+            'settings' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06A2 2 0 1 1 7.03 3.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.2.37.5.7.9.9.3.2.7.3 1.1.3H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"></path></svg>',
+            'upload' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>',
+            'shield' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+            'plane' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>',
+            'save' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path></svg>',
+            'clock' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>',
+            'lock' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>',
+            'info' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>',
+        ];
+        return $icons[$name] ?? $icons['settings'];
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
@@ -31,8 +51,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
     <?= UIComponents::getComponentStyles() ?>
     
     <style>
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-     
+
         :root {
             --admin-primary: <?= $adminColors['primary'] ?>;
             --admin-secondary: <?= $adminColors['secondary'] ?>;
@@ -40,630 +61,179 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             --primary-color: var(--admin-primary);
             --secondary-color: var(--admin-secondary);
             --primary-gradient: var(--admin-gradient);
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            color: #333;
-            min-height: 100vh;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --surface-muted: #f1f5f9;
+            --border: #e5e7eb;
+            --border-soft: #eef2f7;
+            --text: #0f172a;
+            --text-soft: #475569;
+            --text-muted: #64748b;
+            --danger: #dc2626;
+            --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
+            --shadow-card: 0 10px 30px rgba(15, 23, 42, 0.06);
         }
 
-        /* Header con componentes */
+        body {
+            font-family: Inter, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top left, color-mix(in srgb, var(--admin-primary) 8%, transparent), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #ffffff 48%, #f8fafc 100%);
+            color: var(--text);
+            min-height: 100vh;
+            top: 0 !important;
+        }
+
         .header {
-            background: var(--admin-gradient);
-            color: white;
-            padding: 15px 30px;
+            background: rgba(255,255,255,.92) !important;
+            color: var(--text) !important;
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 0 rgba(226,232,240,.9), 0 12px 32px rgba(15,23,42,.06);
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1001;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(226,232,240,.85);
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .header-left, .header-right { display: flex; align-items: center; gap: 14px; }
+
+        .menu-toggle, .back-btn, .nav-link {
+            border: 1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb) !important;
+            background: color-mix(in srgb, var(--admin-primary) 8%, #ffffff) !important;
+            color: var(--admin-primary) !important;
+            border-radius: 14px !important;
+            transition: all .2s ease !important;
+            box-shadow: none !important;
+            text-decoration: none !important;
         }
 
-        .menu-toggle {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .menu-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        .menu-toggle { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+        .menu-toggle:hover, .back-btn:hover, .nav-link:hover { transform: translateY(-1px) !important; background: color-mix(in srgb, var(--admin-primary) 12%, #ffffff) !important; color: var(--admin-primary) !important; }
 
         .user-info {
             display: flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            color: var(--text);
         }
+        .user-info:hover { box-shadow: 0 10px 24px rgba(15,23,42,.08); }
+        .user-avatar { width: 38px; height: 38px; background: var(--admin-gradient); color: #ffffff; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:800; border:3px solid color-mix(in srgb, var(--admin-primary) 14%, #ffffff); }
 
-        .user-info:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+        #google_translate_element { background:#fff; border:1px solid var(--border); border-radius:14px; padding:7px 10px; box-shadow:0 8px 18px rgba(15,23,42,.05); }
+        .goog-te-gadget-icon, .VIpgJd-ZVi9od-xl07Ob-lTBxed img, .VIpgJd-ZVi9od-xl07Ob-lTBxed span[style*="border-left"], .goog-te-banner-frame.skiptranslate, .VIpgJd-ZVi9od-ORHb-OEVmcd, .goog-te-gadget img { display:none !important; }
+        .goog-te-gadget-simple { background:transparent !important; border:none !important; font-family:inherit !important; }
+        .VIpgJd-ZVi9od-xl07Ob-lTBxed { color:var(--text-soft) !important; text-decoration:none !important; font-family:inherit !important; font-size:12px !important; font-weight:700 !important; display:flex !important; align-items:center !important; gap:6px !important; }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
+        .main-content { margin-left:0; margin-top:70px; padding:34px 38px; transition:margin-left .35s cubic-bezier(.4,0,.2,1); min-height:calc(100vh - 70px); }
+        .main-content.sidebar-open { margin-left:320px; }
 
-        /* Google Translate mejorado */
-        /* Google Translate en la esquina */
-        /* ===== MEJORAR EL SELECTOR DE GOOGLE TRANSLATE ===== */
-
-        /* Contenedor principal */
-        .translate-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        /* Caja del widget */
-        #google_translate_element {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 10px;
-            padding: 8px 12px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        #google_translate_element:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Ocultar el icono de Google */
-        .goog-te-gadget-icon {
-            display: none !important;
-        }
-
-        /* Contenedor del gadget */
-        .goog-te-gadget-simple {
-            background: transparent !important;
-            border: none !important;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-        }
-
-        /* El enlace principal */
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed {
-            background: transparent !important;
-            border: none !important;
-            color: #2d3748 !important;
-            text-decoration: none !important;
-            font-family: inherit !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            padding: 4px 8px !important;
-            border-radius: 6px !important;
-            transition: all 0.2s ease !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-        }
-
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed:hover {
-            background: rgba(102, 126, 234, 0.1) !important;
-            color: #667eea !important;
-        }
-
-        /* El texto "Seleccionar idioma" */
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed span:first-child {
-            color: inherit !important;
-            font-weight: inherit !important;
-        }
-
-        /* Ocultar las imágenes separadoras */
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed img {
-            display: none !important;
-        }
-
-        /* Ocultar el separador */
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed span[style*="border-left"] {
-            display: none !important;
-        }
-
-        /* Mejorar la flecha */
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed span[aria-hidden="true"] {
-            color: #6b7280 !important;
-            font-size: 12px !important;
-            margin-left: 4px !important;
-            transition: all 0.2s ease !important;
-        }
-
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed:hover span[aria-hidden="true"] {
-            color: #667eea !important;
-            transform: translateY(1px) !important;
-        }
-
-        /* Menú desplegable cuando aparece */
-        .goog-te-menu-frame {
-            border: none !important;
-            border-radius: 10px !important;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
-            backdrop-filter: blur(10px) !important;
-            overflow: hidden !important;
-            margin-top: 4px !important;
-        }
-
-        .goog-te-menu2 {
-            background: rgba(255, 255, 255, 0.98) !important;
-            border: none !important;
-            padding: 8px 0 !important;
-        }
-
-        /* Items de la lista */
-        .goog-te-menu2-item {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            color: #374151 !important;
-            padding: 10px 16px !important;
-            transition: all 0.15s ease !important;
-            cursor: pointer !important;
-            border: none !important;
-            margin: 0 6px !important;
-            border-radius: 6px !important;
-        }
-
-        .goog-te-menu2-item:hover {
-            background: rgba(102, 126, 234, 0.1) !important;
-            color: #667eea !important;
-            transform: translateX(2px) !important;
-        }
-
-        .goog-te-menu2-item:active {
-            transform: translateX(2px) scale(0.98) !important;
-        }
-
-        .goog-te-menu2-item-selected {
-            background: #667eea !important;
-            color: white !important;
-            font-weight: 600 !important;
-        }
-
-        /* Ocultar banner azul */
-        .goog-te-banner-frame.skiptranslate { 
-            display: none !important; 
-        }
-
-        body { 
-            top: 0px !important; 
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .translate-container {
-                top: 10px;
-                right: 10px;
-            }
-            
-            #google_translate_element {
-                padding: 6px 10px;
-            }
-            
-            .VIpgJd-ZVi9od-xl07Ob-lTBxed {
-                font-size: 12px !important;
-                padding: 3px 6px !important;
-            }
-            .VIpgJd-ZVi9od-ORHb-OEVmcd {
-                left: 0;
-                display: none !important;
-                top: 0;
-            }
-            .goog-te-menu2-item {
-                font-size: 12px !important;
-                padding: 8px 14px !important;
-            }
-        }
-        
-        .goog-te-gadget img {
-            vertical-align: middle;
-            border: none;
-            display: none;
-        }
-        /* Main Content mejorado */
-        .main-content {
-            margin-left: 0;
-            margin-top: 70px;
-            padding: 40px;
-            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: calc(100vh - 70px);
-        }
-
-        .main-content.sidebar-open {
-            margin-left: 320px;
-        }
-
-        /* Configuration Sections */
-        .config-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid var(--admin-primary);
-        }
-
-        .section-title {
-            font-size: 20px;
-            color: #2d3748;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 14px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--admin-primary);
-            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
-        }
-
-        /* Color Picker */
-        .color-input {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .color-picker {
-            width: 60px;
-            height: 40px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
+        .preview-section, .config-section {
+            background: rgba(255,255,255,.94);
+            border-radius: 28px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(226,232,240,.9);
+            position: relative;
             overflow: hidden;
         }
+        .preview-section::before, .config-section::before { content:''; position:absolute; inset:0 0 auto 0; height:4px; background:var(--admin-gradient); opacity:.95; }
 
-        .color-text {
-            flex: 1;
-            font-family: monospace;
-            text-transform: uppercase;
+        .section-title { font-size:22px; color:var(--text); margin-bottom:22px; display:flex; align-items:center; gap:12px; letter-spacing:-.03em; font-weight:800; }
+        .section-title .section-icon, .section-icon { width:40px; height:40px; border-radius:14px; background:color-mix(in srgb, var(--admin-primary) 10%, #ffffff); color:var(--admin-primary); display:inline-grid; place-items:center; border:1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb); flex-shrink:0; }
+        .section-icon svg, .field-icon svg, .upload-icon svg, .save-btn svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:22px; }
+        .form-group { display:flex; flex-direction:column; gap:9px; }
+        .form-group label { font-weight:700; color:var(--text-soft); font-size:13px; display:flex; align-items:center; gap:8px; }
+        .form-group small, .helper-text { color:var(--text-muted) !important; font-size:12px !important; line-height:1.45; }
+        .field-icon { width:22px; height:22px; display:inline-grid; place-items:center; color:var(--admin-primary); }
+        .field-icon svg { width:16px; height:16px; }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding:13px 15px;
+            border:1px solid var(--border);
+            border-radius:14px;
+            font-size:14px;
+            transition:all .2s ease;
+            color:var(--text);
+            background:#ffffff;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:color-mix(in srgb, var(--admin-primary) 45%, #e5e7eb); box-shadow:0 0 0 4px color-mix(in srgb, var(--admin-primary) 11%, transparent); }
+        input[readonly] { background:#f8fafc !important; cursor:not-allowed; color:#64748b !important; }
+
+        .color-input { display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--border); border-radius:16px; background:#fff; }
+        .color-picker { width:54px; height:42px; border:none; border-radius:12px; cursor:pointer; overflow:hidden; background:transparent; }
+        .color-text { flex:1; font-family:'SFMono-Regular', Consolas, monospace; text-transform:uppercase; background:#f8fafc !important; }
+
+        .role-title { margin: 26px 0 15px 0; color:var(--text); font-size:15px; font-weight:800; display:flex; align-items:center; gap:10px; }
+        .role-title:first-of-type { margin-top:0; }
+
+        .image-upload { border:1.5px dashed color-mix(in srgb, var(--admin-primary) 26%, #e2e8f0); border-radius:22px; padding:24px; text-align:center; cursor:pointer; transition:all .2s ease; position:relative; background:linear-gradient(180deg,#fff,#f8fafc); }
+        .image-upload:hover, .image-upload.dragover { border-color:var(--admin-primary); background:color-mix(in srgb, var(--admin-primary) 5%, #ffffff); transform:translateY(-1px); }
+        .image-upload input { display:none; }
+        .upload-content { display:flex; flex-direction:column; align-items:center; gap:12px; color:var(--text-soft); }
+        .upload-icon { width:54px; height:54px; border-radius:18px; display:grid; place-items:center; color:#fff; background:var(--admin-gradient); box-shadow:0 14px 28px color-mix(in srgb, var(--admin-primary) 22%, transparent); }
+        .upload-content strong { color:var(--text); font-size:15px; }
+        .image-preview { max-width:100%; max-height:180px; border-radius:16px; margin-top:16px; border:1px solid var(--border); box-shadow:var(--shadow-card); object-fit:contain; background:#fff; }
+
+        .preview-tabs { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+        .preview-tab { padding:11px 18px; border:1px solid var(--border); border-radius:999px; cursor:pointer; transition:all .2s ease; background:#fff; color:var(--text-soft); font-weight:700; font-size:13px; }
+        .preview-tab:hover { border-color:color-mix(in srgb, var(--admin-primary) 26%, #e5e7eb); color:var(--admin-primary); }
+        .preview-tab.active { border-color:color-mix(in srgb, var(--admin-primary) 22%, transparent); background:color-mix(in srgb, var(--admin-primary) 11%, #ffffff); color:var(--admin-primary); box-shadow:0 12px 24px rgba(15,23,42,.06); }
+
+        .preview-header { padding:26px 30px; border-radius:24px; color:white; margin-bottom:4px; transition:all .2s ease; box-shadow:0 16px 36px rgba(15,23,42,.12); }
+        .preview-company { font-size:26px; font-weight:850; letter-spacing:-.04em; }
+        .preview-tagline { opacity:.9; margin-top:6px; font-size:14px; }
+
+        .advanced-content { display:none; margin-top:20px; }
+        .advanced-content.show { display:block; }
+
+        .save-section { text-align:center; margin:34px 0 8px; }
+        .save-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; background:var(--admin-gradient); color:white; border:none; padding:15px 30px; min-width:245px; border-radius:18px; font-size:15px; font-weight:800; cursor:pointer; transition:all .2s ease; box-shadow:0 16px 30px color-mix(in srgb, var(--admin-primary) 26%, transparent); }
+        .save-btn:hover { transform:translateY(-2px); box-shadow:0 20px 36px color-mix(in srgb, var(--admin-primary) 32%, transparent); }
+        .save-btn:disabled { opacity:.62; cursor:not-allowed; transform:none; }
+
+        .message { padding:15px 18px; border-radius:16px; margin:20px 0; font-weight:700; display:none; border:1px solid var(--border); }
+        .message.success { background:color-mix(in srgb, var(--admin-primary) 9%, #ffffff); color:var(--admin-primary); border-color:color-mix(in srgb, var(--admin-primary) 20%, #e5e7eb); }
+        .message.error { background:#fef2f2; color:var(--danger); border-color:#fecaca; }
+
+        .loading-spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,.45); border-top:2px solid #fff; border-radius:50%; animation:spin 1s linear infinite; }
+        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+        .overlay { position:fixed; inset:0; background:rgba(15,23,42,.35); z-index:999; opacity:0; visibility:hidden; transition:all .3s ease; backdrop-filter:blur(3px); }
+        .overlay.show { opacity:1; visibility:visible; }
+
+        .toast { position:fixed; top:90px; right:20px; padding:16px 18px; border-radius:18px; color:var(--text); z-index:20000; transform:translateX(420px); transition:transform .3s ease; box-shadow:0 18px 42px rgba(15,23,42,.16); backdrop-filter:blur(12px); min-width:300px; max-width:420px; background:#fff; border:1px solid var(--border); font-weight:650; }
+        .toast.show { transform:translateX(0); }
+        .toast.success { border-color:color-mix(in srgb, var(--admin-primary) 22%, #e5e7eb); color:var(--admin-primary); }
+        .toast.error { border-color:#fecaca; color:var(--danger); }
+        .toast.info { border-color:color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb); color:var(--text-soft); }
+        .toast-dot { width:10px; height:10px; border-radius:999px; background:currentColor; flex:0 0 10px; }
+
+        @media (max-width:768px) {
+            .header { padding:13px 18px; }
+            .main-content { padding:22px 16px; }
+            .main-content.sidebar-open { margin-left:0; }
+            .form-grid { grid-template-columns:1fr; }
+            .preview-section, .config-section { padding:22px 18px; border-radius:22px; }
+            .preview-company { font-size:22px; }
+            .toast { left:16px; right:16px; min-width:0; transform:translateY(-140px); }
+            .toast.show { transform:translateY(0); }
         }
 
-        /* Image Upload */
-        .image-upload {
-            border: 2px dashed #e2e8f0;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .image-upload:hover {
-            border-color: var(--admin-primary);
-            background-color: #fef5f5;
-        }
-
-        .image-upload.dragover {
-            border-color: var(--admin-primary);
-            background-color: #fef5f5;
-        }
-
-        .image-upload input {
-            display: none;
-        }
-
-        .upload-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .upload-icon {
-            font-size: 48px;
-            color: var(--admin-primary);
-        }
-
-        .image-preview {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        /* Preview Section */
-        .preview-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .preview-header {
-            padding: 20px 30px;
-            border-radius: 10px;
-            color: white;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .preview-company {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .preview-tagline {
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        /* Role Preview Tabs */
-        .preview-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .preview-tab {
-            padding: 10px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .preview-tab.active {
-            border-color: var(--admin-primary);
-            background: var(--admin-primary);
-            color: white;
-        }
-
-        /* Save Button */
-        .save-section {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .save-btn {
-            background: var(--admin-gradient);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
-        }
-
-        .save-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Success/Error Messages */
-        .message {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-weight: 500;
-            display: none;
-        }
-
-        .message.success {
-            background: #c6f6d5;
-            color: #2f855a;
-            border: 1px solid #9ae6b4;
-        }
-
-        .message.error {
-            background: #fed7d7;
-            color: #e53e3e;
-            border: 1px solid #feb2b2;
-        }
-
-        /* Advanced Settings */
-        .advanced-toggle {
-            background: #f7fafc;
-            padding: 15px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            border: 1px solid #e2e8f0;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-        }
-
-        .advanced-toggle:hover {
-            background: #edf2f7;
-        }
-
-        .advanced-content {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .advanced-content.show {
-            display: block;
-        }
-
-        /* Loading Spinner */
-        .loading-spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid var(--admin-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Overlay */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        .overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header {
-                padding: 15px 20px;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .main-content.sidebar-open {
-                margin-left: 0;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .config-section {
-                padding: 20px;
-            }
-        }
-
-        /* Toast notifications (igual que admin.php) */
-.toast {
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    padding: 20px 25px;
-    border-radius: 15px;
-    color: white;
-    z-index: 20000;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
-    min-width: 300px;
-}
-
-.toast.show {
-    transform: translateX(0);
-}
-
-.toast.success {
-    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-}
-
-.toast.error {
-    background: linear-gradient(135deg, var(--admin-primary) 0%, #dc2626 100%);
-}
     </style>
 </head>
 <body>
@@ -681,14 +251,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         <!-- Preview Section -->
         <div class="preview-section">
             <h2 class="section-title">
-                <span>👁️</span>
+                <span class="section-icon"><?= adminConfigIcon('eye') ?></span>
                 Vista Previa por Roles
             </h2>
 
             <!-- Tabs para diferentes vistas -->
             <div class="preview-tabs">
-                <div class="preview-tab active" onclick="switchPreview('admin')">👑 Vista Admin</div>
-                <div class="preview-tab" onclick="switchPreview('agent')">✈️ Vista Agente</div>
+                <div class="preview-tab active" onclick="switchPreview('admin')">Vista Admin</div>
+                <div class="preview-tab" onclick="switchPreview('agent')">Vista Agente</div>
             </div>
 
             <!-- Admin Preview -->
@@ -713,7 +283,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <!-- Basic Settings -->
             <div class="config-section">
                 <h2 class="section-title">
-                    <span>🏢</span>
+                    <span class="section-icon"><?= adminConfigIcon('building') ?></span>
                     Información de la Empresa
                 </h2>
                 
@@ -725,7 +295,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         placeholder="Travel Agency" readonly 
                         style="background-color: #f1f5f9; cursor: not-allowed; color: #64748b;">
                     <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
-                        ℹ️ El nombre de la agencia solo puede ser modificado por el Superadmin desde la gestión de agencias
+                        El nombre de la agencia solo puede ser modificado por el Superadmin desde la gestión de agencias
                     </small>
                 </div>
                 </div>
@@ -736,7 +306,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         <div class="image-upload" onclick="document.getElementById('logoInput').click()">
                             <input type="file" id="logoInput" accept="image/*">
                             <div class="upload-content">
-                                <div class="upload-icon">📷</div>
+                                <div class="upload-icon"><?= adminConfigIcon('upload') ?></div>
                                 <div>
                                     <strong>Subir Logo</strong><br>
                                     <small>PNG, JPG, SVG o WebP (máx. <?= $config['max_file_size'] ?>MB)</small>
@@ -755,12 +325,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <!-- Color Settings -->
             <div class="config-section">
                 <h2 class="section-title">
-                    <span>🎨</span>
+                    <span class="section-icon"><?= adminConfigIcon('palette') ?></span>
                     Personalización de Colores por Roles
                 </h2>
                 
                 <!-- Admin Colors -->
-                <h3 style="margin-bottom: 15px; color: #e53e3e;">👑 Colores del Administrador</h3>
+                <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('shield') ?></span>Colores del Administrador</h3>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="admin_primary_color">Color Primario Admin</label>
@@ -784,7 +354,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 </div>
 
                 <!-- Agent Colors -->
-                <h3 style="margin: 25px 0 15px 0; color: #667eea;">✈️ Colores del Agente</h3>
+                <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('plane') ?></span>Colores del Agente</h3>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="agent_primary_color">Color Primario Agente</label>
@@ -812,23 +382,23 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <div class="advanced-content" id="advancedContent">
                 <div class="config-section">
                     <h2 class="section-title">
-                        <span>🔧</span>
+                        <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
                         Configuraciones Técnicas
                     </h2>
                     
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="session_timeout">⏱️ Tiempo de Sesión (minutos)</label>
+                            <label for="session_timeout"><span class="field-icon"><?= adminConfigIcon('clock') ?></span>Tiempo de Sesión (minutos)</label>
                             <input type="number" id="session_timeout" name="session_timeout" 
                                    value="<?= $config['session_timeout'] ?>" min="15" max="480" placeholder="60">
                             <small style="color: #718096;">Tiempo antes de cerrar sesión automáticamente (15-480 min)</small>
                         </div>
 
                         <div class="form-group">
-                            <label for="maintenance_mode">🚧 Modo Mantenimiento</label>
+                            <label for="maintenance_mode"><span class="field-icon"><?= adminConfigIcon('lock') ?></span>Modo Mantenimiento</label>
                             <select id="maintenance_mode" name="maintenance_mode">
-                                <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>✅ Desactivado</option>
-                                <option value="1" <?= $config['maintenance_mode'] ? 'selected' : '' ?>>🔒 Activado</option>
+                                <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>Desactivado</option>
+                                <option value="1" <?= $config['maintenance_mode'] ? 'selected' : '' ?>>Activado</option>
                             </select>
                             <small style="color: #718096;">Bloquea el acceso a usuarios no administradores</small>
                         </div>
@@ -839,7 +409,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <!-- Save Section -->
             <div class="save-section">
                 <button type="submit" class="save-btn" id="saveBtn">
-                    💾 Guardar Configuración
+                    <?= adminConfigIcon('save') ?>
+                   Guardar Configuración
                     <div class="loading-spinner" id="loadingSpinner"></div>
                 </button>
             </div>
@@ -1105,7 +676,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         title: '¡Configuración guardada!',
                         message: '¿Desea recargar la página para ver los cambios aplicados?',
                         details: 'Los cambios se aplicarán completamente al recargar la página.',
-                        icon: '🔄',
+                        icon: '',
                         confirmText: 'Recargar página',
                         cancelText: 'Continuar sin recargar'
                     });
@@ -1130,10 +701,10 @@ function showMessage(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
-    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+    const indicatorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
     toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">${icon}</span>
+            <span class="toast-dot"></span>
             <span>${message}</span>
         </div>
     `;

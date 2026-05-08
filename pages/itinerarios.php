@@ -22,6 +22,21 @@ $userColors = ConfigManager::getColorsForRole($user['role']);
 $companyName = ConfigManager::getCompanyName();
 $logo = ConfigManager::getLogo();
 $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
+
+function ts_hex_to_rgb_string($hex) {
+    $hex = trim((string)$hex);
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 3) {
+        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+    }
+    if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+        return '59, 130, 246';
+    }
+    return hexdec(substr($hex, 0, 2)) . ', ' . hexdec(substr($hex, 2, 2)) . ', ' . hexdec(substr($hex, 4, 2));
+}
+
+$primaryRgb = ts_hex_to_rgb_string($userColors['primary']);
+$secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 ?>
 
 <!DOCTYPE html>
@@ -40,6 +55,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         :root {
             --primary-color: <?= $userColors['primary'] ?>;
             --secondary-color: <?= $userColors['secondary'] ?>;
+            --primary-color-rgb: <?= $primaryRgb ?>;
+            --secondary-color-rgb: <?= $secondaryRgb ?>;
             --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
         
@@ -1106,6 +1123,452 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
 .toast.error {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
+
+        /* ===== Rediseño limpio TravelSoft - Itinerarios ===== */
+        body {
+            background: radial-gradient(circle at top left, rgba(var(--primary-color-rgb), 0.07), transparent 34%), #f6f8fb !important;
+            color: #0f172a !important;
+        }
+
+        .main-content {
+            padding: 32px !important;
+            max-width: 1480px;
+        }
+
+        .page-header {
+            text-align: left !important;
+            padding: 30px 32px !important;
+            border-radius: 28px !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.12) !important;
+            border-left: 1px solid rgba(var(--primary-color-rgb), 0.12) !important;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(var(--primary-color-rgb), 0.055) 100%) !important;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.075) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            right: -60px;
+            top: -80px;
+            width: 230px;
+            height: 230px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.14), rgba(var(--secondary-color-rgb), 0.08));
+        }
+
+        .page-title {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+            color: #111827 !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            font-size: clamp(2rem, 3vw, 2.7rem) !important;
+            letter-spacing: -0.045em !important;
+            margin-bottom: 8px !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-title i,
+        .section-title i,
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(var(--primary-color-rgb), 0.10);
+            color: var(--primary-color) !important;
+            font-size: 18px !important;
+            box-shadow: 0 10px 24px rgba(var(--primary-color-rgb), 0.12);
+        }
+
+        .page-subtitle {
+            margin: 0 !important;
+            max-width: 720px !important;
+            color: #64748b !important;
+            font-size: 1rem !important;
+            line-height: 1.65 !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+            gap: 18px !important;
+        }
+
+        .stat-card,
+        .programs-section,
+        .program-card,
+        .modal {
+            border-radius: 24px !important;
+            border: 1px solid #e5e7eb !important;
+            border-left: 1px solid #e5e7eb !important;
+            background: rgba(255, 255, 255, 0.96) !important;
+            box-shadow: 0 16px 38px rgba(15, 23, 42, 0.065) !important;
+        }
+
+        .stat-card {
+            text-align: left !important;
+            padding: 22px !important;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            column-gap: 15px;
+        }
+
+        .stat-card:hover,
+        .program-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 22px 48px rgba(15, 23, 42, 0.10) !important;
+        }
+
+        .stat-icon {
+            grid-row: span 2;
+            margin-bottom: 0 !important;
+        }
+
+        .stat-number {
+            color: #111827 !important;
+            font-size: 2rem !important;
+            line-height: 1 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .stat-label {
+            color: #64748b !important;
+            font-size: .86rem !important;
+            font-weight: 700 !important;
+        }
+
+        .quick-actions {
+            justify-content: flex-start !important;
+            margin-bottom: 34px !important;
+        }
+
+        .action-btn,
+        .modal-btn,
+        .btn-sm {
+            border-radius: 14px !important;
+            font-weight: 750 !important;
+            letter-spacing: -0.01em;
+        }
+
+        .action-btn {
+            padding: 13px 18px !important;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            box-shadow: 0 12px 26px rgba(var(--primary-color-rgb), 0.22) !important;
+        }
+
+        .action-btn.secondary {
+            background: #ffffff !important;
+            color: var(--primary-color) !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.18) !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        .programs-section {
+            padding: 28px !important;
+            margin-bottom: 26px !important;
+        }
+
+        .section-header {
+            align-items: flex-start !important;
+            margin-bottom: 22px !important;
+        }
+
+        .section-title {
+            color: #111827 !important;
+            font-size: 1.35rem !important;
+            letter-spacing: -0.035em !important;
+        }
+
+        .section-title .badge {
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.14) !important;
+        }
+
+        .filters-container {
+            gap: 10px !important;
+        }
+
+        .search-input,
+        .filter-select,
+        .form-input,
+        .form-select {
+            border-radius: 14px !important;
+            border: 1px solid #dbe3ef !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.035) !important;
+        }
+
+        .search-input:focus,
+        .filter-select:focus,
+        .form-input:focus,
+        .form-select:focus {
+            border-color: rgba(var(--primary-color-rgb), 0.55) !important;
+            box-shadow: 0 0 0 4px rgba(var(--primary-color-rgb), 0.10) !important;
+        }
+
+        .search-icon,
+        .program-destination i,
+        .program-traveler i {
+            color: var(--primary-color) !important;
+        }
+
+        .programs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+            gap: 20px !important;
+        }
+
+        .program-card {
+            overflow: hidden !important;
+        }
+
+        .program-card::before {
+            height: 3px !important;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+
+        .program-card.readonly::before {
+            background: linear-gradient(90deg, rgba(var(--primary-color-rgb), 0.34), rgba(var(--secondary-color-rgb), 0.24)) !important;
+        }
+
+        .program-image {
+            height: 150px !important;
+            background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.92), rgba(var(--secondary-color-rgb), 0.88)) !important;
+        }
+
+        .program-image .placeholder {
+            background: transparent !important;
+        }
+
+        .program-content {
+            padding: 18px !important;
+        }
+
+        .program-title {
+            color: #111827 !important;
+            font-size: 1.08rem !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.02em !important;
+        }
+
+        .program-destination,
+        .program-traveler {
+            color: #64748b !important;
+            font-weight: 600 !important;
+        }
+
+        .program-details {
+            background: #f8fafc !important;
+            border: 1px solid #edf2f7 !important;
+            border-radius: 16px !important;
+            padding: 14px !important;
+        }
+
+        .detail-label {
+            color: #64748b !important;
+        }
+
+        .detail-value {
+            color: #111827 !important;
+            font-weight: 800 !important;
+        }
+
+        .program-actions {
+            flex-wrap: wrap !important;
+        }
+
+        .btn-primary-sm {
+            background: var(--primary-color) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-outline-sm {
+            background: #ffffff !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.16) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-outline-sm:hover {
+            background: rgba(var(--primary-color-rgb), 0.08) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-danger-sm {
+            background: #fff1f2 !important;
+            color: #be123c !important;
+            border: 1px solid #fecdd3 !important;
+        }
+
+        .btn-danger-sm:hover {
+            background: #ffe4e6 !important;
+            color: #9f1239 !important;
+        }
+
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.45) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        .modal {
+            padding: 30px !important;
+            max-width: 560px !important;
+        }
+
+        .modal-title {
+            color: #111827 !important;
+            font-weight: 850 !important;
+            letter-spacing: -0.035em !important;
+        }
+
+        .modal-subtitle,
+        .option-description,
+        .state-description {
+            color: #64748b !important;
+        }
+
+        .modal-option {
+            border: 1px solid #e5e7eb !important;
+            border-radius: 20px !important;
+            background: #ffffff !important;
+        }
+
+        .modal-option:hover,
+        .modal-option.selected {
+            border-color: rgba(var(--primary-color-rgb), 0.24) !important;
+            background: rgba(var(--primary-color-rgb), 0.055) !important;
+        }
+
+        .option-icon {
+            border-radius: 16px !important;
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .modal-option.selected .option-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            color: #ffffff !important;
+        }
+
+        .loading-state,
+        .empty-state,
+        .error-state {
+            background: #f8fafc !important;
+            border: 1px dashed #dbe3ef !important;
+            border-radius: 22px !important;
+            padding: 46px 20px !important;
+        }
+
+        .state-icon {
+            color: var(--primary-color) !important;
+            font-size: 2.8rem !important;
+        }
+
+        .toast {
+            border-radius: 18px !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14) !important;
+        }
+
+        .toast.success { border-left: 4px solid var(--primary-color) !important; }
+        .toast.error { border-left: 4px solid #ef4444 !important; }
+        .toast-content { display: flex; align-items: center; gap: 12px; }
+        .toast-icon { color: var(--primary-color); font-size: 18px; }
+        .toast.error .toast-icon { color: #ef4444; }
+
+        .overlay {
+            background: rgba(15, 23, 42, 0.35) !important;
+            backdrop-filter: blur(3px) !important;
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 20px !important; }
+            .page-header { padding: 24px !important; }
+            .stats-grid { grid-template-columns: 1fr !important; }
+            .programs-section { padding: 20px !important; }
+            .section-header { align-items: stretch !important; }
+        }
+
+
+        /* ===== Corrección de iconografía profesional sin FontAwesome ===== */
+        .ts-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: currentColor;
+            line-height: 1;
+        }
+
+        .ts-icon svg {
+            width: 1em;
+            height: 1em;
+            display: block;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.15;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .page-title .ts-icon,
+        .section-title .ts-icon,
+        .stat-icon.ts-icon {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            border-radius: 16px !important;
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+            font-size: 20px !important;
+            box-shadow: 0 10px 24px rgba(var(--primary-color-rgb), 0.12) !important;
+        }
+
+        .stat-card .stat-icon.ts-icon {
+            grid-row: span 2;
+            margin-bottom: 0 !important;
+        }
+
+        .action-btn .ts-icon,
+        .modal-btn .ts-icon,
+        .program-action .ts-icon,
+        .filter-btn .ts-icon {
+            width: 17px;
+            height: 17px;
+            font-size: 17px;
+        }
+
+        .search-icon.ts-icon {
+            color: #94a3b8 !important;
+        }
+
+        .state-icon.ts-icon {
+            width: 54px !important;
+            height: 54px !important;
+            margin-bottom: 14px !important;
+            border-radius: 18px !important;
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+            font-size: 25px !important;
+        }
+
+        .placeholder .ts-icon {
+            color: var(--primary-color) !important;
+            font-size: 30px !important;
+            opacity: 0.82;
+        }
+
     </style>
 </head>
 
@@ -1296,6 +1759,86 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
 
     <!-- Scripts -->
     <script>
+
+
+        /* Iconos internos TravelSoft: reemplazan FontAwesome para evitar cuadros vacíos */
+        const TS_ICON_SVGS = {
+            route: '<path d="M6 19c2.5 0 2.5-4 5-4s2.5 4 5 4 2.5-4 5-4"></path><circle cx="5" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle><path d="M5 7v3a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V7"></path>',
+            plane: '<path d="M17.8 19.2 16 11l3.5-3.5c1-1 1.3-2.5.6-3.2s-2.2-.4-3.2.6L13.4 8.4 5.2 6.6 4 7.8l6.7 3.1-3.2 3.2-2.1-.4-.9.9 3.1 1.7 1.7 3.1.9-.9-.4-2.1 3.2-3.2 3.1 6.7z"></path>',
+            userEdit: '<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9.5" cy="7" r="4"></circle><path d="M18.5 3.5a2.1 2.1 0 0 1 3 3L16 12l-4 1 1-4z"></path>',
+            users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+            plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+            sync: '<path d="M21 12a9 9 0 0 0-15-6.7L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"></path><path d="M21 21v-5h-5"></path>',
+            search: '<circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>',
+            spinner: '<path d="M21 12a9 9 0 1 1-6.2-8.56"></path>',
+            copy: '<rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>',
+            map: '<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path>',
+            pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle>',
+            user: '<path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle>',
+            eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle>',
+            trash: '<path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>',
+            edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path>',
+            pdf: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h1.5a1.5 1.5 0 0 1 0 3H8v-3z"></path><path d="M13 13v3"></path><path d="M16 13h2"></path><path d="M16 16h1.5"></path>',
+            close: '<path d="M18 6 6 18"></path><path d="M6 6l12 12"></path>',
+            info: '<circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>',
+            external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>',
+            warning: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
+            redo: '<path d="M21 7v6h-6"></path><path d="M21 13a9 9 0 1 1-3-6.7L21 9"></path>',
+            check: '<path d="M20 6 9 17l-5-5"></path>'
+        };
+
+        function tsIconNameFromClass(className) {
+            const c = String(className || '');
+            if (c.includes('fa-route')) return 'route';
+            if (c.includes('fa-plane')) return 'plane';
+            if (c.includes('fa-user-edit')) return 'userEdit';
+            if (c.includes('fa-users')) return 'users';
+            if (c.includes('fa-plus')) return 'plus';
+            if (c.includes('fa-sync')) return 'sync';
+            if (c.includes('fa-search')) return 'search';
+            if (c.includes('fa-spinner')) return 'spinner';
+            if (c.includes('fa-copy')) return 'copy';
+            if (c.includes('fa-map-marked') || c.includes('fa-map')) return 'map';
+            if (c.includes('fa-map-marker')) return 'pin';
+            if (c.includes('fa-user')) return 'user';
+            if (c.includes('fa-eye')) return 'eye';
+            if (c.includes('fa-trash')) return 'trash';
+            if (c.includes('fa-edit')) return 'edit';
+            if (c.includes('fa-file-pdf')) return 'pdf';
+            if (c.includes('fa-times')) return 'close';
+            if (c.includes('fa-info-circle')) return 'info';
+            if (c.includes('fa-external-link-alt')) return 'external';
+            if (c.includes('fa-exclamation-triangle')) return 'warning';
+            if (c.includes('fa-redo')) return 'redo';
+            if (c.includes('fa-check')) return 'check';
+            return 'route';
+        }
+
+        function replaceTsIcons(root = document) {
+            root.querySelectorAll('i.fas, i.fa').forEach((node) => {
+                if (node.dataset.tsIconReady === '1') return;
+                const iconName = tsIconNameFromClass(node.className);
+                const span = document.createElement('span');
+                span.className = String(node.className).replace(/\bfas\b|\bfa\b|\bfa-[^\s]+\b|\bfa-spin\b/g, '').replace(/\s+/g, ' ').trim();
+                span.className = (span.className ? span.className + ' ' : '') + 'ts-icon';
+                span.setAttribute('aria-hidden', 'true');
+                if (node.getAttribute('style')) span.setAttribute('style', node.getAttribute('style'));
+                span.innerHTML = `<svg viewBox="0 0 24 24">${TS_ICON_SVGS[iconName] || TS_ICON_SVGS.route}</svg>`;
+                node.replaceWith(span);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            replaceTsIcons(document);
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) replaceTsIcons(node);
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
         // Configuración global
         const APP_URL = '<?= APP_URL ?>';
         const DEFAULT_LANGUAGE = '<?= $defaultLanguage ?>';
@@ -1332,7 +1875,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         
         // Inicializar al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando página de itinerarios mejorada...');
+            console.log('Iniciando página de itinerarios mejorada...');
             cargarProgramas();
             initializeGoogleTranslate();
         });
@@ -1344,7 +1887,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             const mainContent = document.getElementById('mainContent');
             
             if (!sidebar) {
-                console.error('❌ Sidebar no encontrado con clase .enhanced-sidebar');
+                console.error('Sidebar no encontrado con clase .enhanced-sidebar');
                 return;
             }
             
@@ -1384,7 +1927,7 @@ function crearDesdeCeroRapido() {
         // ============================================================
         
         async function cargarProgramas() {
-            console.log('📥 Cargando programas (míos y otros) con imágenes...');
+            console.log('Cargando programas con imágenes...');
             
             showLoadingState('mios');
             showLoadingState('otros');
@@ -1398,7 +1941,7 @@ function crearDesdeCeroRapido() {
                 }
                 
                 const result = await response.json();
-                console.log('📋 Datos recibidos:', result);
+                console.log('Datos recibidos:', result);
                 
                 if (result.success) {
                     allProgramas = result.data || [];
@@ -1406,9 +1949,9 @@ function crearDesdeCeroRapido() {
                     // Debug de imágenes
                     allProgramas.forEach(programa => {
                         if (programa.foto_portada) {
-                            console.log(`🖼️ Programa ${programa.id} tiene imagen: ${programa.foto_portada}`);
+                            console.log(`Programa ${programa.id} tiene imagen: ${programa.foto_portada}`);
                         } else {
-                            console.log(`📷 Programa ${programa.id} SIN imagen de portada`);
+                            console.log(`Programa ${programa.id} sin imagen de portada`);
                         }
                     });
                     
@@ -1418,13 +1961,13 @@ function crearDesdeCeroRapido() {
                     mostrarProgramas();
                     cargarAutoresEnFiltro();
                     
-                    console.log(`✅ ${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
+                    console.log(`${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
                 } else {
                     throw new Error(result.error || 'Error al cargar programas');
                 }
                 
             } catch (error) {
-                console.error('❌ Error cargando programas:', error);
+                console.error('Error cargando programas:', error);
                 showErrorState('mios', error.message);
                 showErrorState('otros', error.message);
             }
@@ -1437,7 +1980,7 @@ function crearDesdeCeroRapido() {
             misProgramasFiltrados = [...misProgramas];
             otrosProgramasFiltrados = [...otrosProgramas];
             
-            console.log(`📊 Separación: ${misProgramas.length} míos, ${otrosProgramas.length} otros`);
+            console.log(`Separación: ${misProgramas.length} míos, ${otrosProgramas.length} otros`);
         }
 
         function cargarAutoresEnFiltro() {
@@ -1520,7 +2063,7 @@ function crearDesdeCeroRapido() {
             // Validar que la imagen existe y es una URL válida
             const tieneImagen = !!imagenPortada;
             
-            console.log(`🖼️ Programa ${programa.id}: imagen = ${imagenPortada}, válida = ${tieneImagen}`);
+            console.log(`Programa ${programa.id}: imagen = ${imagenPortada}, válida = ${tieneImagen}`);
             
             card.innerHTML = `
                 <div class="program-image">
@@ -1577,7 +2120,7 @@ function crearDesdeCeroRapido() {
                                 </button>
                             ` : ''}
                         ` : `
-                            <!-- MIS PROGRAMAS (editar, ver y ELIMINAR) ✅ -->
+                            <!-- MIS PROGRAMAS (editar, ver y eliminar) -->
                             <a href="<?= APP_URL ?>/programa?id=${programa.id}" class="btn-sm btn-primary-sm">
                                 <i class="fas fa-edit"></i>
                                 Editar
@@ -1586,10 +2129,7 @@ function crearDesdeCeroRapido() {
                                 <i class="fas fa-eye"></i>
                                 Ver
                             </button>
-                            <button class="btn-sm btn-outline-sm" onclick="event.stopPropagation(); abrirBonoReserva(${programa.id})">
-                                <i class="fas fa-file-pdf"></i>
-                                Bono
-                            </button>
+                    
                             <button onclick="event.stopPropagation(); confirmarEliminacion(${programa.id}, '${(programa.titulo_programa || `Viaje a ${programa.destino}`).replace(/'/g, "\\\'")}')" class="btn-sm btn-danger-sm" title="Eliminar mi programa">
                                 <i class="fas fa-trash"></i>
                                 Eliminar
@@ -1608,7 +2148,7 @@ function crearDesdeCeroRapido() {
                 title: '¿Eliminar programa?',
                 message: `¿Estás seguro de eliminar el programa "${programaTitulo}"?`,
                 details: 'Esta acción eliminará TODA la información: días del itinerario, servicios, precios y todo el programa. Esto NO se puede deshacer.',
-                icon: '🗑️',
+                icon: 'delete',
                 confirmText: 'Eliminar programa',
                 cancelText: 'Cancelar'
             });
@@ -1621,7 +2161,7 @@ function crearDesdeCeroRapido() {
         async function eliminarPrograma(programaId) {
             try {
                 const formData = new FormData();
-                formData.append('action', esAdmin ? 'delete_programa_admin' : 'delete_programa'); // ✅ CAMBIO
+                formData.append('action', esAdmin ? 'delete_programa_admin' : 'delete_programa'); // CAMBIO
                 formData.append('programa_id', programaId);
                 
                 const response = await fetch('<?= APP_URL ?>/programa/api', {
@@ -1632,7 +2172,7 @@ function crearDesdeCeroRapido() {
                 const result = await response.json();
                 
                 if (result.success) {
-                    showNotification('✅ Programa eliminado exitosamente', 'success');
+                    showNotification('Programa eliminado exitosamente', 'success');
                     cargarProgramas();
                 } else {
                     showNotification('Error: ' + result.error, 'error');
@@ -1744,7 +2284,7 @@ function crearDesdeCeroRapido() {
 }
             
             actualizarEstadisticas();
-            console.log(`🔍 Filtrado ${tipo}: ${tipo === 'mios' ? misProgramasFiltrados.length : otrosProgramasFiltrados.length} programas`);
+            console.log(`Filtrado ${tipo}: ${tipo === 'mios' ? misProgramasFiltrados.length : otrosProgramasFiltrados.length} programas`);
         }
 
         function actualizarPlaceholderBusqueda(tipo) {
@@ -1775,7 +2315,7 @@ function crearDesdeCeroRapido() {
             document.getElementById('formSeleccionPrograma').classList.remove('show');
             document.getElementById('btnProceder').disabled = true;
             
-            console.log('📝 Modal de creación mostrado');
+            console.log('Modal de creación mostrado');
         }
         
         function cerrarModalCreacion() {
@@ -1802,7 +2342,7 @@ function crearDesdeCeroRapido() {
                 document.getElementById('btnProceder').disabled = false;
             }
             
-            console.log(`📋 Opción seleccionada: ${opcion}`);
+            console.log(`Opción seleccionada: ${opcion}`);
         }
 
         async function procederCreacion() {
@@ -1839,7 +2379,7 @@ function crearDesdeCeroRapido() {
             
             if (result.success) {
                 cerrarModalCreacion();
-                showNotification('✅ Programa duplicado exitosamente', 'success');
+                showNotification('Programa duplicado exitosamente', 'success');
                 await cargarProgramas();
                 
                 // Ir al editor del nuevo programa
@@ -1881,10 +2421,10 @@ function crearDesdeCeroRapido() {
                     const programa = JSON.parse(selectedOption.dataset.programa);
                     preview.innerHTML = `
                         <strong>${programa.titulo_programa || `Viaje a ${programa.destino}`}</strong><br>
-                        📍 ${programa.destino}<br>
-                        👤 ${programa.nombre_viajero} ${programa.apellido_viajero}<br>
-                        👥 ${programa.numero_pasajeros} viajeros<br>
-                        👨‍💼 Creado por: ${programa.user_id == CURRENT_USER_ID ? 'Ti' : programa.created_by_name}
+                        Destino: ${programa.destino}<br>
+                        Viajero: ${programa.nombre_viajero} ${programa.apellido_viajero}<br>
+                        Viajeros: ${programa.numero_pasajeros}<br>
+                        Creado por: ${programa.user_id == CURRENT_USER_ID ? 'Ti' : programa.created_by_name}
                     `;
                     document.getElementById('btnProceder').disabled = false;
                 } else {
@@ -1900,12 +2440,12 @@ function crearDesdeCeroRapido() {
         // ============================================================
         
         function editarPrograma(id) {
-            console.log(`✏️ Editando programa ${id}`);
+            console.log(`Editando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?id=${id}`;
         }
         
         function verDetalles(id) {
-    console.log(`👁️ Viendo detalles del programa ${id}`);
+    console.log(`Viendo detalles del programa ${id}`);
     
     // Abrir en nueva ventana la página de itinerario (preview)
     const url = `<?= APP_URL ?>/itinerary?id=${id}`;
@@ -1933,7 +2473,7 @@ function crearDesdeCeroRapido() {
         ventana.focus();
         
         // Mostrar mensaje de éxito
-        showNotification('📖 Abriendo vista previa del programa...', 'success');
+        showNotification('Abriendo vista previa del programa...', 'success');
     }
 }
 
@@ -1942,7 +2482,7 @@ function crearDesdeCeroRapido() {
 // ============================================================
 
 function verDetallesModal(id) {
-    console.log(`👁️ Viendo detalles del programa ${id} en modal`);
+    console.log(`Viendo detalles del programa ${id} en modal`);
     
     // Crear modal con iframe para mostrar el itinerario
     const modalHtml = `
@@ -2017,7 +2557,7 @@ function abrirEnNuevaVentana(id) {
 }
         
         function copiarPrograma(id) {
-            console.log(`📋 Copiando programa ${id}`);
+            console.log(`Copiando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?copy_from=${id}`;
         }
 
@@ -2104,22 +2644,20 @@ function abrirEnNuevaVentana(id) {
         function showNotification(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            const iconClass = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
             toast.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 20px;">${icon}</span>
+                <div class="toast-content">
+                    <span class="toast-icon"><i class="fas ${iconClass}"></i></span>
                     <span>${message}</span>
                 </div>
             `;
-            
             document.body.appendChild(toast);
-            
             setTimeout(() => toast.classList.add('show'), 100);
-            
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 300);
+                setTimeout(() => {
+                    if (toast.parentNode) document.body.removeChild(toast);
+                }, 300);
             }, 4000);
         }
 
@@ -2177,7 +2715,7 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         
         function exportarProgramas() {
-            console.log('📤 Exportando programas...');
+            console.log('Exportando programas...');
             
             if (allProgramas.length === 0) {
                 showNotification('No hay programas para exportar', 'error');
@@ -2210,7 +2748,7 @@ function abrirEnNuevaVentana(id) {
             link.click();
             document.body.removeChild(link);
             
-            showNotification('✅ Programas exportados exitosamente', 'success');
+            showNotification('Programas exportados exitosamente', 'success');
         }
 
         function formatDate(dateString) {
@@ -2301,7 +2839,7 @@ function abrirEnNuevaVentana(id) {
             }
         });
         
-        console.log('✅ Script de itinerarios mejorado cargado completamente');
+        console.log('Script de itinerarios mejorado cargado completamente');
 
 
     function abrirBonoReserva(programaId) {
