@@ -46,9 +46,10 @@ try {
         "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
                 DATE_FORMAT(ps.fecha_llegada, '%d/%m/%Y') as fecha_llegada_formatted,
                 DATE_FORMAT(ps.fecha_salida, '%d/%m/%Y') as fecha_salida_formatted,
-                DATEDIFF(ps.fecha_salida, ps.fecha_llegada) as duracion_dias
-         FROM programa_solicitudes ps 
-         LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id 
+                DATEDIFF(ps.fecha_salida, ps.fecha_llegada) as duracion_dias,
+                (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
+         FROM programa_solicitudes ps
+         LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
          WHERE ps.id = ?",
         [$programa_id]
     );
@@ -342,7 +343,8 @@ $num_dias    = $num_noches + 1;
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_pasajeros = $programa['numero_pasajeros'];
+$num_pasajeros = (int) ($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 1);
+if ($num_pasajeros <= 0) $num_pasajeros = 1;
 
 
 // Paleta configurada por el usuario / agencia.
@@ -5457,11 +5459,6 @@ if ($programa['fecha_llegada']) {
                                                                             · <?= htmlspecialchars($servicio['acomodacion_descripcion']) ?>
                                                                         <?php endif; ?>
                                                                     </span>
-                                                                </div>
-                                                            <?php elseif ($servicio['tipo_servicio'] === 'alojamiento'): ?>
-                                                                <div class="accommodation-detail muted">
-                                                                    <i class="fas fa-bed"></i>
-                                                                    <span>Acomodación por definir</span>
                                                                 </div>
                                                             <?php endif; ?>
 

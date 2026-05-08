@@ -86,14 +86,17 @@ class ProgramaAPI {
             }
 
             $programas = $this->db->fetchAll(
-                "SELECT ps.*, 
+                "SELECT ps.*,
                         u.full_name as created_by_name,
                         pp.titulo_programa,
                         pp.foto_portada,
                         pp.idioma_predeterminado,
                         (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
-                         FROM programa_dias pd 
-                         WHERE pd.solicitud_id = ps.id) as total_dias_real
+                         FROM programa_dias pd
+                         WHERE pd.solicitud_id = ps.id) as total_dias_real,
+                        (SELECT COUNT(*)
+                         FROM viajeros_solicitud vs
+                         WHERE vs.solicitud_id = ps.id) as viajeros_count
                 FROM programa_solicitudes ps
                 LEFT JOIN users u ON ps.user_id = u.id
                 LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id

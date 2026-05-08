@@ -163,7 +163,8 @@ try {
     $db = Database::getInstance();
 
     $programa = $db->fetch(
-        "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado
+        "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
+                (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
          FROM programa_solicitudes ps
          LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
          WHERE ps.id = ?",
@@ -214,7 +215,7 @@ $imagen_portada = preview_asset_url(
     APP_URL . '/assets/images/default-travel.jpg'
 );
 
-$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
+$num_pasajeros = (int) ($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 1);
 if ($num_pasajeros <= 0)
     $num_pasajeros = 1;
 

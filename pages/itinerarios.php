@@ -2101,7 +2101,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Viajeros</div>
-                            <div class="detail-value">${programa.numero_pasajeros}</div>
+                            <div class="detail-value">${programa.viajeros_count}</div>
                         </div>
                     </div>
                     
