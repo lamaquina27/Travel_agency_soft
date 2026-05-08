@@ -67,7 +67,6 @@ class ConfigManager {
                 'agent_primary_color' => self::$agenciaData['agent_primary_color'] ?? '#667eea',
                 'agent_secondary_color' => self::$agenciaData['agent_secondary_color'] ?? '#764ba2',
                 'default_language' => 'es',
-                'session_timeout' => 120,
                 'max_file_size' => 10
             ];
             
@@ -92,7 +91,6 @@ class ConfigManager {
             'login_bg_color' => '#667eea',
             'login_secondary_color' => '#764ba2',
             'default_language' => 'es',
-            'session_timeout' => 60,
             'max_file_size' => 10,
             'backup_frequency' => 'weekly',
             'maintenance_mode' => 0
@@ -133,10 +131,6 @@ class ConfigManager {
     
     public static function getDefaultLanguage() {
         return self::get('default_language') ?: 'es';
-    }
-    
-    public static function getSessionTimeout() {
-        return (int)self::get('session_timeout') ?: 60;
     }
     
     public static function getColorsForRole($role) {

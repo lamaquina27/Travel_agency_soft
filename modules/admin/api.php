@@ -722,7 +722,7 @@ private function getConfiguration() {
             'admin_primary_color', 'admin_secondary_color',
             'agent_primary_color', 'agent_secondary_color',
             'login_bg_color', 'login_secondary_color',
-            'default_language', 'session_timeout', 'max_file_size',
+            'default_language', 'max_file_size',
             'backup_frequency', 'maintenance_mode'
         ];
         
@@ -736,9 +736,6 @@ private function getConfiguration() {
         // ✅ CONVERSIÓN IMPORTANTE
         if (isset($configData['maintenance_mode'])) {
             $configData['maintenance_mode'] = (int)$configData['maintenance_mode'];
-        }
-        if (isset($configData['session_timeout'])) {
-            $configData['session_timeout'] = (int)$configData['session_timeout'];
         }
         if (isset($configData['max_file_size'])) {
             $configData['max_file_size'] = (int)$configData['max_file_size'];
@@ -762,10 +759,6 @@ private function getConfiguration() {
         }
         
         // Validar números
-        if (isset($data['session_timeout']) && ((int)$data['session_timeout'] < 5 || (int)$data['session_timeout'] > 480)) {
-            throw new Exception('El tiempo de sesión debe estar entre 5 y 480 minutos');
-        }
-        
         if (isset($data['max_file_size']) && ((int)$data['max_file_size'] < 1 || (int)$data['max_file_size'] > 100)) {
             throw new Exception('El tamaño máximo de archivo debe estar entre 1 y 100 MB');
         }

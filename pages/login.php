@@ -486,13 +486,6 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
             <form action="<?= APP_URL ?>/auth/login" method="POST" id="loginForm" class="login-form">
                 <h1 class="form-title" data-translate="form_title">Por favor inicia sesión</h1>
 
-                <?php if (isset($_SESSION['session_expired'])): ?>
-                    <div class="message session-expired">
-                        <span data-translate="session_expired">Tu sesión ha expirado por inactividad. Por favor, inicia sesión nuevamente.</span>
-                    </div>
-                    <?php unset($_SESSION['session_expired']); ?>
-                <?php endif; ?>
-
                 <div class="form-group">
                     <label for="email" data-translate="email_label">Correo electrónico</label>
                     <input

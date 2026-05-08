@@ -388,13 +388,6 @@ if (!function_exists('adminConfigIcon')) {
                     
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="session_timeout"><span class="field-icon"><?= adminConfigIcon('clock') ?></span>Tiempo de Sesión (minutos)</label>
-                            <input type="number" id="session_timeout" name="session_timeout" 
-                                   value="<?= $config['session_timeout'] ?>" min="15" max="480" placeholder="60">
-                            <small style="color: #718096;">Tiempo antes de cerrar sesión automáticamente (15-480 min)</small>
-                        </div>
-
-                        <div class="form-group">
                             <label for="maintenance_mode"><span class="field-icon"><?= adminConfigIcon('lock') ?></span>Modo Mantenimiento</label>
                             <select id="maintenance_mode" name="maintenance_mode">
                                 <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>Desactivado</option>
