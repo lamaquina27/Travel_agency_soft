@@ -2199,11 +2199,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             right: 12px !important;
             padding: 6px 10px !important;
             border-radius: 999px !important;
-            background: rgba(255,255,255,0.92) !important;
+            background: rgba(255, 255, 255, 0.92) !important;
             color: var(--primary-color) !important;
             font-size: 11px !important;
             font-weight: 800 !important;
-            box-shadow: 0 8px 20px rgba(15,23,42,0.12) !important;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12) !important;
         }
 
         .card-actions {
@@ -2309,7 +2309,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         .close-btn {
-            background: rgba(255,255,255,0.18) !important;
+            background: rgba(255, 255, 255, 0.18) !important;
             color: #ffffff !important;
             border-radius: 14px !important;
         }
@@ -2329,6 +2329,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         @media (max-width: 1024px) {
+
             .tabs-nav,
             .filters-section {
                 grid-template-columns: 1fr !important;
@@ -2338,7 +2339,6 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 padding: 20px !important;
             }
         }
-
     </style>
     <script src="<?= APP_URL ?>/assets/js/ubicacion-search-widget.js"></script>
 </head>
@@ -2376,7 +2376,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <option value="fr">Français</option>
                     <option value="pt">Português</option>
                 </select>
-                <button class="add-btn" onclick="openModal('create')"><span class="btn-icon-svg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span>Agregar nuevo</span></button>
+                <button class="add-btn" onclick="openModal('create')"><span class="btn-icon-svg" aria-hidden="true"><svg
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg></span><span>Agregar nuevo</span></button>
             </div>
 
             <!-- Content Grid -->
@@ -2386,7 +2389,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             <!-- Empty State -->
             <div class="empty-state" id="emptyState" style="display: none;">
-                <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg></div>
+                <div class="empty-state-icon"><svg viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
+                    </svg></div>
                 <h3>No hay recursos disponibles</h3>
                 <p>Comienza agregando tu primer recurso haciendo clic en "Agregar Nuevo"</p>
             </div>
@@ -4075,16 +4081,16 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     alert(result.message || 'Operación exitosa');
                     closeModal();
                     loadResources();
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error al guardar: ' + error.message);
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al guardar: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
 
-            });
+        });
 
         function setupImagePreviews() {
             console.log(' Configurando previews de imágenes...');
@@ -4368,8 +4374,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <div class="textarea-with-counter">
                     <textarea id="descripcion" name="descripcion" rows="4" 
                         placeholder="Describe las actividades y experiencias de este día..."
-                        maxlength="1500" data-max-chars="1500"></textarea>
-                    <div class="char-counter" id="descripcion-counter">0/1500</div>
+                        maxlength="3000" data-max-chars="3000"></textarea>
+                    <div class="char-counter" id="descripcion-counter">0/3000</div>
                 </div>
             </div>
 
@@ -4457,8 +4463,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <div class="textarea-with-counter">
                         <textarea id="descripcion" name="descripcion" required 
                                 placeholder="Describe el alojamiento..."
-                                maxlength="1500"></textarea>
-                        <div class="char-counter" id="descripcion-counter">0/1500</div>
+                                maxlength="3000"></textarea>
+                        <div class="char-counter" id="descripcion-counter">0/3000</div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -4513,8 +4519,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <div class="textarea-with-counter">
                         <textarea id="descripcion" name="descripcion" required 
                                 placeholder="Describe la actividad..."
-                                maxlength="1500"></textarea>
-                        <div class="char-counter" id="descripcion-counter">0/1500</div>
+                                maxlength="30000"></textarea>
+                        <div class="char-counter" id="descripcion-counter">0/3000</div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -4594,8 +4600,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     <div class="textarea-with-counter">
                         <textarea id="descripcion" name="descripcion" 
                                 placeholder="Detalles adicionales del transporte..."
-                                maxlength="1500"></textarea>
-                        <div class="char-counter" id="descripcion-counter">0/1500</div>
+                                maxlength="3000"></textarea>
+                        <div class="char-counter" id="descripcion-counter">0/3000</div>
                     </div>
                 </div>
             `;
@@ -4765,7 +4771,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 descripcion.oninput = function () {
                     const counter = document.getElementById('descripcion-counter');
                     if (counter) {
-                        counter.textContent = `${this.value.length}/1500`;
+                        counter.textContent = `${this.value.length}/3000`;
                     }
                 };
             }
@@ -5648,7 +5654,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 const descripcionCounter = document.getElementById('descripcion-counter');
 
                 if (descripcion && descripcionCounter) {
-                    configurarContador(descripcion, descripcionCounter, 1500);
+                    configurarContador(descripcion, descripcionCounter, 3000);
                     console.log(' Contador de descripción configurado');
                 }
 
@@ -6639,20 +6645,20 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 function updateDescripcionCounter() {
                     const length = descripcionField.value.length;
-                    descripcionCounter.textContent = `${length}/1500`;
+                    descripcionCounter.textContent = `${length}/3000`;
 
                     // Limpiar clases
                     descripcionCounter.className = 'char-counter';
 
                     // Agregar clase según porcentaje
-                    const percentage = (length / 1500) * 100;
+                    const percentage = (length / 3000) * 100;
                     if (percentage >= 100) {
                         descripcionCounter.classList.add('danger');
                     } else if (percentage >= 80) {
                         descripcionCounter.classList.add('warning');
                     }
 
-                    console.log(`Descripción: ${length}/1500 caracteres`);
+                    console.log(`Descripción: ${length}/3000 caracteres`);
                 }
 
                 // Eventos múltiples para asegurar que funcione
@@ -7081,7 +7087,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 currentTab: window.currentTab,
                 activeModals: document.querySelectorAll('.modal.show').length
             });
-        }; si no existe
+        }; //si no existe
         if (!document.getElementById('modal-animations')) {
             const style = document.createElement('style');
             style.id = 'modal-animations';
