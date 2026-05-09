@@ -2,4 +2,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/travelag/public_html/
-    - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' ./ $DEPLOYPATH
+    - /bin/cp -a ./ $DEPLOYPATH
