@@ -892,18 +892,6 @@ class UIComponents {
                 </div>
             </div>
         </div>
-        <script>
-        (function() {
-            setInterval(async function() {
-                try {
-                    const res = await fetch("' . APP_URL . '/auth/ping");
-                    if (res.status === 401) {
-                        alert("Tu sesión ha expirado. Serás redirigido al login.");
-                        window.location.href = "' . APP_URL . '/login";
-                    }
-                } catch(e) {}
-            }, 4 * 60 * 1000);
-        })();
-        </script>';
+';
     }
 }

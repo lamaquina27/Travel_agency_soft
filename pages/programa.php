@@ -1702,6 +1702,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
         .price-input-with-icon {
             padding-left: 35px !important;
+            margin-left: 32px !important;
         }
 
         .btn {
@@ -8103,17 +8104,17 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 const newSearchInput = searchInput.cloneNode(true);
                 searchInput.parentNode.replaceChild(newSearchInput, searchInput);
 
-                console.log('🔍 Configurando búsqueda de días con soporte multiidioma...');
 
                 newSearchInput.addEventListener('input', function (e) {
-                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const searchTerm = e.target.value.toLowerCase().split(/\s+/);
 
-                    console.log('🔎 Buscando:', searchTerm);
+
 
                     const grid = document.getElementById('biblioteca-dias-grid');
                     if (!grid) return;
 
                     const items = grid.querySelectorAll('.biblioteca-item');
+
                     let visibleCount = 0;
 
                     if (searchTerm === '') {
@@ -8121,17 +8122,16 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         items.forEach(item => {
                             item.style.display = 'block';
                         });
-                        console.log(`✅ Mostrando todos los días (${items.length})`);
                         return;
                     }
 
                     // Filtrar por el texto VISIBLE en cada tarjeta
                     items.forEach(item => {
                         // Obtener TODO el texto visible de la tarjeta (traducido o no)
-                        const itemText = item.innerText.toLowerCase();
+                        const itemText = item.querySelector('h4').innerText.toLowerCase();
 
                         // Verificar si el término de búsqueda está en el texto visible
-                        if (itemText.includes(searchTerm)) {
+                        if (searchTerm.every(palabra => itemText.includes(palabra))) {
                             item.style.display = 'block';
                             visibleCount++;
                         } else {
@@ -8139,7 +8139,6 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         }
                     });
 
-                    console.log(`✅ Mostrando ${visibleCount} de ${items.length} días`);
 
                     // Mostrar mensaje si no hay resultados
                     let noResultsMsg = grid.querySelector('.no-results-message');

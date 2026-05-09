@@ -65,43 +65,11 @@ class App {
 
     private static function startSession() {
         if (session_status() === PHP_SESSION_NONE) {
-            // Configurar timeout de sesión desde la configuración
-            try {
-                $sessionTimeout = ConfigManager::getSessionTimeout();
-                ini_set('session.gc_maxlifetime', $sessionTimeout * 60);
-                session_set_cookie_params($sessionTimeout * 60);
-            } catch(Exception $e) {
-                // Usar valor por defecto
-                ini_set('session.gc_maxlifetime', 43200);
-                session_set_cookie_params(43200);
-            }
-            
+            // Sesión sin expiración por inactividad: 1 año
+            ini_set('session.gc_maxlifetime', 31536000);
+            session_set_cookie_params(31536000);
             session_start();
-            
-            // Verificar timeout de sesión
-            self::checkSessionTimeout();
         }
-    }
-    
-    private static function checkSessionTimeout() {
-        if (isset($_SESSION['last_activity'])) {
-            $sessionTimeout = 43200; // Default 1 hour
-            try {
-                $sessionTimeout = ConfigManager::getSessionTimeout() * 60;
-            } catch(Exception $e) {
-                // Usar valor por defecto
-            }
-            
-            if (time() - $_SESSION['last_activity'] > $sessionTimeout) {
-                // Sesión expirada
-                session_unset();
-                session_destroy();
-                session_start();
-                $_SESSION['session_expired'] = true;
-            }
-        }
-        
-        $_SESSION['last_activity'] = time();
     }
 
     private static function setTimezone() {
@@ -397,15 +365,6 @@ public static function getUser() {
                     'secondary' => '#764ba2'
                 ];
             }
-        }
-    }
-
-    public static function getSessionTimeout() {
-        try {
-            ConfigManager::init();
-            return ConfigManager::getSessionTimeout();
-        } catch(Exception $e) {
-            return 60;
         }
     }
 

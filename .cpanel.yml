@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 ---
 deployment:
   tasks:
     - export DEPLOYPATH=/home/travelag/public_html/
     - /bin/cp -R * $DEPLOYPATH
+=======
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/travelag/public_html/
+    - /bin/cp -R * $DEPLOYPATH
+>>>>>>> ae5c9f2527f26358eed9ad833c7fa19357b1bf63

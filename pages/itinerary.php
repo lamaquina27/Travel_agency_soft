@@ -46,9 +46,10 @@ try {
         "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
                 DATE_FORMAT(ps.fecha_llegada, '%d/%m/%Y') as fecha_llegada_formatted,
                 DATE_FORMAT(ps.fecha_salida, '%d/%m/%Y') as fecha_salida_formatted,
-                DATEDIFF(ps.fecha_salida, ps.fecha_llegada) as duracion_dias
-         FROM programa_solicitudes ps 
-         LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id 
+                DATEDIFF(ps.fecha_salida, ps.fecha_llegada) as duracion_dias,
+                (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
+         FROM programa_solicitudes ps
+         LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
          WHERE ps.id = ?",
         [$programa_id]
     );
@@ -328,23 +329,22 @@ if ($_foto_raw) {
 }
 
 
-// Calcular duración ------------------------- También se movió para evitar error de no inicialización
 // Calcular duración real basada en los días del programa
-$duracion_dias = 0;
+$num_noches = 0;
 foreach ($dias as $dia) {
-    $duracion_estancia = intval($dia['duracion_estancia']) ?: 1;
-    $duracion_dias += $duracion_estancia;
+    $num_noches += intval($dia['duracion_estancia']) ?: 1;
 }
 
-// Si no hay días en el programa, usar el conteo de días
-if ($duracion_dias == 0) {
-    $duracion_dias = count($dias);
+if ($num_noches == 0) {
+    $num_noches = count($dias);
 }
 
+$num_dias    = $num_noches + 1;
+$duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_dias = $duracion_dias;
-$num_pasajeros = $programa['numero_pasajeros'];
+$num_pasajeros = (int) ($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 1);
+if ($num_pasajeros <= 0) $num_pasajeros = 1;
 
 
 // Paleta configurada por el usuario / agencia.
@@ -1510,8 +1510,8 @@ if ($programa['fecha_llegada']) {
 
         .simple-modal-content {
             position: relative;
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 100%;
+            max-height: 100%;
             text-align: center;
         }
 
@@ -4206,7 +4206,7 @@ if ($programa['fecha_llegada']) {
 
         .day-images {
             display: grid !important;
-            grid-template-columns: 1.4fr .8fr .8fr !important;
+            grid-template-columns: 1.4fr 1fr !important;
             gap: 8px !important;
             padding: 10px !important;
             background: var(--ts-surface) !important;
@@ -4949,8 +4949,8 @@ if ($programa['fecha_llegada']) {
 
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <span class="hero-stat-number"><?= $duracion_dias ?></span>
-                    <span class="hero-stat-label"><?= $duracion_dias == 1 ? 'Noche' : 'Noches' ?></span>
+                    <span class="hero-stat-number"><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
+                    <span class="hero-stat-label">Duración</span>
                 </div>
                 <div class="hero-stat">
                     <span class="hero-stat-number"><?= $num_pasajeros ?></span>
@@ -5024,7 +5024,7 @@ if ($programa['fecha_llegada']) {
                             </div>
                             <div class="detail-info">
                                 <h4>Duración</h4>
-                                <p><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'noche increíble' : 'noches' ?></p>
+                                <p><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></p>
                             </div>
                         </div>
                     </div>
@@ -5073,7 +5073,7 @@ if ($programa['fecha_llegada']) {
                             </div>
                             <div class="detail-info">
                                 <h4>Duración</h4>
-                                <p><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'noche' : 'noches' ?> de aventura</p>
+                                <p><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?> de aventura</p>
                             </div>
                         </div>
 
@@ -5459,11 +5459,6 @@ if ($programa['fecha_llegada']) {
                                                                             · <?= htmlspecialchars($servicio['acomodacion_descripcion']) ?>
                                                                         <?php endif; ?>
                                                                     </span>
-                                                                </div>
-                                                            <?php elseif ($servicio['tipo_servicio'] === 'alojamiento'): ?>
-                                                                <div class="accommodation-detail muted">
-                                                                    <i class="fas fa-bed"></i>
-                                                                    <span>Acomodación por definir</span>
                                                                 </div>
                                                             <?php endif; ?>
 
@@ -5902,7 +5897,9 @@ if ($programa['fecha_llegada']) {
                 <?php endif; ?>
 
                 <?php if (!empty($programa_id)): ?>
-                    <a href="#" class="btn btn-outline" onclick="downloadItinerary()">
+                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int)$programa_id ?><?= $is_public ? '&public=1' : '' ?>" 
+                    class="btn btn-outline" 
+                    target="_blank">
                         <i class="fas fa-download"></i>
                         Descargar PDF
                     </a>

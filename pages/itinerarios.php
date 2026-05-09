@@ -2039,16 +2039,21 @@ function crearDesdeCeroRapido() {
             
             // Calcular duración
             let duracion = 'N/A';
-            
-            // Primero intentar con total_dias_real (más confiable)
+
             if (programa.total_dias_real && parseInt(programa.total_dias_real) > 0) {
-                const dias = parseInt(programa.total_dias_real);
-                duracion = `${dias} ${dias === 1 ? 'día' : 'días'}`;
+                const noches = parseInt(programa.total_dias_real);
+                const dias   = noches + 1;
+                duracion = `${dias} ${dias === 1 ? 'día' : 'días'} / ${noches} ${noches === 1 ? 'noche' : 'noches'}`;
             } else if (programa.fecha_llegada && programa.fecha_salida) {
                 const llegada = new Date(programa.fecha_llegada + 'T00:00:00');
-                const salida = new Date(programa.fecha_salida + 'T00:00:00');
-                const dias = Math.round((salida - llegada) / (1000 * 60 * 60 * 24));
-                duracion = dias > 0 ? `${dias} ${dias === 1 ? 'día' : 'días'}` : '1 día';
+                const salida  = new Date(programa.fecha_salida  + 'T00:00:00');
+                const noches  = Math.round((salida - llegada) / (1000 * 60 * 60 * 24));
+                if (noches > 0) {
+                    const dias = noches + 1;
+                    duracion = `${dias} ${dias === 1 ? 'día' : 'días'} / ${noches} ${noches === 1 ? 'noche' : 'noches'}`;
+                } else {
+                    duracion = '1 día';
+                }
             }
             
             
@@ -2096,7 +2101,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Viajeros</div>
-                            <div class="detail-value">${programa.numero_pasajeros}</div>
+                            <div class="detail-value">${programa.viajeros_count}</div>
                         </div>
                     </div>
                     

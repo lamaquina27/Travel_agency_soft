@@ -163,7 +163,8 @@ try {
     $db = Database::getInstance();
 
     $programa = $db->fetch(
-        "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado
+        "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
+                (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
          FROM programa_solicitudes ps
          LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
          WHERE ps.id = ?",
@@ -189,14 +190,15 @@ try {
     exit;
 }
 
-$duracion_dias = 0;
+$num_noches = 0;
 foreach ($dias as $dia) {
     $duracion_estancia = intval($dia['duracion_estancia'] ?? 1) ?: 1;
-    $duracion_dias += $duracion_estancia;
+    $num_noches += $duracion_estancia;
 }
-if ($duracion_dias === 0) {
-    $duracion_dias = count($dias);
+if ($num_noches === 0) {
+    $num_noches = count($dias);
 }
+$duracion_dias = $num_noches + 1;
 
 $destino = $programa['destino'] ?? 'tu destino';
 $titulo_programa = $programa['titulo_programa'] ?: 'Mi viaje a ' . $destino;
@@ -213,7 +215,7 @@ $imagen_portada = preview_asset_url(
     APP_URL . '/assets/images/default-travel.jpg'
 );
 
-$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
+$num_pasajeros = (int) ($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 1);
 if ($num_pasajeros <= 0)
     $num_pasajeros = 1;
 
@@ -222,7 +224,7 @@ $fecha_fin_formatted = '';
 if (!empty($programa['fecha_llegada'])) {
     try {
         $fecha_fin = new DateTime($programa['fecha_llegada']);
-        $fecha_fin->add(new DateInterval('P' . max($duracion_dias, 1) . 'D'));
+        $fecha_fin->add(new DateInterval('P' . max($num_noches, 1) . 'D'));
         $fecha_fin_formatted = preview_format_date($fecha_fin->format('Y-m-d'));
     } catch (Throwable $e) {
         $fecha_fin_formatted = '';
@@ -641,7 +643,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
                 <div class="facts">
                     <div class="fact">
                         <i class="fas fa-calendar-days"></i>
-                        <span><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'día' : 'días' ?> de viaje</span>
+                        <span><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'día' : 'días' ?> / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
                     </div>
 
                     <div class="fact">
