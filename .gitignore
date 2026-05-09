@@ -24,7 +24,7 @@ database/travel_agency*.sql
 
 # Dependencias
 node_modules/
-vendor/
+#vendor/
 
 # Configuración local (NUNCA commitear credenciales)
 .env
