@@ -164,9 +164,15 @@ try {
 
     $programa = $db->fetch(
         "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
+                pr.cantidad_adultos,
+                pr.cantidad_ninos,
+                (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
+                 FROM programa_dias pd
+                 WHERE pd.solicitud_id = ps.id) as total_dias_real,
                 (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
          FROM programa_solicitudes ps
          LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
+         LEFT JOIN programa_precios pr ON ps.id = pr.solicitud_id
          WHERE ps.id = ?",
         [$programa_id]
     );
@@ -215,9 +221,14 @@ $imagen_portada = preview_asset_url(
     APP_URL . '/assets/images/default-travel.jpg'
 );
 
-$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
-if ($num_pasajeros <= 0)
-    $num_pasajeros = 1;
+$num_pasajeros = (int)($programa['cantidad_adultos'] ?? 0) + (int)($programa['cantidad_ninos'] ?? 0);
+if ($num_pasajeros <= 0) {
+    $num_pasajeros = (int)($programa['viajeros_count'] ?? 0);
+}
+if ($num_pasajeros <= 0) {
+    $num_pasajeros = (int)($programa['numero_pasajeros'] ?? 1);
+}
+if ($num_pasajeros <= 0) $num_pasajeros = 1;
 
 $fecha_inicio_formatted = preview_format_date($programa['fecha_llegada'] ?? null);
 $fecha_fin_formatted = '';

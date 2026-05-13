@@ -43,13 +43,20 @@ try {
 
     // Obtener datos básicos del programa
     $programa = $db->fetch(
-        "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
+        "SELECT ps.*, 
+                pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
+                pr.cantidad_adultos,
+                pr.cantidad_ninos,
                 DATE_FORMAT(ps.fecha_llegada, '%d/%m/%Y') as fecha_llegada_formatted,
                 DATE_FORMAT(ps.fecha_salida, '%d/%m/%Y') as fecha_salida_formatted,
                 DATEDIFF(ps.fecha_salida, ps.fecha_llegada) as duracion_dias,
+                (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
+                 FROM programa_dias pd
+                 WHERE pd.solicitud_id = ps.id) as total_dias_real,
                 (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
          FROM programa_solicitudes ps
          LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
+         LEFT JOIN programa_precios pr ON ps.id = pr.solicitud_id
          WHERE ps.id = ?",
         [$programa_id]
     );
@@ -344,9 +351,14 @@ $num_noches = $num_dias - 1;
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
-if ($num_pasajeros <= 0)
-    $num_pasajeros = 1;
+$num_pasajeros = (int)($programa['cantidad_adultos'] ?? 0) + (int)($programa['cantidad_ninos'] ?? 0);
+if ($num_pasajeros <= 0) {
+    $num_pasajeros = (int)($programa['viajeros_count'] ?? 0);
+}
+if ($num_pasajeros <= 0) {
+    $num_pasajeros = (int)($programa['numero_pasajeros'] ?? 1);
+}
+if ($num_pasajeros <= 0) $num_pasajeros = 1;
 
 
 // Paleta configurada por el usuario / agencia.
