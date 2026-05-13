@@ -23,11 +23,12 @@ $companyName = ConfigManager::getCompanyName();
 $logo = ConfigManager::getLogo();
 $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
 
-function ts_hex_to_rgb_string($hex) {
-    $hex = trim((string)$hex);
+function ts_hex_to_rgb_string($hex)
+{
+    $hex = trim((string) $hex);
     $hex = ltrim($hex, '#');
     if (strlen($hex) === 3) {
-        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
     }
     if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
         return '59, 130, 246';
@@ -41,25 +42,38 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Programas - <?= htmlspecialchars($companyName) ?></title>
-    
+
     <!-- Incluir estilos de componentes -->
     <?= UIComponents::getComponentStyles() ?>
-    
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary-color: <?= $userColors['primary'] ?>;
-            --secondary-color: <?= $userColors['secondary'] ?>;
-            --primary-color-rgb: <?= $primaryRgb ?>;
-            --secondary-color-rgb: <?= $secondaryRgb ?>;
+            --primary-color:
+                <?= $userColors['primary'] ?>
+            ;
+            --secondary-color:
+                <?= $userColors['secondary'] ?>
+            ;
+            --primary-color-rgb:
+                <?= $primaryRgb ?>
+            ;
+            --secondary-color-rgb:
+                <?= $secondaryRgb ?>
+            ;
             --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -279,12 +293,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         /* Ocultar banner azul */
-        .goog-te-banner-frame.skiptranslate { 
-            display: none !important; 
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
         }
 
-        body { 
-            top: 0px !important; 
+        body {
+            top: 0px !important;
         }
 
         /* Responsive */
@@ -293,27 +307,28 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 top: 10px;
                 right: 10px;
             }
-            
+
             #google_translate_element {
                 padding: 6px 10px;
             }
-            
+
             .VIpgJd-ZVi9od-xl07Ob-lTBxed {
                 font-size: 12px !important;
                 padding: 3px 6px !important;
             }
-            
+
             .goog-te-menu2-item {
                 font-size: 12px !important;
                 padding: 8px 14px !important;
             }
         }
+
         .VIpgJd-ZVi9od-ORHb-OEVmcd {
             left: 0;
             display: none !important;
             top: 0;
         }
-        
+
         .goog-te-gadget img {
             vertical-align: middle;
             border: none;
@@ -595,7 +610,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             overflow: hidden;
         }
 
-       
+
 
 
         .program-image img {
@@ -621,12 +636,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         /* Fallback para imágenes que no cargan */
-        .program-image img[src=""], 
+        .program-image img[src=""],
         .program-image img:not([src]) {
             display: none;
         }
 
-        .program-image img[src=""]:after, 
+        .program-image img[src=""]:after,
         .program-image img:not([src]):after {
             content: '';
             position: absolute;
@@ -734,16 +749,17 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             background: var(--primary-color);
             color: white;
         }
-        .btn-danger-sm {
-    background: #ef4444;
-    color: white;
-}
 
-.btn-danger-sm:hover {
-    background: #dc2626;
-    color: white;
-    transform: translateY(-2px);
-}
+        .btn-danger-sm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger-sm:hover {
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
+        }
 
         .btn-primary-sm:hover {
             background: var(--secondary-color);
@@ -908,7 +924,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             color: #374151;
         }
 
-        .form-input, .form-select {
+        .form-input,
+        .form-select {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e2e8f0;
@@ -917,7 +934,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             transition: all 0.3s ease;
         }
 
-        .form-input:focus, .form-select:focus {
+        .form-input:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -960,7 +978,9 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         /* Estados de carga */
-        .loading-state, .empty-state, .error-state {
+        .loading-state,
+        .empty-state,
+        .error-state {
             text-align: center;
             padding: 60px 20px;
             color: #718096;
@@ -1000,8 +1020,13 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Overlay */
@@ -1096,33 +1121,34 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 padding: 20px;
             }
         }
+
         /* Toast notifications */
-.toast {
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    padding: 20px 25px;
-    border-radius: 15px;
-    color: white;
-    z-index: 20000;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
-    min-width: 300px;
-}
+        .toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            padding: 20px 25px;
+            border-radius: 15px;
+            color: white;
+            z-index: 20000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            min-width: 300px;
+        }
 
-.toast.show {
-    transform: translateX(0);
-}
+        .toast.show {
+            transform: translateX(0);
+        }
 
-.toast.success {
-    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-}
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        }
 
-.toast.error {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
 
         /* ===== Rediseño limpio TravelSoft - Itinerarios ===== */
         body {
@@ -1481,11 +1507,28 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14) !important;
         }
 
-        .toast.success { border-left: 4px solid var(--primary-color) !important; }
-        .toast.error { border-left: 4px solid #ef4444 !important; }
-        .toast-content { display: flex; align-items: center; gap: 12px; }
-        .toast-icon { color: var(--primary-color); font-size: 18px; }
-        .toast.error .toast-icon { color: #ef4444; }
+        .toast.success {
+            border-left: 4px solid var(--primary-color) !important;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444 !important;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .toast.error .toast-icon {
+            color: #ef4444;
+        }
 
         .overlay {
             background: rgba(15, 23, 42, 0.35) !important;
@@ -1493,11 +1536,25 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         @media (max-width: 768px) {
-            .main-content { padding: 20px !important; }
-            .page-header { padding: 24px !important; }
-            .stats-grid { grid-template-columns: 1fr !important; }
-            .programs-section { padding: 20px !important; }
-            .section-header { align-items: stretch !important; }
+            .main-content {
+                padding: 20px !important;
+            }
+
+            .page-header {
+                padding: 24px !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .programs-section {
+                padding: 20px !important;
+            }
+
+            .section-header {
+                align-items: stretch !important;
+            }
         }
 
 
@@ -1568,7 +1625,6 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             font-size: 30px !important;
             opacity: 0.82;
         }
-
     </style>
 </head>
 
@@ -1636,17 +1692,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     Mis Programas
                     <span class="badge" id="misProgramasBadge">0</span>
                 </h2>
-                
+
                 <div class="filters-container">
                     <div class="search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input 
-                            type="text" 
-                            id="searchInputMios" 
-                            class="search-input" 
-                            placeholder="Buscar mis programas..."
-                            oninput="filtrarProgramas('mios')"
-                        >
+                        <input type="text" id="searchInputMios" class="search-input"
+                            placeholder="Buscar mis programas..." oninput="filtrarProgramas('mios')">
                     </div>
                 </div>
             </div>
@@ -1669,17 +1720,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     Otros Programas
                     <span class="badge" id="otrosProgramasBadge">0</span>
                 </h2>
-                
+
                 <div class="filters-container">
                     <div class="search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input 
-                            type="text" 
-                            id="searchInputOtros" 
-                            class="search-input" 
-                            placeholder="Buscar otros programas..."
-                            oninput="filtrarProgramas('otros')"
-                        >
+                        <input type="text" id="searchInputOtros" class="search-input"
+                            placeholder="Buscar otros programas..." oninput="filtrarProgramas('otros')">
                     </div>
                     <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
                         <option value="">Todos los estados</option>
@@ -1713,13 +1759,15 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             </div>
 
             <div class="modal-options">
-                <div class="modal-option" onclick="seleccionarOpcion('desde-cero')" ondblclick="crearDesdeCeroRapido()" id="opcion-desde-cero">
+                <div class="modal-option" onclick="seleccionarOpcion('desde-cero')" ondblclick="crearDesdeCeroRapido()"
+                    id="opcion-desde-cero">
                     <div class="option-icon">
                         <i class="fas fa-plus"></i>
                     </div>
                     <div class="option-content">
                         <div class="option-title">Crear desde cero</div>
-                        <div class="option-description">Comienza un programa completamente nuevo con información básica</div>
+                        <div class="option-description">Comienza un programa completamente nuevo con información básica
+                        </div>
                     </div>
                 </div>
 
@@ -1744,7 +1792,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 </div>
                 <div class="form-group">
                     <label class="form-label">Vista previa:</label>
-                    <div id="previstaPrograma" style="padding: 12px; background: #f8fafc; border-radius: 8px; color: #718096; font-size: 0.9rem;">
+                    <div id="previstaPrograma"
+                        style="padding: 12px; background: #f8fafc; border-radius: 8px; color: #718096; font-size: 0.9rem;">
                         Selecciona un programa para ver la vista previa
                     </div>
                 </div>
@@ -1872,9 +1921,9 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         let opcionSeleccionada = null;
 
         window.crearDesdeCeroRapido = crearDesdeCeroRapido;
-        
+
         // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('Iniciando página de itinerarios mejorada...');
             cargarProgramas();
             initializeGoogleTranslate();
@@ -1885,14 +1934,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             const sidebar = document.querySelector('.enhanced-sidebar');
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (!sidebar) {
                 console.error('Sidebar no encontrado con clase .enhanced-sidebar');
                 return;
             }
-            
+
             sidebarOpen = !sidebarOpen;
-            
+
             if (sidebarOpen) {
                 sidebar.classList.add('open');
                 if (overlay) overlay.classList.add('show');
@@ -1911,11 +1960,11 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 toggleSidebar();
             }
         }
-function crearDesdeCeroRapido() {
-    if (event) event.stopPropagation();
-    opcionSeleccionada = 'desde-cero';
-    window.location.href = '<?= APP_URL ?>/programa';
-}
+        function crearDesdeCeroRapido() {
+            if (event) event.stopPropagation();
+            opcionSeleccionada = 'desde-cero';
+            window.location.href = '<?= APP_URL ?>/programa';
+        }
         function toggleUserMenu() {
             if (confirm('¿Desea cerrar sesión?')) {
                 window.location.href = '<?= APP_URL ?>/auth/logout';
@@ -1925,27 +1974,27 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE CARGA DE DATOS
         // ============================================================
-        
+
         async function cargarProgramas() {
             console.log('Cargando programas con imágenes...');
-            
+
             showLoadingState('mios');
             showLoadingState('otros');
-            
+
             try {
                 // Cargar todos los programas (incluye user_id, full_name del creador E IMÁGENES)
                 const response = await fetch('<?= APP_URL ?>/programa/api?action=list_all');
-                
+
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
-                
+
                 const result = await response.json();
                 console.log('Datos recibidos:', result);
-                
+
                 if (result.success) {
                     allProgramas = result.data || [];
-                    
+
                     // Debug de imágenes
                     allProgramas.forEach(programa => {
                         if (programa.foto_portada) {
@@ -1954,18 +2003,18 @@ function crearDesdeCeroRapido() {
                             console.log(`Programa ${programa.id} sin imagen de portada`);
                         }
                     });
-                    
+
                     // Separar programas por propietario
                     separarProgramas();
                     actualizarEstadisticas();
                     mostrarProgramas();
                     cargarAutoresEnFiltro();
-                    
+
                     console.log(`${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
                 } else {
                     throw new Error(result.error || 'Error al cargar programas');
                 }
-                
+
             } catch (error) {
                 console.error('Error cargando programas:', error);
                 showErrorState('mios', error.message);
@@ -1976,10 +2025,10 @@ function crearDesdeCeroRapido() {
         function separarProgramas() {
             const misProgramas = allProgramas.filter(p => p.user_id == CURRENT_USER_ID);
             const otrosProgramas = allProgramas.filter(p => p.user_id != CURRENT_USER_ID);
-            
+
             misProgramasFiltrados = [...misProgramas];
             otrosProgramasFiltrados = [...otrosProgramas];
-            
+
             console.log(`Separación: ${misProgramas.length} míos, ${otrosProgramas.length} otros`);
         }
 
@@ -1987,10 +2036,10 @@ function crearDesdeCeroRapido() {
             const autores = [...new Set(otrosProgramasFiltrados.map(p => p.created_by_name))]
                 .filter(name => name)
                 .sort();
-            
+
             const filterAuthor = document.getElementById('filterAuthor');
             filterAuthor.innerHTML = '<option value="">Todos los autores</option>';
-            
+
             autores.forEach(autor => {
                 const option = document.createElement('option');
                 option.value = autor;
@@ -2002,52 +2051,52 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE VISUALIZACIÓN
         // ============================================================
-        
+
         function mostrarProgramas() {
             mostrarProgramasSeccion('mios', misProgramasFiltrados);
             mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
         }
-        
+
         function mostrarProgramasSeccion(tipo, programas) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
             const container = document.getElementById(containerId);
-            
+
             if (!programas || programas.length === 0) {
                 showEmptyState(tipo);
                 return;
             }
-            
+
             const programsGrid = document.createElement('div');
             programsGrid.className = 'programs-grid';
-            
+
             programas.forEach(programa => {
                 const card = crearTarjetaPrograma(programa, tipo === 'otros');
                 programsGrid.appendChild(card);
             });
-            
+
             container.innerHTML = '';
             container.appendChild(programsGrid);
         }
-        
+
         function crearTarjetaPrograma(programa, esReadonly = false) {
             const card = document.createElement('div');
             card.className = `program-card ${esReadonly ? 'readonly' : ''}`;
-            
+            console.log(programa, "holaaaaaaaaaaaaaaa")
             if (!esReadonly) {
                 card.onclick = () => editarPrograma(programa.id);
             }
-            
+
             // Calcular duración
             let duracion = 'N/A';
 
             if (programa.total_dias_real && parseInt(programa.total_dias_real) > 0) {
-                const noches = parseInt(programa.total_dias_real);
-                const dias   = noches + 1;
+                const dias = parseInt(programa.total_dias_real);
+                const noches = dias - 1;
                 duracion = `${dias} ${dias === 1 ? 'día' : 'días'} / ${noches} ${noches === 1 ? 'noche' : 'noches'}`;
             } else if (programa.fecha_llegada && programa.fecha_salida) {
                 const llegada = new Date(programa.fecha_llegada + 'T00:00:00');
-                const salida  = new Date(programa.fecha_salida  + 'T00:00:00');
-                const noches  = Math.round((salida - llegada) / (1000 * 60 * 60 * 24));
+                const salida = new Date(programa.fecha_salida + 'T00:00:00');
+                const noches = Math.round((salida - llegada) / (1000 * 60 * 60 * 24));
                 if (noches > 0) {
                     const dias = noches + 1;
                     duracion = `${dias} ${dias === 1 ? 'día' : 'días'} / ${noches} ${noches === 1 ? 'noche' : 'noches'}`;
@@ -2055,9 +2104,9 @@ function crearDesdeCeroRapido() {
                     duracion = '1 día';
                 }
             }
-            
-            
-            
+
+
+
             // OBTENER IMAGEN DE PORTADA DESDE LA BASE DE DATOS
             // Normalizar ruta: siempre usar APP_URL local sin importar
             // si la BD tiene URL del hosting o ruta relativa
@@ -2067,15 +2116,15 @@ function crearDesdeCeroRapido() {
 
             // Validar que la imagen existe y es una URL válida
             const tieneImagen = !!imagenPortada;
-            
+
             console.log(`Programa ${programa.id}: imagen = ${imagenPortada}, válida = ${tieneImagen}`);
-            
+
             card.innerHTML = `
                 <div class="program-image">
-                    ${tieneImagen ? 
-                        `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` : 
-                        `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
-                    }
+                    ${tieneImagen ?
+                    `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` :
+                    `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
+                }
                     ${esReadonly ? `<div class="program-owner">${autorPrograma}</div>` : ''}
                 </div>
                 
@@ -2090,7 +2139,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="program-traveler">
                             <i class="fas fa-user"></i>
-                            ${programa.nombre_viajero} ${programa.apellido_viajero}
+                            ${programa.nombre} ${programa.apellido}
                         </div>
                     </div>
                     
@@ -2101,7 +2150,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Viajeros</div>
-                            <div class="detail-value">${programa.viajeros_count}</div>
+                            <div class="detail-value">${(parseInt(programa.cantidad_adultos) || 0) + (parseInt(programa.cantidad_ninos) || 0) || programa.numero_pasajeros || 0}</div>
                         </div>
                     </div>
                     
@@ -2143,7 +2192,7 @@ function crearDesdeCeroRapido() {
                     </div>
                 </div>
             `;
-            
+
             return card;
         }
 
@@ -2168,21 +2217,21 @@ function crearDesdeCeroRapido() {
                 const formData = new FormData();
                 formData.append('action', esAdmin ? 'delete_programa_admin' : 'delete_programa'); // CAMBIO
                 formData.append('programa_id', programaId);
-                
+
                 const response = await fetch('<?= APP_URL ?>/programa/api', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showNotification('Programa eliminado exitosamente', 'success');
                     cargarProgramas();
                 } else {
                     showNotification('Error: ' + result.error, 'error');
                 }
-                
+
             } catch (error) {
                 showNotification('Error eliminando programa: ' + error.message, 'error');
             }
@@ -2191,27 +2240,27 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE ESTADÍSTICAS
         // ============================================================
-        
+
         function actualizarEstadisticas() {
             const total = allProgramas.length;
             const mios = misProgramasFiltrados.length;
             const otros = otrosProgramasFiltrados.length;
-            
+
             animateCounter('totalProgramas', total);
             animateCounter('misProgramas', mios);
             animateCounter('otrosProgramas', otros);
-            
+
             // Actualizar badges
             document.getElementById('misProgramasBadge').textContent = mios;
             document.getElementById('otrosProgramasBadge').textContent = otros;
         }
-        
+
         function animateCounter(elementId, targetValue) {
             const element = document.getElementById(elementId);
             const startValue = 0;
             const duration = 1000;
             const increment = targetValue / (duration / 16);
-            
+
             let currentValue = startValue;
             const timer = setInterval(() => {
                 currentValue += increment;
@@ -2226,16 +2275,16 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE FILTRADO Y BÚSQUEDA
         // ============================================================
-        
+
         function filtrarProgramas(tipo) {
             if (tipo === 'mios') {
                 const searchTerm = document.getElementById('searchInputMios').value.toLowerCase().trim();
-                
+
                 const programasBase = allProgramas.filter(p => p.user_id == CURRENT_USER_ID);
-                
+
                 misProgramasFiltrados = programasBase.filter(programa => {
                     if (!searchTerm) return true;
-                    
+
                     const searchFields = [
                         programa.destino,
                         programa.nombre_viajero,
@@ -2245,20 +2294,20 @@ function crearDesdeCeroRapido() {
                         `${programa.nombre_viajero} ${programa.apellido_viajero}`, // Nombre completo
                         `Viaje a ${programa.destino}` // Título por defecto
                     ];
-                    
-                    return searchFields.some(field => 
+
+                    return searchFields.some(field =>
                         field && field.toString().toLowerCase().includes(searchTerm)
                     );
                 });
-                
+
                 mostrarProgramasSeccion('mios', misProgramasFiltrados);
                 actualizarPlaceholderBusqueda('mios');
             } else if (tipo === 'otros') {
                 const searchTerm = document.getElementById('searchInputOtros').value.toLowerCase().trim();
                 const authorFilter = document.getElementById('filterAuthor').value;
-                
+
                 const programasBase = allProgramas.filter(p => p.user_id != CURRENT_USER_ID);
-                
+
                 otrosProgramasFiltrados = programasBase.filter(programa => {
                     // Filtro de búsqueda
                     const matchesSearch = !searchTerm || (() => {
@@ -2272,73 +2321,73 @@ function crearDesdeCeroRapido() {
                             `${programa.nombre_viajero} ${programa.apellido_viajero}`,
                             `Viaje a ${programa.destino}`
                         ];
-                        
-                        return searchFields.some(field => 
+
+                        return searchFields.some(field =>
                             field && field.toString().toLowerCase().includes(searchTerm)
                         );
                     })();
-                    
+
                     // Filtro de autor
                     const matchesAuthor = !authorFilter || programa.created_by_name === authorFilter;
-                    
+
                     return matchesSearch && matchesAuthor;
                 });
-                
+
                 mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
                 actualizarPlaceholderBusqueda('otros');
-}
-            
+            }
+
             actualizarEstadisticas();
             console.log(`Filtrado ${tipo}: ${tipo === 'mios' ? misProgramasFiltrados.length : otrosProgramasFiltrados.length} programas`);
         }
 
         function actualizarPlaceholderBusqueda(tipo) {
-    const inputId = tipo === 'mios' ? 'searchInputMios' : 'searchInputOtros';
-    const input = document.getElementById(inputId);
-    const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
-    const searchTerm = input.value.trim();
-    
-    if (searchTerm) {
-        input.setAttribute('data-results', `${programas.length} resultados`);
-    } else {
-        input.removeAttribute('data-results');
-    }
-}
+            const inputId = tipo === 'mios' ? 'searchInputMios' : 'searchInputOtros';
+            const input = document.getElementById(inputId);
+            const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
+            const searchTerm = input.value.trim();
+
+            if (searchTerm) {
+                input.setAttribute('data-results', `${programas.length} resultados`);
+            } else {
+                input.removeAttribute('data-results');
+            }
+        }
 
         // ============================================================
         // FUNCIONES DEL MODAL DE CREACIÓN
         // ============================================================
-        
+
         function mostrarModalCreacion() {
             const modal = document.getElementById('modalCreacion');
             modal.classList.add('show');
-            
+
             // Reset estado
             opcionSeleccionada = null;
             document.getElementById('opcion-desde-cero').classList.remove('selected');
             document.getElementById('opcion-desde-existente').classList.remove('selected');
             document.getElementById('formSeleccionPrograma').classList.remove('show');
             document.getElementById('btnProceder').disabled = true;
-            
+
             console.log('Modal de creación mostrado');
         }
-        
+
         function cerrarModalCreacion() {
             const modal = document.getElementById('modalCreacion');
             modal.classList.remove('show');
         }
-        
+
         function seleccionarOpcion(opcion) {
             opcionSeleccionada = opcion;
-            
+
             // Reset visual
             document.getElementById('opcion-desde-cero').classList.remove('selected');
             document.getElementById('opcion-desde-existente').classList.remove('selected');
             document.getElementById('formSeleccionPrograma').classList.remove('show');
-            
+
             // Marcar seleccionado
             document.getElementById(`opcion-${opcion}`).classList.add('selected');
-            
+
             if (opcion === 'desde-existente') {
                 cargarProgramasParaSeleccion();
                 document.getElementById('formSeleccionPrograma').classList.add('show');
@@ -2346,66 +2395,66 @@ function crearDesdeCeroRapido() {
             } else {
                 document.getElementById('btnProceder').disabled = false;
             }
-            
+
             console.log(`Opción seleccionada: ${opcion}`);
         }
 
         async function procederCreacion() {
-    if (!opcionSeleccionada) {
-        showNotification('Por favor selecciona una opción', 'error');
-        return;
-    }
-    
-    if (opcionSeleccionada === 'desde-cero') {
-        window.location.href = '<?= APP_URL ?>/programa';
-    } else if (opcionSeleccionada === 'desde-existente') {
-        const programaBaseId = document.getElementById('programaBase').value;
-        if (!programaBaseId) {
-            showNotification('Por favor selecciona un programa base', 'error');
-            return;
-        }
-        
-        // Crear copia automáticamente
-        const btnProceder = document.getElementById('btnProceder');
-        btnProceder.disabled = true;
-        btnProceder.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando copia...';
-        
-        try {
-            const formData = new FormData();
-            formData.append('action', 'duplicate_programa');
-            formData.append('programa_id', programaBaseId);
-            
-            const response = await fetch('<?= APP_URL ?>/programa/api', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                cerrarModalCreacion();
-                showNotification('Programa duplicado exitosamente', 'success');
-                await cargarProgramas();
-                
-                // Ir al editor del nuevo programa
-                setTimeout(() => {
-                    window.location.href = `<?= APP_URL ?>/programa?id=${result.new_programa_id}`;
-                }, 1500);
-            } else {
-                throw new Error(result.error || 'Error al duplicar');
+            if (!opcionSeleccionada) {
+                showNotification('Por favor selecciona una opción', 'error');
+                return;
             }
-        } catch (error) {
-            showNotification('Error: ' + error.message, 'error');
-            btnProceder.disabled = false;
-            btnProceder.innerHTML = 'Proceder';
+
+            if (opcionSeleccionada === 'desde-cero') {
+                window.location.href = '<?= APP_URL ?>/programa';
+            } else if (opcionSeleccionada === 'desde-existente') {
+                const programaBaseId = document.getElementById('programaBase').value;
+                if (!programaBaseId) {
+                    showNotification('Por favor selecciona un programa base', 'error');
+                    return;
+                }
+
+                // Crear copia automáticamente
+                const btnProceder = document.getElementById('btnProceder');
+                btnProceder.disabled = true;
+                btnProceder.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando copia...';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'duplicate_programa');
+                    formData.append('programa_id', programaBaseId);
+
+                    const response = await fetch('<?= APP_URL ?>/programa/api', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        cerrarModalCreacion();
+                        showNotification('Programa duplicado exitosamente', 'success');
+                        await cargarProgramas();
+
+                        // Ir al editor del nuevo programa
+                        setTimeout(() => {
+                            window.location.href = `<?= APP_URL ?>/programa?id=${result.new_programa_id}`;
+                        }, 1500);
+                    } else {
+                        throw new Error(result.error || 'Error al duplicar');
+                    }
+                } catch (error) {
+                    showNotification('Error: ' + error.message, 'error');
+                    btnProceder.disabled = false;
+                    btnProceder.innerHTML = 'Proceder';
+                }
+            }
         }
-    }
-}
-        
+
         function cargarProgramasParaSeleccion() {
             const select = document.getElementById('programaBase');
             select.innerHTML = '<option value="">Selecciona un programa base...</option>';
-            
+
             // Agregar todos los programas (míos y otros)
             allProgramas.forEach(programa => {
                 const option = document.createElement('option');
@@ -2416,12 +2465,12 @@ function crearDesdeCeroRapido() {
                 option.dataset.programa = JSON.stringify(programa);
                 select.appendChild(option);
             });
-            
+
             // Listener para vista previa
-            select.addEventListener('change', function() {
+            select.addEventListener('change', function () {
                 const selectedOption = this.options[this.selectedIndex];
                 const preview = document.getElementById('previstaPrograma');
-                
+
                 if (selectedOption.value) {
                     const programa = JSON.parse(selectedOption.dataset.programa);
                     preview.innerHTML = `
@@ -2438,59 +2487,59 @@ function crearDesdeCeroRapido() {
                 }
             });
         }
-        
+
 
         // ============================================================
         // FUNCIONES DE INTERACCIÓN
         // ============================================================
-        
+
         function editarPrograma(id) {
             console.log(`Editando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?id=${id}`;
         }
-        
+
         function verDetalles(id) {
-    console.log(`Viendo detalles del programa ${id}`);
-    
-    // Abrir en nueva ventana la página de itinerario (preview)
-    const url = `<?= APP_URL ?>/itinerary?id=${id}`;
-    
-    // Abrir en nueva pestaña con características específicas
-    const ventana = window.open(
-        url, 
-        `programa_preview_${id}`,
-        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no'
-    );
-    
-    // Verificar si se abrió correctamente
-    if (!ventana) {
-        // Si hay bloqueador de popups, mostrar alternativa
-        showNotification('Por favor, permite ventanas emergentes y vuelve a intentar', 'info');
-        
-        // Como alternativa, redirigir en la misma ventana
-        setTimeout(() => {
-            if (confirm('¿Quieres ver el programa en esta ventana?')) {
-                window.location.href = url;
+            console.log(`Viendo detalles del programa ${id}`);
+
+            // Abrir en nueva ventana la página de itinerario (preview)
+            const url = `<?= APP_URL ?>/itinerary?id=${id}`;
+
+            // Abrir en nueva pestaña con características específicas
+            const ventana = window.open(
+                url,
+                `programa_preview_${id}`,
+                'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no'
+            );
+
+            // Verificar si se abrió correctamente
+            if (!ventana) {
+                // Si hay bloqueador de popups, mostrar alternativa
+                showNotification('Por favor, permite ventanas emergentes y vuelve a intentar', 'info');
+
+                // Como alternativa, redirigir en la misma ventana
+                setTimeout(() => {
+                    if (confirm('¿Quieres ver el programa en esta ventana?')) {
+                        window.location.href = url;
+                    }
+                }, 2000);
+            } else {
+                // Enfocar la nueva ventana
+                ventana.focus();
+
+                // Mostrar mensaje de éxito
+                showNotification('Abriendo vista previa del programa...', 'success');
             }
-        }, 2000);
-    } else {
-        // Enfocar la nueva ventana
-        ventana.focus();
-        
-        // Mostrar mensaje de éxito
-        showNotification('Abriendo vista previa del programa...', 'success');
-    }
-}
+        }
 
-// ============================================================
-// FUNCIÓN ALTERNATIVA PARA MODAL (OPCIONAL)
-// ============================================================
+        // ============================================================
+        // FUNCIÓN ALTERNATIVA PARA MODAL (OPCIONAL)
+        // ============================================================
 
-function verDetallesModal(id) {
-    console.log(`Viendo detalles del programa ${id} en modal`);
-    
-    // Crear modal con iframe para mostrar el itinerario
-    const modalHtml = `
+        function verDetallesModal(id) {
+            console.log(`Viendo detalles del programa ${id} en modal`);
+
+            // Crear modal con iframe para mostrar el itinerario
+            const modalHtml = `
         <div class="modal-overlay" id="modalVistaPrevia" style="display: block; z-index: 2000;">
             <div class="modal" style="max-width: 95vw; width: 1200px; height: 90vh; padding: 0; border-radius: 12px; overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--primary-gradient); color: white;">
@@ -2535,32 +2584,32 @@ function verDetallesModal(id) {
             </div>
         </div>
     `;
-    
-    // Agregar al DOM
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Ocultar loading después de un tiempo
-    setTimeout(() => {
-        const loading = document.getElementById('loadingPreview');
-        if (loading) {
-            loading.style.display = 'none';
+
+            // Agregar al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Ocultar loading después de un tiempo
+            setTimeout(() => {
+                const loading = document.getElementById('loadingPreview');
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }, 2000);
         }
-    }, 2000);
-}
 
-function cerrarModalVistaPrevia() {
-    const modal = document.getElementById('modalVistaPrevia');
-    if (modal) {
-        modal.remove();
-    }
-}
+        function cerrarModalVistaPrevia() {
+            const modal = document.getElementById('modalVistaPrevia');
+            if (modal) {
+                modal.remove();
+            }
+        }
 
-function abrirEnNuevaVentana(id) {
-    const url = `<?= APP_URL ?>/itinerary?id=${id}`;
-    window.open(url, `programa_preview_${id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes');
-    cerrarModalVistaPrevia();
-}
-        
+        function abrirEnNuevaVentana(id) {
+            const url = `<?= APP_URL ?>/itinerary?id=${id}`;
+            window.open(url, `programa_preview_${id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            cerrarModalVistaPrevia();
+        }
+
         function copiarPrograma(id) {
             console.log(`Copiando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?copy_from=${id}`;
@@ -2569,11 +2618,11 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // ESTADOS DE LA INTERFAZ
         // ============================================================
-        
+
         function showLoadingState(tipo) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
             const tipoText = tipo === 'mios' ? 'mis programas' : 'otros programas';
-            
+
             document.getElementById(containerId).innerHTML = `
                 <div class="loading-state">
                     <i class="fas fa-spinner state-icon"></i>
@@ -2582,41 +2631,41 @@ function abrirEnNuevaVentana(id) {
                 </div>
             `;
         }
-        
+
         function showEmptyState(tipo) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
             const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
-            const programasBase = tipo === 'mios' ? 
-                allProgramas.filter(p => p.user_id == CURRENT_USER_ID) : 
+            const programasBase = tipo === 'mios' ?
+                allProgramas.filter(p => p.user_id == CURRENT_USER_ID) :
                 allProgramas.filter(p => p.user_id != CURRENT_USER_ID);
-            
+
             const isFiltered = programas.length !== programasBase.length;
-            
+
             document.getElementById(containerId).innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-${tipo === 'mios' ? 'user-edit' : 'users'} state-icon"></i>
                     <h3 class="state-title">${isFiltered ? 'No se encontraron programas' : tipo === 'mios' ? 'No tienes programas' : 'No hay otros programas'}</h3>
                     <p class="state-description">
-                        ${isFiltered ? 
-                            'No se encontraron programas que coincidan con los filtros aplicados.' :
-                            tipo === 'mios' ? 
-                                '¡Comienza creando tu primer programa de viaje personalizado!' :
-                                'Aún no hay programas creados por otros usuarios.'
-                        }
+                        ${isFiltered ?
+                    'No se encontraron programas que coincidan con los filtros aplicados.' :
+                    tipo === 'mios' ?
+                        '¡Comienza creando tu primer programa de viaje personalizado!' :
+                        'Aún no hay programas creados por otros usuarios.'
+                }
                     </p>
-                    ${isFiltered ? 
-                        `<button onclick="limpiarFiltros('${tipo}')" class="action-btn">Limpiar Filtros</button>` :
-                        tipo === 'mios' ? 
-                            '<button onclick="mostrarModalCreacion()" class="action-btn"><i class="fas fa-plus"></i> Crear Nuevo Programa</button>' :
-                            ''
-                    }
+                    ${isFiltered ?
+                    `<button onclick="limpiarFiltros('${tipo}')" class="action-btn">Limpiar Filtros</button>` :
+                    tipo === 'mios' ?
+                        '<button onclick="mostrarModalCreacion()" class="action-btn"><i class="fas fa-plus"></i> Crear Nuevo Programa</button>' :
+                        ''
+                }
                 </div>
             `;
         }
-        
+
         function showErrorState(tipo, message) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
-            
+
             document.getElementById(containerId).innerHTML = `
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle state-icon"></i>
@@ -2633,7 +2682,7 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // FUNCIONES AUXILIARES
         // ============================================================
-        
+
         function limpiarFiltros(tipo) {
             if (tipo === 'mios') {
                 document.getElementById('searchInputMios').value = '';
@@ -2645,7 +2694,7 @@ function abrirEnNuevaVentana(id) {
             }
             filtrarProgramas(tipo);
         }
-        
+
         function showNotification(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -2685,10 +2734,10 @@ function abrirEnNuevaVentana(id) {
             }
 
             function loadSavedLanguage() {
-                const saved = sessionStorage.getItem('language') || 
-                             localStorage.getItem('preferredLanguage') || 
-                             DEFAULT_LANGUAGE;
-                
+                const saved = sessionStorage.getItem('language') ||
+                    localStorage.getItem('preferredLanguage') ||
+                    DEFAULT_LANGUAGE;
+
                 if (saved && saved !== DEFAULT_LANGUAGE) {
                     const select = document.querySelector('.goog-te-combo');
                     if (select) {
@@ -2705,10 +2754,10 @@ function abrirEnNuevaVentana(id) {
                 document.head.appendChild(script);
             }
 
-            setTimeout(function() {
+            setTimeout(function () {
                 const select = document.querySelector('.goog-te-combo');
                 if (select) {
-                    select.addEventListener('change', function() {
+                    select.addEventListener('change', function () {
                         if (this.value) saveLanguage(this.value);
                     });
                 }
@@ -2718,15 +2767,15 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // FUNCIONES DE EXPORTACIÓN Y UTILIDADES
         // ============================================================
-        
+
         function exportarProgramas() {
             console.log('Exportando programas...');
-            
+
             if (allProgramas.length === 0) {
                 showNotification('No hay programas para exportar', 'error');
                 return;
             }
-            
+
             const headers = ['ID', 'Título', 'Destino', 'Viajero', 'Fechas', 'Pasajeros', 'Estado', 'Creado por'];
             const csvData = allProgramas.map(programa => [
                 programa.id_solicitud || programa.id,
@@ -2734,15 +2783,15 @@ function abrirEnNuevaVentana(id) {
                 programa.destino,
                 `${programa.nombre_viajero} ${programa.apellido_viajero}`,
                 formatDateRange(programa.fecha_llegada, programa.fecha_salida),
-                programa.numero_pasajeros,
+                (parseInt(programa.cantidad_adultos) || 0) + (parseInt(programa.cantidad_ninos) || 0) || programa.numero_pasajeros || 0,
                 programa.estado || 'borrador',
                 programa.created_by_name || 'N/A'
             ]);
-            
+
             const csvContent = [headers, ...csvData]
                 .map(row => row.map(cell => `"${cell}"`).join(','))
                 .join('\n');
-            
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -2752,13 +2801,13 @@ function abrirEnNuevaVentana(id) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             showNotification('Programas exportados exitosamente', 'success');
         }
 
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
-            
+
             const date = new Date(dateString);
             return date.toLocaleDateString('es-ES', {
                 day: 'numeric',
@@ -2766,23 +2815,23 @@ function abrirEnNuevaVentana(id) {
                 year: 'numeric'
             });
         }
-        
+
         function formatDateRange(startDate, endDate) {
             if (!startDate || !endDate) return 'Fechas no definidas';
-            
+
             const start = formatDate(startDate);
             const end = formatDate(endDate);
-            
+
             return `${start} - ${end}`;
         }
 
         // ============================================================
         // FUNCIONES ADICIONALES PARA LA API
         // ============================================================
-        
+
         // Esta función debe ser agregada al API de programa para obtener todos los programas
         // Incluye información del creador para distinguir entre "mis programas" y "otros programas"
-        
+
         /*
         NOTA PARA EL DESARROLLADOR:
         
@@ -2836,26 +2885,27 @@ function abrirEnNuevaVentana(id) {
         window.toggleSidebar = toggleSidebar;
         window.closeSidebar = closeSidebar;
         window.toggleUserMenu = toggleUserMenu;
-        
+
         // Cerrar modal al hacer clic fuera
-        document.getElementById('modalCreacion').addEventListener('click', function(e) {
+        document.getElementById('modalCreacion').addEventListener('click', function (e) {
             if (e.target === this) {
                 cerrarModalCreacion();
             }
         });
-        
+
         console.log('Script de itinerarios mejorado cargado completamente');
 
 
-    function abrirBonoReserva(programaId) {
-        if (!programaId) {
-            alert('No se encontró el ID del programa.');
-            return;
+        function abrirBonoReserva(programaId) {
+            if (!programaId) {
+                alert('No se encontró el ID del programa.');
+                return;
+            }
+
+            window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
         }
 
-        window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
-    }
-        
     </script>
 </body>
+
 </html>

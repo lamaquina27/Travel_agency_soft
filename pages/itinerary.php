@@ -330,21 +330,23 @@ if ($_foto_raw) {
 
 
 // Calcular duración real basada en los días del programa
+$num_dias = 0;
 $num_noches = 0;
 foreach ($dias as $dia) {
-    $num_noches += intval($dia['duracion_estancia']) ?: 1;
+    $num_dias += intval($dia['duracion_estancia']) ?: 1;
 }
 
-if ($num_noches == 0) {
-    $num_noches = count($dias);
+if ($num_dias == 0) {
+    $num_dias = count($dias);
 }
 
-$num_dias    = $num_noches + 1;
+$num_noches = $num_dias - 1;
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_pasajeros = (int) ($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 1);
-if ($num_pasajeros <= 0) $num_pasajeros = 1;
+$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
+if ($num_pasajeros <= 0)
+    $num_pasajeros = 1;
 
 
 // Paleta configurada por el usuario / agencia.
@@ -4859,7 +4861,7 @@ if ($programa['fecha_llegada']) {
             border-color: var(--ts-line) !important;
         }
 
-        [class*="info"]{
+        [class*="info"] {
             color: var(--ts-brand) !important;
             border-color: var(--ts-line) !important;
         }
@@ -4949,7 +4951,8 @@ if ($programa['fecha_llegada']) {
 
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <span class="hero-stat-number"><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
+                    <span class="hero-stat-number"><?= $num_dias ?> días / <?= $num_noches ?>
+                        <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
                     <span class="hero-stat-label">Duración</span>
                 </div>
                 <div class="hero-stat">
@@ -5024,7 +5027,9 @@ if ($programa['fecha_llegada']) {
                             </div>
                             <div class="detail-info">
                                 <h4>Duración</h4>
-                                <p><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></p>
+                                <p><?= $num_dias ?> días / <?= $num_noches ?>
+                                    <?= $num_noches == 1 ? 'noche' : 'noches' ?>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -5073,7 +5078,9 @@ if ($programa['fecha_llegada']) {
                             </div>
                             <div class="detail-info">
                                 <h4>Duración</h4>
-                                <p><?= $num_dias ?> días / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?> de aventura</p>
+                                <p><?= $num_dias ?> días / <?= $num_noches ?>
+                                    <?= $num_noches == 1 ? 'noche' : 'noches' ?> de aventura
+                                </p>
                             </div>
                         </div>
 
@@ -5885,7 +5892,7 @@ if ($programa['fecha_llegada']) {
             <div class="footer-actions">
 
                 <?php if ($vendido): ?>
-                    
+
 
                     <?php if (!empty($programa_id)): ?>
                         <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int) $programa_id ?>"
@@ -5897,9 +5904,8 @@ if ($programa['fecha_llegada']) {
                 <?php endif; ?>
 
                 <?php if (!empty($programa_id)): ?>
-                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int)$programa_id ?><?= $is_public ? '&public=1' : '' ?>" 
-                    class="btn btn-outline" 
-                    target="_blank">
+                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?>"
+                        class="btn btn-outline" target="_blank">
                         <i class="fas fa-download"></i>
                         Descargar PDF
                     </a>

@@ -189,16 +189,16 @@ try {
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
-
+$duracion_dias = 0;
 $num_noches = 0;
 foreach ($dias as $dia) {
     $duracion_estancia = intval($dia['duracion_estancia'] ?? 1) ?: 1;
-    $num_noches += $duracion_estancia;
+    $duracion_dias += $duracion_estancia;
 }
-if ($num_noches === 0) {
-    $num_noches = count($dias);
+if ($duracion_dias === 0) {
+    $duracion_dias = count($dias);
 }
-$duracion_dias = $num_noches + 1;
+$num_noches = $duracion_dias - 1;
 
 $destino = $programa['destino'] ?? 'tu destino';
 $titulo_programa = $programa['titulo_programa'] ?: 'Mi viaje a ' . $destino;
@@ -215,7 +215,7 @@ $imagen_portada = preview_asset_url(
     APP_URL . '/assets/images/default-travel.jpg'
 );
 
-$num_pasajeros = (int) ($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 1);
+$num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
 if ($num_pasajeros <= 0)
     $num_pasajeros = 1;
 
@@ -643,7 +643,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
                 <div class="facts">
                     <div class="fact">
                         <i class="fas fa-calendar-days"></i>
-                        <span><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'día' : 'días' ?> / <?= $num_noches ?> <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
+                        <span><?= $duracion_dias ?> <?= $duracion_dias == 1 ? 'día' : 'días' ?> / <?= $num_noches ?>
+                            <?= $num_noches == 1 ? 'noche' : 'noches' ?></span>
                     </div>
 
                     <div class="fact">

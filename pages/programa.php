@@ -11737,7 +11737,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 // Calcular fecha de salida
                 const fechaInicio = new Date(fechaLlegada);
                 const fechaSalida = new Date(fechaInicio);
-                fechaSalida.setDate(fechaInicio.getDate() + duracionTotal + 1);
+                fechaSalida.setDate(fechaInicio.getDate() + duracionTotal);
 
                 // ✅ OBTENER IDIOMA SELECCIONADO (selector correcto)
                 const idiomaSeleccionado = document.getElementById('language')?.value || 'es';
