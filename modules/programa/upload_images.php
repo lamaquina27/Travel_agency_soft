@@ -168,8 +168,49 @@ class ProgramaImageUploader {
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
+    public static function deletePhysicalImage($url) {
+        if (empty($url)) return false;
+        
+        try {
+            $parsedUrl = parse_url($url, PHP_URL_PATH);
+            if (!$parsedUrl) return false;
+            
+            // Extraer la ruta relativa desde /assets/uploads/
+            $pos = strpos($parsedUrl, '/assets/uploads/');
+            if ($pos === false) return false;
+            
+            // PROTECCIÓN: Solo eliminar si la ruta contiene '/programa/' 
+            // Esto evita eliminar imágenes copiadas de la biblioteca
+            if (strpos($parsedUrl, '/programa/') === false) {
+                error_log("⚠️ Protección: Se omitió eliminar imagen física compartida/biblioteca: " . $parsedUrl);
+                return false;
+            }
+            
+            $relativePath = substr($parsedUrl, $pos);
+            // dirname(__DIR__, 2) nos lleva a la raíz del proyecto
+            $fullPath = dirname(__DIR__, 2) . $relativePath;
+            
+            if (file_exists($fullPath)) {
+                if (unlink($fullPath)) {
+                    error_log("✅ Imagen física eliminada: " . $fullPath);
+                    return true;
+                } else {
+                    error_log("❌ Error al eliminar imagen física: " . $fullPath);
+                    return false;
+                }
+            } else {
+                error_log("⚠️ Imagen no encontrada para eliminar: " . $fullPath);
+                return false;
+            }
+        } catch(Exception $e) {
+            error_log("❌ Excepción al eliminar imagen: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 
-// Ejecutar
-$uploader = new ProgramaImageUploader();
-$uploader->handleRequest();
+// Ejecutar solo si el archivo es llamado directamente (no si es incluido con require/include)
+if (basename($_SERVER['PHP_SELF']) === basename(__FILE__)) {
+    $uploader = new ProgramaImageUploader();
+    $uploader->handleRequest();
+}

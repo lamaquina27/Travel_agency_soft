@@ -13,7 +13,7 @@ $path = parse_url($request, PHP_URL_PATH);
 
 // ✅ CORRECCIÓN LÍNEA 16: Verificar que parse_url no sea null
 $appUrlPath = parse_url(APP_URL, PHP_URL_PATH);
-$path = str_replace(rtrim($appUrlPath ?: '', '/'), '', $path);
+$path = str_ireplace(rtrim($appUrlPath ?: '', '/'), '', $path);
 $path = $path ?: '/';
 
 // Limpiar path de múltiples slashes

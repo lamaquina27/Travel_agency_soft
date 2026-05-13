@@ -17,6 +17,7 @@ error_reporting(E_ALL);
 
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
+require_once __DIR__ . '/upload_images.php';
 
 App::init();
 App::requireLogin();
@@ -424,11 +425,30 @@ class ProgramaServiciosAPI {
             
             // Si es servicio principal, eliminar también sus alternativas
             if ($servicio['es_alternativa'] == 0) {
+                // Fetch alternativas para borrar sus imágenes
+                $alternativas = $this->db->fetchAll(
+                    "SELECT actividad_imagen1, actividad_imagen2, actividad_imagen3, alojamiento_imagen 
+                     FROM programa_dias_servicios WHERE servicio_principal_id = ?", 
+                    [$servicioId]
+                );
+                foreach ($alternativas as $alt) {
+                    if (!empty($alt['actividad_imagen1'])) ProgramaImageUploader::deletePhysicalImage($alt['actividad_imagen1']);
+                    if (!empty($alt['actividad_imagen2'])) ProgramaImageUploader::deletePhysicalImage($alt['actividad_imagen2']);
+                    if (!empty($alt['actividad_imagen3'])) ProgramaImageUploader::deletePhysicalImage($alt['actividad_imagen3']);
+                    if (!empty($alt['alojamiento_imagen'])) ProgramaImageUploader::deletePhysicalImage($alt['alojamiento_imagen']);
+                }
+
                 $stmt = $this->db->query(
                     "DELETE FROM programa_dias_servicios WHERE servicio_principal_id = ?", 
                     [$servicioId]
                 );
             }
+            
+            // Eliminar imágenes del servicio principal
+            if (!empty($servicio['actividad_imagen1'])) ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen1']);
+            if (!empty($servicio['actividad_imagen2'])) ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen2']);
+            if (!empty($servicio['actividad_imagen3'])) ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen3']);
+            if (!empty($servicio['alojamiento_imagen'])) ProgramaImageUploader::deletePhysicalImage($servicio['alojamiento_imagen']);
             
             // Eliminar el servicio
             $deleted = $this->db->delete('programa_dias_servicios', 'id = ?', [$servicioId]);
@@ -702,6 +722,22 @@ private function updateService($servicioId, $data) {
             'id = ?',
             [$servicioId]
         );
+        
+        if ($rowsAffected) {
+            // Eliminar imágenes físicas reemplazadas o eliminadas
+            if (array_key_exists('actividad_imagen1', $updateData) && $updateData['actividad_imagen1'] !== $servicio['actividad_imagen1'] && !empty($servicio['actividad_imagen1'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen1']);
+            }
+            if (array_key_exists('actividad_imagen2', $updateData) && $updateData['actividad_imagen2'] !== $servicio['actividad_imagen2'] && !empty($servicio['actividad_imagen2'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen2']);
+            }
+            if (array_key_exists('actividad_imagen3', $updateData) && $updateData['actividad_imagen3'] !== $servicio['actividad_imagen3'] && !empty($servicio['actividad_imagen3'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen3']);
+            }
+            if (array_key_exists('alojamiento_imagen', $updateData) && $updateData['alojamiento_imagen'] !== $servicio['alojamiento_imagen'] && !empty($servicio['alojamiento_imagen'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['alojamiento_imagen']);
+            }
+        }
         
         error_log("✅ Servicio (actividad) $servicioId actualizado: $rowsAffected filas");
         

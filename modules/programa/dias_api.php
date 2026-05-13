@@ -12,6 +12,7 @@ error_reporting(E_ALL);
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
 require_once dirname(__DIR__, 2) . '/classes/FechaCalculator.php';
+require_once __DIR__ . '/upload_images.php';
 
 App::init();
 App::requireLogin();
@@ -489,6 +490,11 @@ class ProgramaDiasAPI
             if (!$deleted) {
                 throw new Exception('Error al eliminar día');
             }
+            
+            // Eliminar imágenes físicas
+            if (!empty($dia['imagen1'])) ProgramaImageUploader::deletePhysicalImage($dia['imagen1']);
+            if (!empty($dia['imagen2'])) ProgramaImageUploader::deletePhysicalImage($dia['imagen2']);
+            if (!empty($dia['imagen3'])) ProgramaImageUploader::deletePhysicalImage($dia['imagen3']);
 
             $this->reorderDiasAfterDelete($dia['programa_id'], $dia['dia_numero']);
 
@@ -589,6 +595,19 @@ class ProgramaDiasAPI
                     'id = ?',
                     [$diaId]
                 );
+                
+                // Eliminar imágenes físicas reemplazadas o eliminadas
+                if ($updated) {
+                    if (array_key_exists('imagen1', $updateData) && $updateData['imagen1'] !== $dia['imagen1'] && !empty($dia['imagen1'])) {
+                        ProgramaImageUploader::deletePhysicalImage($dia['imagen1']);
+                    }
+                    if (array_key_exists('imagen2', $updateData) && $updateData['imagen2'] !== $dia['imagen2'] && !empty($dia['imagen2'])) {
+                        ProgramaImageUploader::deletePhysicalImage($dia['imagen2']);
+                    }
+                    if (array_key_exists('imagen3', $updateData) && $updateData['imagen3'] !== $dia['imagen3'] && !empty($dia['imagen3'])) {
+                        ProgramaImageUploader::deletePhysicalImage($dia['imagen3']);
+                    }
+                }
 
                 error_log("✅ Filas actualizadas: " . ($updated ? 'Sí' : 'No'));
             }
