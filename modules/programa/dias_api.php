@@ -568,6 +568,16 @@ class ProgramaDiasAPI
             if (isset($data['longitud'])) {
                 $updateData['longitud'] = $data['longitud'] ?: null;
             }
+            // ✅ Campos de imágenes del día
+            if (isset($data['imagen1'])) {
+                $updateData['imagen1'] = $data['imagen1'] ?: null;
+            }
+            if (isset($data['imagen2'])) {
+                $updateData['imagen2'] = $data['imagen2'] ?: null;
+            }
+            if (isset($data['imagen3'])) {
+                $updateData['imagen3'] = $data['imagen3'] ?: null;
+            }
 
             error_log("🔄 Campos a actualizar: " . json_encode($updateData, JSON_UNESCAPED_UNICODE));
 

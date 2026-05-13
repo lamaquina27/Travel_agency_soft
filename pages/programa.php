@@ -11899,6 +11899,34 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         }
                     };
 
+                    // ✅ RECOPILAR IMÁGENES NUEVAS Y DETECTAR ELIMINADAS
+                    const imagenes = {};
+                    for (let i = 1; i <= 3; i++) {
+                        const imgInput = document.getElementById(`edit-dia-imagen${i}-${diaId}`);
+                        const existingImg = document.querySelector(`#edit-dia-form-${diaId} .image-preview-item[data-image-number="${i}"] .preview-img`);
+
+                        if (imgInput && imgInput.files && imgInput.files[0]) {
+                            // Tiene una imagen nueva para subir
+                            imagenes[`imagen${i}`] = imgInput.files[0];
+                        } else if (!existingImg) {
+                            // NO hay imagen nueva y NO hay preview -> fue eliminada
+                            dataToSend.data[`imagen${i}`] = '';
+                        }
+                    }
+
+                    // ✅ SUBIR IMÁGENES NUEVAS AL SERVIDOR (si hay)
+                    let imagenesSubidas = {};
+                    if (Object.keys(imagenes).length > 0) {
+                        console.log('📸 Subiendo imágenes del día...');
+                        imagenesSubidas = await subirImagenesDia(diaId, imagenes);
+                        console.log('✅ Imágenes subidas:', imagenesSubidas);
+                    }
+
+                    // ✅ AGREGAR URLs DE IMÁGENES SUBIDAS AL DATA
+                    if (imagenesSubidas.imagen1) dataToSend.data.imagen1 = imagenesSubidas.imagen1;
+                    if (imagenesSubidas.imagen2) dataToSend.data.imagen2 = imagenesSubidas.imagen2;
+                    if (imagenesSubidas.imagen3) dataToSend.data.imagen3 = imagenesSubidas.imagen3;
+
                     console.log('📤 Enviando actualización:', dataToSend);
 
                     // Enviar actualización
@@ -11930,6 +11958,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         showAlert('Día actualizado correctamente', 'success');
                         cerrarEdicionDia(diaId);
                         await cargarDiasPrograma();
+                        
+                        // Refrescar la vista de detalle para reflejar los cambios (incluyendo el formulario limpio)
+                        if (typeof selectedDayId !== 'undefined' && selectedDayId == diaId) {
+                            seleccionarDiaEnSidebar(diaId);
+                        }
                     } else {
                         console.error('❌ Error del servidor:', result);
                         showAlert(result.error || result.message || 'Error al actualizar día', 'error');
@@ -12376,6 +12409,17 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         latitud: latitud || null,
                         longitud: longitud || null
                     };
+
+                    // Detectar imágenes eliminadas explícitamente (sin nueva imagen y sin preview)
+                    for (let i = 1; i <= 3; i++) {
+                        const imgInput = document.getElementById(`edit-act-imagen${i}-${actividadId}`);
+                        const existingImg = document.querySelector(`#edit-actividad-form-${actividadId} .image-preview-item[data-image-number="${i}"] .preview-img`);
+                        
+                        if ((!imgInput || !imgInput.files || !imgInput.files[0]) && !existingImg) {
+                            // Fue eliminada
+                            dataToUpdate[`actividad_imagen${i}`] = '';
+                        }
+                    }
 
                     // Mapear imágenes subidas a campos de actividad
                     if (imagenesSubidas.imagen1) dataToUpdate.actividad_imagen1 = imagenesSubidas.imagen1;
