@@ -903,6 +903,48 @@ class ItineraryRenderer
                                 <td><?= nl2br(htmlspecialchars($precios['info_seguros'])) ?></td>
                             </tr>
                         <?php endif; ?>
+
+                        <?php if (!empty($precios['visados_entrada'])): ?>
+                            <tr>
+                                <td><strong>Visa information</strong></td>
+                                <td><?= nl2br(htmlspecialchars($precios['visados_entrada'])) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if (!empty($precios['requisitos_sanitarios'])): ?>
+                            <tr>
+                                <td><strong>Health requirements</strong></td>
+                                <td><?= nl2br(htmlspecialchars($precios['requisitos_sanitarios'])) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if (!empty($precios['llegada_punto_encuentro'])): ?>
+                            <tr>
+                                <td><strong>Arrival & meeting point</strong></td>
+                                <td><?= nl2br(htmlspecialchars($precios['llegada_punto_encuentro'])) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if (!empty($precios['asistencia_emergencia'])): ?>
+                            <tr>
+                                <td><strong>Emergency assistance</strong></td>
+                                <td><?= nl2br(htmlspecialchars($precios['asistencia_emergencia'])) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if (!empty($precios['info_hoteles_servicios'])): ?>
+                            <tr>
+                                <td><strong>Hotels & services</strong></td>
+                                <td><?= nl2br(htmlspecialchars($precios['info_hoteles_servicios'])) ?></td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php if (!empty($precios['informacion_practica'])): ?>
+                            <tr>
+                                <td><strong>Practical information</strong></td>
+                                <td><?= nl2br(htmlspecialchars($precios['informacion_practica'])) ?></td>
+                            </tr>
+                        <?php endif; ?>
                     </table>
                 </div>
             <?php endif; ?>

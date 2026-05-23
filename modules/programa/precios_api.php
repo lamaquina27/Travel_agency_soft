@@ -101,7 +101,13 @@ class ProgramaPreciosAPI {
                 'movilidad_reducida' => isset($_POST['movilidad_reducida']) ? 1 : 0,
                 'mostrar_precio' => (isset($_POST['mostrar_precio']) && $_POST['mostrar_precio'] == '1') ? 1 : 0,
                 'info_pasaporte' => trim($_POST['info_pasaporte'] ?? ''),
-                'info_seguros' => trim($_POST['info_seguros'] ?? '')
+                'info_seguros' => trim($_POST['info_seguros'] ?? ''),
+                'visados_entrada' => trim($_POST['visados_entrada'] ?? ''),
+                'requisitos_sanitarios' => trim($_POST['requisitos_sanitarios'] ?? ''),
+                'llegada_punto_encuentro' => trim($_POST['llegada_punto_encuentro'] ?? ''),
+                'asistencia_emergencia' => trim($_POST['asistencia_emergencia'] ?? ''),
+                'info_hoteles_servicios' => trim($_POST['info_hoteles_servicios'] ?? ''),
+                'informacion_practica' => trim($_POST['informacion_practica'] ?? '')
             ];
             
             error_log("📝 Datos de precios a guardar: " . print_r($preciosData, true));
@@ -194,12 +200,14 @@ class ProgramaPreciosAPI {
             // Si NO existen precios guardados, cargar plantilla de la agencia
             if (!$precios) {
                 $plantilla = $this->db->fetch(
-                    "SELECT precio_incluye, precio_no_incluye, condiciones_generales, info_pasaporte, info_seguros 
-                    FROM biblioteca_plantillas_precios 
-                    WHERE agencia_id = ?", 
+                    "SELECT precio_incluye, precio_no_incluye, condiciones_generales, info_pasaporte, info_seguros,
+                            visados_entrada, requisitos_sanitarios, llegada_punto_encuentro,
+                            asistencia_emergencia, info_hoteles_servicios, informacion_practica
+                    FROM biblioteca_plantillas_precios
+                    WHERE agencia_id = ?",
                     [$agencia_id]
                 );
-                
+
                 if ($plantilla) {
                     // Crear estructura de precios vacía pero con plantilla pre-cargada
                     $precios = [
@@ -208,6 +216,12 @@ class ProgramaPreciosAPI {
                         'condiciones_generales' => $plantilla['condiciones_generales'],
                         'info_pasaporte' => $plantilla['info_pasaporte'],
                         'info_seguros' => $plantilla['info_seguros'],
+                        'visados_entrada' => $plantilla['visados_entrada'],
+                        'requisitos_sanitarios' => $plantilla['requisitos_sanitarios'],
+                        'llegada_punto_encuentro' => $plantilla['llegada_punto_encuentro'],
+                        'asistencia_emergencia' => $plantilla['asistencia_emergencia'],
+                        'info_hoteles_servicios' => $plantilla['info_hoteles_servicios'],
+                        'informacion_practica' => $plantilla['informacion_practica'],
                         'mostrar_precio' => 0
                     ];
                     
