@@ -2284,19 +2284,22 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                 misProgramasFiltrados = programasBase.filter(programa => {
                     if (!searchTerm) return true;
-
+                    const search_term = searchTerm.split(" ").filter(term => term !== ''); 
                     const searchFields = [
                         programa.destino,
-                        programa.nombre_viajero,
-                        programa.apellido_viajero,
+                        programa.nombre,
+                        programa.apellido,
                         programa.titulo_programa,
                         programa.id_solicitud,
-                        `${programa.nombre_viajero} ${programa.apellido_viajero}`, // Nombre completo
+                        programa.numero_documento,
+                        `${programa.nombre} ${programa.apellido}`, // Nombre completo
                         `Viaje a ${programa.destino}` // Título por defecto
                     ];
 
-                    return searchFields.some(field =>
-                        field && field.toString().toLowerCase().includes(searchTerm)
+                    return search_term.every(term =>
+                        searchFields.some(field => 
+                            field && field.toString().toLowerCase().includes(term)
+                        )
                     );
                 });
 
@@ -2310,21 +2313,26 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                 otrosProgramasFiltrados = programasBase.filter(programa => {
                     // Filtro de búsqueda
+                    const search_term = searchTerm.split(" ").filter(term => term !== ''); 
+
                     const matchesSearch = !searchTerm || (() => {
                         const searchFields = [
                             programa.destino,
-                            programa.nombre_viajero,
-                            programa.apellido_viajero,
+                            programa.nombre,
+                            programa.apellido,
                             programa.titulo_programa,
                             programa.id_solicitud,
                             programa.created_by_name,
-                            `${programa.nombre_viajero} ${programa.apellido_viajero}`,
+                            programa.numero_documento,
+                            `${programa.nombre} ${programa.apellido}`,
                             `Viaje a ${programa.destino}`
                         ];
 
-                        return searchFields.some(field =>
-                            field && field.toString().toLowerCase().includes(searchTerm)
-                        );
+                        return search_term.every(term =>
+                            searchFields.some(field => 
+                                field && field.toString().toLowerCase().includes(term)
+                            )
+                        );  
                     })();
 
                     // Filtro de autor
@@ -2335,16 +2343,64 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                 mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
                 actualizarPlaceholderBusqueda('otros');
+            }else if (tipo === 'plantillas') {
+                const searchTerm = document.getElementById('searchInputPlantillas').value.toLowerCase().trim();
+
+                const programasBase = allProgramas.filter(p => p.plantilla == 1);
+
+                plantillas = programasBase.filter(programa => {
+                    if (!searchTerm) return true;
+                    const search_term = searchTerm.split(" ").filter(term => term !== ''); 
+                    const searchFields = [
+                        programa.destino,
+                        programa.nombre,
+                        programa.apellido,
+                        programa.titulo_programa,
+                        programa.id_solicitud,
+                        programa.numero_documento,
+                        `${programa.nombre} ${programa.apellido}`, // Nombre completo
+                        `Viaje a ${programa.destino}` // Título por defecto
+                    ];
+
+                    return search_term.every(term =>
+                        searchFields.some(field => 
+                            field && field.toString().toLowerCase().includes(term)
+                        )
+                    );
+                });
+
+                mostrarProgramasSeccion('plantillas', plantillas);
+                actualizarPlaceholderBusqueda('plantillas');
             }
 
             actualizarEstadisticas();
-            console.log(`Filtrado ${tipo}: ${tipo === 'mios' ? misProgramasFiltrados.length : otrosProgramasFiltrados.length} programas`);
+            
+            let countLog = 0;
+            if (tipo === 'mios') countLog = misProgramasFiltrados.length;
+            else if (tipo === 'otros') countLog = otrosProgramasFiltrados.length;
+            else if (tipo === 'plantillas') countLog = plantillas.length;
+            
+            console.log(`Filtrado ${tipo}: ${countLog} programas`);
         }
 
         function actualizarPlaceholderBusqueda(tipo) {
-            const inputId = tipo === 'mios' ? 'searchInputMios' : 'searchInputOtros';
+            let inputId = '';
+            let programas = [];
+            
+            if (tipo === 'mios') {
+                inputId = 'searchInputMios';
+                programas = misProgramasFiltrados;
+            } else if (tipo === 'otros') {
+                inputId = 'searchInputOtros';
+                programas = otrosProgramasFiltrados;
+            } else if (tipo === 'plantillas') {
+                inputId = 'searchInputPlantillas';
+                programas = plantillas; 
+            }
+
             const input = document.getElementById(inputId);
-            const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
+            if (!input) return; // Evitar errores si el input no existe en la vista actual
+            
             const searchTerm = input.value.trim();
 
             if (searchTerm) {
