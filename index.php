@@ -197,6 +197,13 @@ switch($path) {
         App::redirect('/biblioteca');
         break;
         
+    case '/gmail/oauth':
+        require_once 'modules/gmail/oauth.php';
+        break;
+
+    case '/gmail/api':
+        require_once 'modules/gmail/api.php';
+        break;
     default:
         http_response_code(404);
         include 'pages/404.php';
