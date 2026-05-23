@@ -13,8 +13,81 @@ require_once dirname(__DIR__, 2) . '/config/app.php';
 App::init();
 App::requireLogin();
 
-class ProgramaAPI
-{
+class ProgramaAPI{
+    
+    private function togglePlantilla()
+    {
+        $programa_id = $_POST['programa_id'] ?? null;
+        if (!$programa_id) {
+            throw new Exception('ID de programa requerido');
+        }
+
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        $user_id    = $_SESSION['user_id'];
+        $user_role  = $_SESSION['user_role'] ?? 'agent';
+
+        // Solo el dueño o un admin pueden cambiar el flag
+        $where = $user_role === 'admin'
+            ? "id = ? AND agencia_id = ?"
+            : "id = ? AND user_id = ? AND agencia_id = ?";
+        $params = $user_role === 'admin'
+            ? [$programa_id, $agencia_id]
+            : [$programa_id, $user_id, $agencia_id];
+
+        $programa = $this->db->fetch(
+            "SELECT id, plantilla FROM programa_solicitudes WHERE $where",
+            $params
+        );
+
+        if (!$programa) {
+            throw new Exception('Programa no encontrado o sin permisos');
+        }
+
+        $nuevo_valor = $programa['plantilla'] ? 0 : 1;
+
+        $this->db->update(
+            'programa_solicitudes',
+            ['plantilla' => $nuevo_valor],
+            'id = ?',
+            [$programa_id]
+        );
+
+        return [
+            'success'   => true,
+            'plantilla' => $nuevo_valor,
+            'message'   => $nuevo_valor ? 'Marcado como plantilla' : 'Desmarcado como plantilla'
+        ];
+    }
+
+    private function listPlantillas()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $plantillas = $this->db->fetchAll(
+            "SELECT ps.*,
+                    u.full_name as created_by_name,
+                    pp.titulo_programa,
+                    pp.foto_portada,
+                    pp.idioma_predeterminado,
+                    pr.cantidad_adultos,
+                    pr.cantidad_ninos,
+                    (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
+                    FROM programa_dias pd
+                    WHERE pd.solicitud_id = ps.id) as total_dias_real
+            FROM programa_solicitudes ps
+            LEFT JOIN users u ON ps.user_id = u.id
+            LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
+            LEFT JOIN programa_precios pr ON ps.id = pr.solicitud_id
+            WHERE ps.agencia_id = ? AND ps.plantilla = 1
+            ORDER BY ps.created_at DESC",
+            [$agencia_id]
+        );
+
+        return ['success' => true, 'data' => $plantillas];
+    }
     private $db;
 
     public function __construct()
@@ -41,6 +114,12 @@ class ProgramaAPI
             error_log("FILES: " . print_r(array_keys($_FILES), true));
 
             switch ($action) {
+                case 'toggle_plantilla':
+                    $result = $this->togglePlantilla();
+                    break;
+                case 'list_plantillas':
+                    $result = $this->listPlantillas();
+                    break;
                 case 'save_programa':
                     $result = $this->savePrograma();
                     break;
@@ -335,7 +414,8 @@ class ProgramaAPI
                 'nombre' => $original['nombre'],
                 'apellido' => $original['apellido'],
                 'titular_id' => $original['titular_id'], // <- Hereda el titular
-                'comprado' => 0,                         // <- Las copias nacen sin comprar
+                'comprado' => 0, // <- Las copias nacen sin comprar
+                'plantilla' => 0,                        
                 'destino' => $original['destino'],
                 'fecha_llegada' => $original['fecha_llegada'],
                 'fecha_salida' => $original['fecha_salida'],
@@ -775,6 +855,7 @@ class ProgramaAPI
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
+                'plantilla'  => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -893,6 +974,7 @@ class ProgramaAPI
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
+                'plantilla'  => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
