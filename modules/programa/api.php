@@ -176,6 +176,7 @@ class ProgramaAPI{
                         pp.idioma_predeterminado,
                         pr.cantidad_adultos,
                         pr.cantidad_ninos,
+                        v.numero_documento,
                         (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
                          FROM programa_dias pd
                          WHERE pd.solicitud_id = ps.id) as total_dias_real,
@@ -186,6 +187,7 @@ class ProgramaAPI{
                 LEFT JOIN users u ON ps.user_id = u.id
                 LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
                 LEFT JOIN programa_precios pr ON ps.id = pr.solicitud_id
+                LEFT JOIN viajeros v ON ps.titular_id = v.id 
                 WHERE ps.agencia_id = ?
                 ORDER BY ps.created_at DESC",
                 [$agencia_id]
