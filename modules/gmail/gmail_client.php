@@ -40,9 +40,41 @@ class GmailClient {
     }
 
     public function getUserInfo() {
-        $oauth2 = new Google\Service\Oauth2($this->client);
-        $info   = $oauth2->userinfo->get();
-        return ['email' => $info->getEmail(), 'name' => $info->getName()];
+        $token = $this->client->getAccessToken();
+
+        // Primary: decode the id_token JWT (issued by Google — no need to re-verify)
+        if (!empty($token['id_token'])) {
+            $parts   = explode('.', $token['id_token']);
+            $payload = json_decode(
+                base64_decode(strtr($parts[1] ?? '', '-_', '+/')), true
+            );
+            if ($payload && !empty($payload['email'])) {
+                return [
+                    'email' => $payload['email'],
+                    'name'  => $payload['name'] ?? $payload['email'],
+                ];
+            }
+        }
+
+        // Fallback: call Google userinfo endpoint with the access token
+        $accessToken = $token['access_token'] ?? '';
+        $ctx = stream_context_create(['http' => [
+            'header' => "Authorization: Bearer {$accessToken}\r\n",
+        ]]);
+        $response = @file_get_contents(
+            'https://www.googleapis.com/oauth2/v3/userinfo', false, $ctx
+        );
+        if ($response) {
+            $info = json_decode($response, true);
+            if (!empty($info['email'])) {
+                return [
+                    'email' => $info['email'],
+                    'name'  => $info['name'] ?? $info['email'],
+                ];
+            }
+        }
+
+        throw new Exception('No se pudo obtener información del usuario de Google.');
     }
 
     public function saveToken($userId, $email, $token) {
@@ -165,5 +197,86 @@ class GmailClient {
         $message = new Google\Service\Gmail\Message();
         $message->setRaw($encoded);
         return $this->gmail->users_messages->send('me', $message);
+    }
+
+    // =========================================================
+    // Métodos para sincronización incremental (worker)
+    // =========================================================
+
+    /**
+     * Devuelve el historyId actual del buzón.
+     * Se guarda en email_accounts.gmail_history_id en la primera ejecución.
+     */
+    public function getCurrentHistoryId(): string {
+        $profile = $this->gmail->users->getProfile('me');
+        return (string) $profile->getHistoryId();
+    }
+
+    /**
+     * Obtiene IDs de mensajes NUEVOS desde un historyId anterior.
+     * Retorna array de messageIds únicos.
+     */
+    public function getMessageIdsSinceHistory(string $startHistoryId): array {
+        $messageIds = [];
+        $pageToken  = null;
+
+        do {
+            $params = [
+                'startHistoryId' => $startHistoryId,
+                'historyTypes'   => ['messageAdded'],
+            ];
+            if ($pageToken) $params['pageToken'] = $pageToken;
+
+            $history = $this->gmail->users_history->listUsersHistory('me', $params);
+
+            foreach ($history->getHistory() ?? [] as $record) {
+                foreach ($record->getMessagesAdded() ?? [] as $added) {
+                    $messageIds[] = $added->getMessage()->getId();
+                }
+            }
+
+            $pageToken = $history->getNextPageToken();
+
+        } while ($pageToken);
+
+        return array_unique($messageIds);
+    }
+
+    /**
+     * Obtiene mensajes recientes por query (primera ejecución).
+     * Retorna array de messageIds.
+     */
+    public function getRecentMessageIds(string $query = '', int $maxResults = 50): array {
+        $params = ['maxResults' => $maxResults];
+        if ($query) $params['q'] = $query;
+
+        $response = $this->gmail->users_messages->listUsersMessages('me', $params);
+        $ids = [];
+        foreach ($response->getMessages() ?? [] as $msg) {
+            $ids[] = $msg->getId();
+        }
+        return $ids;
+    }
+
+    /**
+     * Obtiene el mensaje completo con threadId incluido.
+     * Versión extendida de getEmailDetail, usada por el worker.
+     */
+    public function getFullMessage(string $messageId): array {
+        $full    = $this->gmail->users_messages->get('me', $messageId, ['format' => 'full']);
+        $headers = [];
+        foreach ($full->getPayload()->getHeaders() as $h) {
+            $headers[$h->getName()] = $h->getValue();
+        }
+        $body = $this->extractBody($full->getPayload());
+        return [
+            'id'       => $messageId,
+            'thread_id'=> $full->getThreadId() ?? '',
+            'from'     => $headers['From']    ?? '',
+            'to'       => $headers['To']      ?? '',
+            'subject'  => $headers['Subject'] ?? '',
+            'date'     => $headers['Date']    ?? '',
+            'body'     => $body,
+        ];
     }
 }

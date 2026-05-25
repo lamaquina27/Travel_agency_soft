@@ -204,6 +204,11 @@ switch($path) {
     case '/gmail/api':
         require_once 'modules/gmail/api.php';
         break;
+
+    case '/gmail/worker':
+        require_once 'modules/gmail/worker.php';
+        break;
+
     default:
         http_response_code(404);
         include 'pages/404.php';
