@@ -6,26 +6,30 @@ require_once __DIR__ . '/../../config/database.php';
 /**
  * EmailSyncService
  *
- * Sincroniza correos nuevos de una cuenta Gmail activa hacia la tabla email_messages.
+ * Sincroniza correos nuevos de una cuenta Gmail activa hacia email_messages.
  *
- * Estrategia incremental:
- *   - Primera ejecución : descarga los últimos 50 correos con [TRAVELSOFT] en el asunto.
- *                         Guarda el historyId actual para la próxima vez.
- *   - Ejecuciones siguientes: usa Gmail History API para traer SOLO los mensajes
- *                         nuevos desde el último historyId conocido.
+ * Clasifica cada mensaje en dos categorías:
  *
- * Deduplicación:
- *   email_messages tiene UNIQUE KEY (email_account_id, provider_message_id).
- *   Si un mensaje ya existe el INSERT falla silenciosamente → cero duplicados en BD.
+ *   message_type = 'lead'
+ *     Subject contiene [TRAVELSOFT] → correo de creación de lead.
+ *     El RuleEngine decide si crear lead nuevo o vincular a uno existente.
+ *
+ *   message_type = 'chat'
+ *     from_email coincide con pipeline.email_cliente de un lead activo → conversación.
+ *     Se vincula directamente al lead activo más reciente del cliente.
+ *     También detecta mensajes enviados por el agente desde Gmail (outbound chat).
+ *
+ * Mensajes que no son ni lead ni chat → se descartan, NO se guardan en BD.
+ *
+ * Sync incremental:
+ *   Primera ejecución: últimos 50 correos con [TRAVELSOFT] + clientes conocidos.
+ *   Ejecuciones siguientes: Gmail History API → solo mensajes nuevos.
  */
 class EmailSyncService {
 
     private Database $db;
 
-    // Query de Gmail para filtrar correos relevantes
-    private const GMAIL_QUERY = 'subject:[TRAVELSOFT]';
-
-    // Límite de correos a descargar en la primera ejecución
+    private const GMAIL_QUERY        = 'subject:[TRAVELSOFT]';
     private const INITIAL_FETCH_LIMIT = 50;
 
     public function __construct() {
@@ -36,17 +40,6 @@ class EmailSyncService {
     // Punto de entrada principal
     // =========================================================
 
-    /**
-     * Sincroniza una cuenta Gmail.
-     *
-     * @param  int   $accountId   ID en email_accounts
-     * @return array [
-     *   'new_messages'  => int,   // Mensajes nuevos guardados en BD
-     *   'skipped'       => int,   // Mensajes ya existentes (dedup)
-     *   'errors'        => int,   // Mensajes que fallaron al guardarse
-     *   'new_history_id'=> string // historyId actualizado
-     * ]
-     */
     public function syncAccount(int $accountId): array {
         $account = $this->loadAccount($accountId);
         if (!$account) {
@@ -57,45 +50,43 @@ class EmailSyncService {
         $result = [
             'new_messages'    => 0,
             'skipped'         => 0,
-            'errors'          => 0,
             'new_history_id'  => '',
-            'new_message_ids' => [],   // IDs reales en email_messages (solo los de esta pasada)
+            'new_message_ids' => [],
         ];
 
-        // Obtener IDs de mensajes nuevos
         $messageIds = $this->fetchNewMessageIds($gmail, $account);
 
         if (empty($messageIds)) {
-            // Sin mensajes nuevos: actualizar historyId igual
             $currentHistoryId = $gmail->getCurrentHistoryId();
             $this->updateHistoryId($accountId, $currentHistoryId);
             $result['new_history_id'] = $currentHistoryId;
             return $result;
         }
 
-        // Obtener agencia_id del usuario dueño de la cuenta
         $agencyId = $this->getAgencyId($account['user_id']);
         if (!$agencyId) {
             throw new \RuntimeException("No agency found for user {$account['user_id']}");
         }
 
-        // Procesar cada mensaje
+        // Email de la cuenta de la agencia (para detectar outbound desde Gmail)
+        $accountEmail = $account['email'] ?? '';
+
         foreach ($messageIds as $messageId) {
             try {
-                [$status, $dbId] = $this->processMessage($gmail, $messageId, $accountId, $agencyId);
+                [$status, $dbId] = $this->processMessage(
+                    $gmail, $messageId, $accountId, $agencyId, $accountEmail
+                );
                 if ($status === 'new') {
                     $result['new_messages']++;
                     if ($dbId) $result['new_message_ids'][] = $dbId;
                 }
-                if ($status === 'skipped')  $result['skipped']++;
-                // 'filtered' = no tiene [TRAVELSOFT] → se ignora, no se guarda
+                if ($status === 'skipped') $result['skipped']++;
+                // 'filtered' → no relevante, se descarta sin guardar nada
             } catch (\Exception $e) {
-                $result['errors']++;
                 throw $e;
             }
         }
 
-        // Guardar el historyId más reciente
         $newHistoryId = $gmail->getCurrentHistoryId();
         $this->updateHistoryId($accountId, $newHistoryId);
         $result['new_history_id'] = $newHistoryId;
@@ -107,19 +98,14 @@ class EmailSyncService {
     // Obtención de IDs de mensajes
     // =========================================================
 
-    /**
-     * Decide si usar History API (ejecuciones posteriores)
-     * o fetch inicial (primera vez).
-     */
     private function fetchNewMessageIds(GmailClient $gmail, array $account): array {
         $historyId = $account['gmail_history_id'] ?? null;
 
         if ($historyId) {
-            // Sincronización incremental: solo lo nuevo
             return $gmail->getMessageIdsSinceHistory($historyId);
         }
 
-        // Primera ejecución: últimos N correos con [TRAVELSOFT]
+        // Primera ejecución: solo correos con [TRAVELSOFT]
         return $gmail->getRecentMessageIds(self::GMAIL_QUERY, self::INITIAL_FETCH_LIMIT);
     }
 
@@ -128,59 +114,138 @@ class EmailSyncService {
     // =========================================================
 
     /**
-     * Descarga el mensaje completo y lo inserta en email_messages.
+     * Descarga el mensaje y decide si guardarlo como 'lead', 'chat' o descartarlo.
      *
-     * @return string 'new' | 'skipped'
-     */
-    /**
+     * Lógica:
+     *   1. ¿from_email = email de la cuenta de la agencia?
+     *      → Agente envió desde Gmail. Verificar si to_email es cliente conocido → chat outbound.
+     *
+     *   2. ¿from_email coincide con pipeline.email_cliente de un lead activo?
+     *      → Mensaje directo del cliente → chat inbound.
+     *
+     *   3. ¿Subject contiene [TRAVELSOFT]?
+     *      → Solicitud nueva (formulario u otro origen) → lead.
+     *
+     *   4. Ninguna condición → descartar (no se guarda nada).
+     *
      * @return array{0: string, 1: int|null}  ['new'|'skipped'|'filtered', dbId|null]
      */
-    private function processMessage(GmailClient $gmail, string $messageId, int $accountId, int $agencyId): array {
-        $msg = $gmail->getFullMessage($messageId);
+    private function processMessage(
+        GmailClient $gmail,
+        string      $messageId,
+        int         $accountId,
+        int         $agencyId,
+        string      $accountEmail
+    ): array {
+        try {
+            $msg = $gmail->getFullMessage($messageId);
+        } catch (\Google\Service\Exception $e) {
+            // Mensaje ya no existe en Gmail (borrado antes de procesarlo)
+            if ($e->getCode() === 404) return ['filtered', null];
+            throw $e;
+        }
 
-        // Solo procesar correos con la palabra clave en el subject.
-        // Esto filtra tanto en sync incremental (History API) como en primera ejecución.
-        if (stripos($msg['subject'], '[TRAVELSOFT]') === false) {
+        $fromEmail  = $this->extractEmailAddress($msg['from']);
+        $toEmail    = $this->extractEmailAddress($msg['to']);
+        $receivedAt = $msg['date'] ? date('Y-m-d H:i:s', strtotime($msg['date'])) : null;
+
+        // ── Caso 1: outbound desde Gmail (el agente respondió directamente) ──────
+        if ($fromEmail === strtolower($accountEmail)) {
+            $lead = $this->findActiveLeadByClientEmail($toEmail, $agencyId);
+            if ($lead) {
+                return $this->saveMessage($msg, $accountId, $agencyId, [
+                    'pipeline_id'  => $lead['id'],
+                    'direction'    => 'outbound',
+                    'message_type' => 'chat',
+                    'from_email'   => $fromEmail,
+                    'to_email'     => $toEmail,
+                    'received_at'  => $receivedAt,
+                ]);
+            }
+            // El agente envió a alguien que no es cliente → descartar
             return ['filtered', null];
         }
 
-        // Parsear fecha de recepción
-        $receivedAt = $msg['date'] ? date('Y-m-d H:i:s', strtotime($msg['date'])) : null;
-
-        try {
-            $dbId = $this->db->insert('email_messages', [
-                'agency_id'          => $agencyId,
-                'email_account_id'   => $accountId,
-                'pipeline_id'        => null,
-                'provider_message_id'=> $msg['id'],
-                'thread_id'          => $msg['thread_id'],
-                'from_email'         => $this->extractEmailAddress($msg['from']),
-                'to_email'           => $this->extractEmailAddress($msg['to']),
-                'subject'            => substr($msg['subject'], 0, 998),
-                'body'               => $msg['body'],
-                'direction'          => 'inbound',
-                'received_at'        => $receivedAt,
+        // ── Caso 2: inbound de un cliente conocido → chat ────────────────────────
+        $lead = $this->findActiveLeadByClientEmail($fromEmail, $agencyId);
+        if ($lead) {
+            return $this->saveMessage($msg, $accountId, $agencyId, [
+                'pipeline_id'  => $lead['id'],
+                'direction'    => 'inbound',
+                'message_type' => 'chat',
+                'from_email'   => $fromEmail,
+                'to_email'     => $toEmail,
+                'received_at'  => $receivedAt,
             ]);
-            return ['new', (int) $dbId];
-
-        } catch (\PDOException $e) {
-            // Código 23000 = violación de constraint (UNIQUE KEY duplicado)
-            if (str_starts_with($e->getCode(), '23')) {
-                return ['skipped', null];
-            }
-            throw $e;
         }
+
+        // ── Caso 3: solicitud nueva con [TRAVELSOFT] → lead ──────────────────────
+        if (stripos($msg['subject'], '[TRAVELSOFT]') !== false) {
+            return $this->saveMessage($msg, $accountId, $agencyId, [
+                'pipeline_id'  => null,
+                'direction'    => 'inbound',
+                'message_type' => 'lead',
+                'from_email'   => $fromEmail,
+                'to_email'     => $toEmail,
+                'received_at'  => $receivedAt,
+            ]);
+        }
+
+        // ── Caso 4: no relevante ─────────────────────────────────────────────────
+        return ['filtered', null];
+    }
+
+    /**
+     * Inserta el mensaje en email_messages.
+     * @return array{0: string, 1: int|null}
+     */
+    private function saveMessage(
+        array  $msg,
+        int    $accountId,
+        int    $agencyId,
+        array  $meta
+    ): array {
+        // INSERT IGNORE: si ya existe el provider_message_id para esta cuenta,
+        // MySQL lo descarta silenciosamente (rowCount = 0) en lugar de lanzar excepción.
+        $data = [
+            'agency_id'           => $agencyId,
+            'email_account_id'    => $accountId,
+            'pipeline_id'         => $meta['pipeline_id'],
+            'provider_message_id' => $msg['id'],
+            'thread_id'           => $msg['thread_id'],
+            'from_email'          => $meta['from_email'],
+            'to_email'            => $meta['to_email'],
+            'subject'             => substr($msg['subject'], 0, 998),
+            'body'                => $msg['body'],
+            'direction'           => $meta['direction'],
+            'message_type'        => $meta['message_type'],
+            'received_at'         => $meta['received_at'],
+        ];
+
+        $columns      = implode(', ', array_keys($data));
+        $placeholders = ':' . implode(', :', array_keys($data));
+        $sql          = "INSERT IGNORE INTO email_messages ({$columns}) VALUES ({$placeholders})";
+
+        $pdo  = $this->db->getConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($data);
+
+        if ($stmt->rowCount() === 0) {
+            return ['skipped', null];   // ya existía — duplicado ignorado
+        }
+
+        return ['new', (int) $pdo->lastInsertId()];
     }
 
     // =========================================================
-    // Helpers
+    // Helpers de BD
     // =========================================================
 
     private function loadAccount(int $accountId): ?array {
         $row = $this->db->fetch(
-            "SELECT id, user_id, gmail_history_id
-             FROM email_accounts
-             WHERE id = ? AND provider = 'gmail' AND status = 'active'",
+            "SELECT ea.id, ea.user_id, ea.email, ea.gmail_history_id
+             FROM email_accounts ea
+             WHERE ea.id = ? AND ea.provider = 'gmail' AND ea.status = 'active'",
             [$accountId]
         );
         return $row ?: null;
@@ -194,6 +259,27 @@ class EmailSyncService {
         return ($user && $user['agencia_id']) ? (int) $user['agencia_id'] : null;
     }
 
+    /**
+     * Busca el lead activo más reciente cuyo email_cliente coincida.
+     * "Activo" = estado no marcado como es_final en pipeline_estados.
+     */
+    private function findActiveLeadByClientEmail(string $email, int $agencyId): ?array {
+        if (empty($email)) return null;
+
+        $row = $this->db->fetch(
+            "SELECT p.id
+             FROM pipeline p
+             JOIN pipeline_estados pe ON pe.id = p.estado_id
+             WHERE p.agencia_id    = ?
+               AND p.email_cliente = ?
+               AND pe.es_final     = 0
+             ORDER BY p.created_at DESC
+             LIMIT 1",
+            [$agencyId, strtolower($email)]
+        );
+        return $row ?: null;
+    }
+
     private function updateHistoryId(int $accountId, string $historyId): void {
         $this->db->update(
             'email_accounts',
@@ -203,23 +289,12 @@ class EmailSyncService {
         );
     }
 
-    /**
-     * Extrae la dirección de email limpia desde un header "From" o "To".
-     * Ejemplos:
-     *   "Juan García <juan@gmail.com>"  → "juan@gmail.com"
-     *   "juan@gmail.com"                → "juan@gmail.com"
-     */
     private function extractEmailAddress(string $header): string {
         if (preg_match('/<([^>]+)>/', $header, $m)) {
             return strtolower(trim($m[1]));
         }
         return strtolower(trim($header));
     }
-
-    // =========================================================
-    // Método público: lista todas las cuentas activas
-    // Usado por el worker para iterar sobre todas las agencias.
-    // =========================================================
 
     public function getActiveAccounts(): array {
         return $this->db->fetchAll(
