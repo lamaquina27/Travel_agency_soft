@@ -702,7 +702,8 @@ private function updateService($servicioId, $data) {
             'actividad_imagen1',
             'actividad_imagen2',
             'actividad_imagen3',
-            'acomodacion_id'
+            'acomodacion_id',
+            'variacion_precio'
         ];
         
         foreach ($allowedFields as $field) {
@@ -710,7 +711,12 @@ private function updateService($servicioId, $data) {
                 $updateData[$field] = $data[$field];
             }
         }
-        
+
+        if (isset($updateData['variacion_precio'])) {
+            $val = preg_replace('/[^0-9.\-]/', '', $updateData['variacion_precio']);
+            $updateData['variacion_precio'] = is_numeric($val) ? floatval($val) : null;
+        }  
+              
         if (empty($updateData)) {
             throw new Exception('No hay datos para actualizar');
         }
