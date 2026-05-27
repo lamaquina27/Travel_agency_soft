@@ -19,7 +19,7 @@ $path = $path ?: '/';
 // Limpiar path de múltiples slashes
 $path = preg_replace('#/+#', '/', $path);
 
-switch($path) {
+switch ($path) {
     case '/':
     case '/login':
         if (App::isLoggedIn()) {
@@ -27,11 +27,11 @@ switch($path) {
         }
         include 'pages/login.php';
         break;
-        
+
     case '/auth/login':
         include 'auth/login.php';
         break;
-        
+
     case '/auth/logout':
         include 'auth/logout.php';
         break;
@@ -39,15 +39,15 @@ switch($path) {
     case '/confirm-close-session':
         include 'pages/confirm_close_session.php';
         break;
-        
+
     case '/auth/force-close-session':
         include 'auth/force_close_session.php';
         break;
-        
+
     case '/dashboard':
         App::requireLogin();
         $user = App::getUser();
-        
+
         if (isset($_GET['redirect'])) {
             if ($user['role'] === 'admin') {
                 App::redirect('/administrador');
@@ -63,7 +63,7 @@ switch($path) {
         App::requireRole('superadmin');
         include 'pages/superadmin_dashboard.php';
         break;
-        
+
     case '/superadmin/agencias':
         App::requireRole('superadmin');
         include 'pages/superadmin_agencias.php';
@@ -83,55 +83,55 @@ switch($path) {
         App::requireRole('superadmin');
         include 'pages/superadmin_usuarios_agencia.php';
         break;
-        
+
     case '/modules/superadmin/usuarios_api.php':
         App::requireRole('superadmin');
         include 'modules/superadmin/usuarios_api.php';
         break;
-            
-    
+
+
     case '/superadmin/gestionar-superadmins':
         App::requireRole('superadmin');
         include 'pages/superadmin_gestionar_superadmins.php';
         break;
-        
+
     case '/biblioteca':
         App::requireLogin();
         include 'pages/biblioteca.php';
         break;
-        
+
     case '/biblioteca/api':
         App::requireLogin();
         include 'modules/biblioteca/api.php';
         break;
-        
+
     case '/programa':
         App::requireLogin();
         include 'pages/programa.php';
         break;
-        
+
     case '/programa/api':
         App::requireLogin();
         include 'modules/programa/api.php';
         break;
-        
+
     case '/itinerarios':
         App::requireLogin();
         include 'pages/itinerarios.php';
         break;
-        
+
     case (preg_match('/^\/itinerarios\/(\d+)$/', $path, $matches) ? true : false):
         App::requireLogin();
         $_GET['id'] = $matches[1];
         include 'pages/itinerarios.php';
         break;
-        
+
     case '/administrador':
     case '/administrador/usuarios':
         App::requireRole('admin');
         include 'pages/admin.php';
         break;
-        
+
     case '/administrador/configuracion':
         App::requireRole('admin');
         include 'pages/admin_config.php';
@@ -152,7 +152,7 @@ switch($path) {
         }
         include 'pages/perfil.php';
         break;
-        
+
     case '/perfil/api':
         App::requireLogin();
         // Solo permitir acceso a agentes  
@@ -164,7 +164,7 @@ switch($path) {
         }
         include 'modules/perfil/api.php';
         break;
-   
+
     case '/share':
         include 'share.php';
         break;
@@ -180,23 +180,37 @@ switch($path) {
         }
         require_once 'pages/itinerary.php';
         break;
-    
-        
+
+
     case '/itinerario':
     case '/mis-itinerarios':
     case '/viajes':
         App::redirect('/itinerarios');
         break;
-        
+
     case '/mi-programa':
         App::redirect('/programa');
         break;
-        
+
     case '/biblioteca-destinos':
     case '/destinos':
         App::redirect('/biblioteca');
         break;
-        
+    case '/pipeline':
+        App::requireLogin();
+        include 'pages/pipeline.php';
+        break;
+
+    case '/pipeline/api':
+        App::requireLogin();
+        include 'modules/pipeline/api.php';
+        break;
+
+    case '/chat':
+        App::requireLogin();
+        include 'pages/chat.php';
+        break;
+
     case '/gmail/oauth':
         require_once 'modules/gmail/oauth.php';
         break;

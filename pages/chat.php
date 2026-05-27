@@ -1,0 +1,1283 @@
+<?php
+// =====================================
+// ARCHIVO: pages/chat.php - Chat para hablar con usuarios
+// =====================================
+
+App::requireLogin();
+
+$pipeline_id = $_GET['id'] ?? null; // Asumimos que entramos por ?id=123
+if (!$pipeline_id) {
+    die("ID de cotización requerido.");
+}
+
+?>
+
+<head>
+    <style>
+        /* Agrega esto a tu index.css o un archivo específico de chat */
+        .chat-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            /* Ajusta según tu navbar */
+            background-color: #f4f7fc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Panel Izquierdo */
+        .chat-sidebar {
+            width: 320px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02);
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            background: #eff6ff;
+            color: #3b82f6;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .info-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+
+
+        .info-group-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #858585ff;
+        }
+
+        .info-group-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .info-group-content label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .info-group-content input {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            border-bottom: 1.5px solid transparent;
+            padding: 4px;
+            margin-left: -4px;
+            width: calc(100% + 8px);
+            outline: none;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+
+        .info-group-content input:hover,
+        .info-select:hover {
+            background-color: #f1f5f9;
+            /* Hover gris claro */
+        }
+
+        .info-group-content input:focus {
+            background-color: transparent;
+            border-bottom-color: #3b82f6;
+        }
+
+        .info-group-content input::placeholder {
+            color: #cbd5e1;
+        }
+
+        .info-select {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            border-bottom: 1.5px solid transparent;
+            padding: 4px;
+            margin-left: -4px;
+            width: calc(100% + 8px);
+            outline: none;
+            font-family: inherit;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+
+        .info-select:focus {
+            background-color: transparent;
+            border-bottom-color: #3b82f6;
+        }
+
+        /* Opciones desplegables personalizadas */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select-options {
+            position: absolute;
+            top: 100%;
+            left: -4px;
+            right: -4px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+            padding: 4px 0;
+        }
+
+        .custom-select-wrapper.open .custom-select-options {
+            display: block;
+        }
+
+        .custom-option {
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #1e293b;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .custom-option:hover {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        .dates-summary {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 500;
+            padding: 2px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dates-summary:hover {
+            color: #3b82f6;
+        }
+
+        .dates-summary svg {
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        .dates-summary:hover svg {
+            opacity: 1;
+        }
+
+        .dates-expanded-fields {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        .date-field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .date-field-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        .date-field input[type="date"] {
+            font-size: 13px;
+            color: #1e293b;
+            font-weight: 500;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+            padding: 5px 8px;
+            outline: none;
+            font-family: inherit;
+            width: 100%;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .date-field input[type="date"]:focus {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 10px 0;
+        }
+
+        .lead-name-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+        }
+
+
+
+        .lead-name-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lead-name-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+
+        /* Panel Derecho (Chat) */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fafaf9;
+        }
+
+        .chat-header {
+            padding: 20px 30px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .chat-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Burbujas de Chat */
+        .message {
+            max-width: 70%;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .message.inbound {
+            align-self: flex-start;
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .message.outbound {
+            align-self: flex-end;
+            background: #3b82f6;
+            /* Azul premium */
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .message-time {
+            display: block;
+            font-size: 11px;
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        /* =============================================
+           Área de Composición de Mensajes (Editor)
+        ============================================= */
+        .chat-composer {
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        /* Toolbar de formato */
+        .composer-format-bar {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 8px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+
+        .fmt-btn {
+            width: 30px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 13px;
+            font-family: 'Georgia', serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .fmt-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .fmt-btn.active {
+            background: #e0eaff;
+            color: #3b82f6;
+        }
+
+        .fmt-btn b {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .fmt-btn i {
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .fmt-btn.fmt-u {
+            text-decoration: underline;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .fmt-btn.fmt-s {
+            text-decoration: line-through;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .fmt-divider {
+            width: 1px;
+            height: 18px;
+            background: #e2e8f0;
+            margin: 0 4px;
+            flex-shrink: 0;
+        }
+
+        /* Área de texto (contenteditable) */
+        .composer-textarea-wrap {
+            padding: 12px 16px;
+            flex: 1;
+        }
+
+        .composer-editor {
+            width: 100%;
+            min-height: 72px;
+            max-height: 160px;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #1e293b;
+            background: transparent;
+            line-height: 1.6;
+            overflow-y: auto;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        /* Placeholder del contenteditable */
+        .composer-editor:empty::before {
+            content: attr(data-placeholder);
+            color: #cbd5e1;
+            pointer-events: none;
+        }
+
+        /* Zona de archivos adjuntos */
+        .composer-attachments {
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 16px 8px 16px;
+        }
+
+        .composer-attachments.has-files {
+            display: flex;
+        }
+
+        .attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #475569;
+            font-weight: 500;
+            max-width: 200px;
+        }
+
+        .attachment-chip span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .attachment-chip-remove {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0;
+            line-height: 1;
+            font-size: 15px;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+
+        .attachment-chip-remove:hover {
+            color: #ef4444;
+        }
+
+        .attachment-chip svg {
+            width: 13px;
+            height: 13px;
+            flex-shrink: 0;
+            stroke: #64748b;
+        }
+
+        /* Barra inferior de acciones */
+        .composer-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px 10px 12px;
+            gap: 8px;
+        }
+
+        .composer-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .composer-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Botones de acción del composer (clip, template, color...) */
+        .action-btn {
+            width: 34px;
+            height: 34px;
+            border: none;
+            background: transparent;
+            border-radius: 7px;
+            cursor: pointer;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .action-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.8;
+        }
+
+        .action-bar-divider {
+            width: 1px;
+            height: 20px;
+            background: #e2e8f0;
+            margin: 0 4px;
+        }
+
+        /* Botón enviar */
+        .btn-send {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            height: 36px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-send:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-send:active {
+            transform: scale(0.97);
+        }
+
+        .btn-send svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2.5;
+        }
+
+        /* Tooltip del botón template */
+        .action-btn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 100;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Botón de Volver */
+        .btn-back,
+        .btn-itinerary {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 10%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #64748b !important;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .btn-back:hover,
+        .btn-itinerary:hover {
+            background: #f8fafc;
+            color: #0f172a;
+            border-color: #cbd5e1;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<div class="chat-container">
+    <!-- Panel Izquierdo: Info del Lead -->
+    <aside class="chat-sidebar">
+        <div class="sidebar-header"
+            style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; justify-content: space-between;">
+            <!-- Botón Volver -->
+            <button class="btn-back" onclick="history.back()" title="Volver atrás">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+
+            </button>
+
+            <!-- itinerario -->
+            <button class="btn-itinerary" onclick="" title="Itinerario">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+
+            </button>
+        </div>
+        <!-- Nombre del cliente -->
+        <div class="lead-name-block">
+            <div class="lead-name-info">
+                <p class="lead-name-text" id="lead-name">JUAN DAVID</p>
+
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Estado -->
+        <div class="info-group">
+            <div class="info-group-icon icon-status">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Estado</label>
+                <div class="custom-select-wrapper" id="status-wrapper">
+                    <div class="info-select" id="status-display" onclick="toggleCustomSelect(event, 'status-wrapper')">
+                        --</div>
+                    <div class="custom-select-options" id="lead-status-options"></div>
+                    <input type="hidden" id="lead-status" value="">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="info-group">
+            <div class="info-group-icon icon-tag">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Tags</label>
+                <div class="custom-select-wrapper" id="stags-wrapper">
+                    <div class="info-select" id="stags-display" onclick="toggleCustomSelect(event, 'stags-wrapper')">--
+                    </div>
+                    <div class="custom-select-options" id="lead-stags-options"></div>
+                    <input type="hidden" id="lead-stags" value="">
+                </div>
+            </div>
+        </div>
+
+        <!-- Presupuesto -->
+        <div class="info-group">
+            <div class="info-group-icon icon-budget">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Presupuesto</label>
+                <input type="text" id="lead-budget" placeholder="--" onblur="guardar_data()" />
+            </div>
+        </div>
+
+        <!-- Agente -->
+        <div class="info-group">
+            <div class="info-group-icon icon-agent">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                    <polyline points="16 11 18 13 22 9" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Agente</label>
+                <div class="custom-select-wrapper" id="agentes-wrapper">
+                    <div class="info-select" id="agentes-display"
+                        onclick="toggleCustomSelect(event, 'agentes-wrapper')">--</div>
+                    <div class="custom-select-options" id="lead-agentes-options"></div>
+                    <input type="hidden" id="lead-agentes" value="">
+                </div>
+            </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="info-group">
+            <div class="info-group-icon icon-phone">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Teléfono</label>
+                <input type="tel" id="lead-phone" placeholder="--" onblur="guardar_data()" />
+            </div>
+        </div>
+
+        <!-- Viajeros (PAX) -->
+        <div class="info-group">
+            <div class="info-group-icon icon-pax">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Viajeros (PAX)</label>
+                <input type="number" id="lead-travelers" placeholder="--" min="1" onblur="guardar_data()" />
+            </div>
+        </div>
+
+        <!-- Fechas (colapsable) -->
+        <div class="info-group dates-group">
+            <div class="info-group-icon icon-date" style="margin-top:2px;">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Fechas</label>
+                <div class="dates-summary" id="dates-summary" onclick="toggleDates()">
+                    <span id="dates-display-text"></span>
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+                <div class="dates-expanded-fields" id="dates-expanded">
+                    <div class="date-field">
+                        <span class="date-field-label">Salida</span>
+                        <input type="date" id="lead-date-start" oninput="updateDatesSummary()"
+                            onclick="event.stopPropagation()" onblur="guardar_data()" />
+                    </div>
+                    <div class="date-field">
+                        <span class="date-field-label">Regreso</span>
+                        <input type="date" id="lead-date-end" oninput="updateDatesSummary()"
+                            onclick="event.stopPropagation()" onblur="guardar_data()" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Destino -->
+        <div class="info-group">
+            <div class="info-group-icon icon-dest">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Destino</label>
+                <span id="lead-destination"> </span>
+            </div>
+        </div>
+        <div class="info-group">
+            <div class="info-group-icon icon-dest">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="16 2 16 8 20 8" />
+                    <line x1="8" y1="11" x2="16" y2="11" />
+                    <line x1="8" y1="15" x2="16" y2="15" />
+                    <line x1="8" y1="19" x2="16" y2="19" />
+                </svg>
+            </div>
+            <div class="info-group-content">
+                <label>Notas</label>
+                <span id="lead-description"></span>
+            </div>
+        </div>
+    </aside>
+    <!-- Panel Derecho: Conversación -->
+    <main class="chat-main">
+        <header class="chat-header">
+            <h3>Conversación (Vía Gmail)</h3>
+            <p id="lead-email" class="subtitle">--</p>
+        </header>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Los mensajes se inyectarán aquí con JS -->
+        </div>
+        <!-- Composer: área de escritura enriquecida -->
+        <div class="chat-composer">
+
+            <!-- Barra de formato -->
+            <div class="composer-format-bar">
+                <button class="fmt-btn" id="fmt-bold" title="Negrita" onclick="applyFormat('bold')">
+                    <b>B</b>
+                </button>
+                <button class="fmt-btn fmt-i" id="fmt-italic" title="Cursiva" onclick="applyFormat('italic')">
+                    <i>I</i>
+                </button>
+                <button class="fmt-btn fmt-u" id="fmt-underline" title="Subrayado" onclick="applyFormat('underline')">
+                    U
+                </button>
+                <button class="fmt-btn fmt-s" id="fmt-strike" title="Tachado" onclick="applyFormat('strikethrough')">
+                    S
+                </button>
+            </div>
+
+            <!-- Área de edición enriquecida -->
+            <div class="composer-textarea-wrap">
+                <div id="message-input" class="composer-editor" contenteditable="true"
+                    data-placeholder="Escribe un mensaje al cliente..."></div>
+            </div>
+
+            <!-- Preview de archivos adjuntos -->
+            <div class="composer-attachments" id="attachments-preview"></div>
+
+            <!-- Input file oculto -->
+            <input type="file" id="file-input" multiple style="display:none">
+
+            <!-- Barra de acciones inferior -->
+            <div class="composer-action-bar">
+                <div class="composer-actions-left">
+                    <!-- Adjuntar archivo -->
+                    <button class="action-btn" title="Adjuntar archivo" onclick="triggerFileInput()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path
+                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 17.4a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                        </svg>
+                    </button>
+
+                    <!-- Templates de mensajes -->
+                    <button class="action-btn" id="btn-templates" title="Plantillas de mensaje"
+                        onclick="toggleCustomSelect()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="9" y1="13" x2="15" y2="13" />
+                            <line x1="9" y1="17" x2="13" y2="17" />
+                        </svg>
+                    </button>
+
+                    <div class="action-bar-divider"></div>
+
+
+                </div>
+
+                <div class="composer-actions-right">
+
+
+                    <!-- Botón Enviar -->
+                    <button id="btn-send" class="btn-send">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13" />
+                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                        </svg>
+                        Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const APP_URL = '<?= APP_URL ?>';
+    const PIPELINE_ID = <?= json_encode($pipeline_id) ?>;
+
+    let estadosData = [], tagsData = [], agentesData = [];
+
+    document.addEventListener('click', function (e) {
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            if (!w.contains(e.target)) w.classList.remove('open');
+        });
+    });
+
+    function toggleCustomSelect(event, wrapperId) {
+        event.stopPropagation();
+        document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+            if (w.id !== wrapperId) w.classList.remove('open');
+        });
+        document.getElementById(wrapperId).classList.toggle('open');
+    }
+
+    function selectCustomOption(inputId, displayId, wrapperId, value, text) {
+        document.getElementById(inputId).value = value;
+        document.getElementById(displayId).textContent = text;
+        document.getElementById(wrapperId).classList.remove('open');
+        guardar_data();
+    }
+
+    function updateCustomSelectUI(inputId, value, dataArray, idField, nameField, displayId) {
+        document.getElementById(inputId).value = value || '';
+        if (!value) {
+            document.getElementById(displayId).textContent = '--';
+            return;
+        }
+        const item = dataArray.find(a => a[idField] == value);
+        document.getElementById(displayId).textContent = item ? item[nameField] : '--';
+    }
+
+    function toggleDates() {
+        const expanded = document.getElementById('dates-expanded');
+        const chevron = document.querySelector('.dates-summary svg');
+        const isOpen = expanded.style.display === 'flex';
+        expanded.style.display = isOpen ? 'none' : 'flex';
+        chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        chevron.style.transition = 'transform 0.2s';
+    }
+
+    function updateDatesSummary() {
+        const start = document.getElementById('lead-date-start').value;
+        const end = document.getElementById('lead-date-end').value;
+        const display = document.getElementById('dates-display-text');
+
+        const fmt = (dateStr) => {
+            if (!dateStr) return '';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+
+        if (start && end) {
+            display.textContent = fmt(start) + ' → ' + fmt(end);
+        } else if (start) {
+            display.textContent = fmt(start);
+        } else if (end) {
+            display.textContent = '→ ' + fmt(end);
+        } else {
+            display.textContent = '--';
+        }
+    }
+
+    async function llamar_estados() {
+        try {
+            const response = await fetch(`${APP_URL}/pipeline/api?action=get_estados`, { method: 'GET' });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            estadosData = result.data;
+            const container = document.getElementById('lead-status-options');
+            container.innerHTML = '';
+            estadosData.forEach(item => {
+                const option = document.createElement('div');
+                option.className = 'custom-option';
+                option.textContent = item.nombre;
+                option.onclick = () => selectCustomOption('lead-status', 'status-display', 'status-wrapper', item.id, item.nombre);
+                container.appendChild(option);
+            });
+        } catch (error) { console.error('Error:', error); }
+    }
+
+    async function llamar_tags() {
+        try {
+            const response = await fetch(`${APP_URL}/pipeline/api?action=get_tags`, { method: 'GET' });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            tagsData = result.data;
+            const container = document.getElementById('lead-stags-options');
+            container.innerHTML = '';
+            tagsData.forEach(item => {
+                const option = document.createElement('div');
+                option.className = 'custom-option';
+                option.textContent = item.nombre;
+                option.onclick = () => selectCustomOption('lead-stags', 'stags-display', 'stags-wrapper', item.id, item.nombre);
+                container.appendChild(option);
+            });
+        } catch (error) { console.error('Error:', error); }
+    }
+
+    async function llamar_agentes() {
+        try {
+            const response = await fetch(`${APP_URL}/pipeline/api?action=get_agentes`, { method: 'GET' });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            agentesData = result.data;
+            const container = document.getElementById('lead-agentes-options');
+            container.innerHTML = '';
+            agentesData.forEach(item => {
+                const option = document.createElement('div');
+                option.className = 'custom-option';
+                option.textContent = item.username;
+                option.onclick = () => selectCustomOption('lead-agentes', 'agentes-display', 'agentes-wrapper', item.id, item.username);
+                container.appendChild(option);
+            });
+        } catch (error) { console.error('Error:', error); }
+    }
+
+    async function carga_datos() {
+        try {
+            const response = await fetch(`${APP_URL}/pipeline/api?action=get_pipeline&id=${PIPELINE_ID}`, {
+                method: 'GET'
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const data = result.data;
+                console.log(data);
+                // Text elements
+                document.getElementById('lead-name').textContent = data.nombre_cliente || '--';
+
+                // Inputs & Selects
+                updateCustomSelectUI('lead-status', data.estado_id, estadosData, 'id', 'nombre', 'status-display');
+                updateCustomSelectUI('lead-stags', data.tag_id, tagsData, 'id', 'nombre', 'stags-display');
+                updateCustomSelectUI('lead-agentes', data.usuario_id, agentesData, 'id', 'username', 'agentes-display');
+
+                document.getElementById('lead-budget').value = data.budget || '';
+                document.getElementById('lead-phone').value = data.telefono_cliente || '';
+                document.getElementById('lead-travelers').value = data.viajeros || '';
+                document.getElementById('dates-display-text').textContent = data.fecha_salida + ' - ' + data.fecha_llegada || '';
+                document.getElementById('lead-date-start').value = data.fecha_salida || '';
+                document.getElementById('lead-date-end').value = data.fecha_llegada || '';
+                document.getElementById('lead-destination').textContent = data.destino || '--';
+                document.getElementById('lead-description').textContent = data.descripcion || '';
+
+                // Update date summary UI
+                updateDatesSummary();
+            }
+        }
+        catch (error) {
+            console.error('Error cargando datos del pipeline:', error);
+        }
+    }
+    async function guardar_data() {
+        try {
+            const data = {
+                estado_id: document.getElementById('lead-status').value,
+                tag_id: document.getElementById('lead-stags').value,
+                usuario_id: document.getElementById('lead-agentes').value,
+                budget: document.getElementById('lead-budget').value,
+                telefono_cliente: document.getElementById('lead-phone').value,
+                viajeros: document.getElementById('lead-travelers').value,
+                fecha_salida: document.getElementById('lead-date-start').value,
+                fecha_llegada: document.getElementById('lead-date-end').value,
+                destino: document.getElementById('lead-destination').value
+            }
+            const response = await fetch(`${APP_URL}/pipeline/api?action=save_pipeline&id=${PIPELINE_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } catch (error) {
+            console.error('Error guardando:', error);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Wait for all select options to load before setting the pipeline data
+        await Promise.all([
+            llamar_estados(),
+            llamar_tags(),
+            llamar_agentes()
+        ]);
+
+        await carga_datos();
+    });
+
+    // ============================================================
+    // FORMATO DE TEXTO (contenteditable + execCommand)
+    // ============================================================
+    function applyFormat(type) {
+        const editor = document.getElementById('message-input');
+        editor.focus();
+
+        const cmdMap = {
+            'bold': 'bold',
+            'italic': 'italic',
+            'underline': 'underline',
+            'strikethrough': 'strikeThrough'
+        };
+        const btnIdMap = {
+            'bold': 'fmt-bold',
+            'italic': 'fmt-italic',
+            'underline': 'fmt-underline',
+            'strikethrough': 'fmt-strike'
+        };
+
+        const cmd = cmdMap[type];
+        if (!cmd) return;
+
+        document.execCommand(cmd, false, null);
+
+        // Actualizar estado visual (active) del botón
+        const isActive = document.queryCommandState(cmd);
+        const btn = document.getElementById(btnIdMap[type]);
+        if (btn) btn.classList.toggle('active', isActive);
+    }
+
+    // Sincronizar estado de botones al cambiar selección
+    document.addEventListener('selectionchange', () => {
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const editor = document.getElementById('message-input');
+        if (!editor || !editor.contains(sel.anchorNode)) return;
+
+        const checks = [
+            { cmd: 'bold', btnId: 'fmt-bold' },
+            { cmd: 'italic', btnId: 'fmt-italic' },
+            { cmd: 'underline', btnId: 'fmt-underline' },
+            { cmd: 'strikeThrough', btnId: 'fmt-strike' }
+        ];
+        checks.forEach(({ cmd, btnId }) => {
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+        });
+    });
+
+    // ============================================================
+    // ADJUNTAR ARCHIVOS
+    // ============================================================
+    let attachedFiles = []; // Array de File objects
+
+    function triggerFileInput() {
+        document.getElementById('file-input').click();
+    }
+
+    document.getElementById('file-input').addEventListener('change', function () {
+        const newFiles = Array.from(this.files);
+        newFiles.forEach(file => {
+            // Evitar duplicados por nombre+tamaño
+            const exists = attachedFiles.some(f => f.name === file.name && f.size === file.size);
+            if (!exists) attachedFiles.push(file);
+        });
+        this.value = ''; // Reset para permitir seleccionar el mismo archivo de nuevo
+        renderAttachments();
+    });
+
+    function renderAttachments() {
+        const preview = document.getElementById('attachments-preview');
+        preview.innerHTML = '';
+
+        if (attachedFiles.length === 0) {
+            preview.classList.remove('has-files');
+            return;
+        }
+        preview.classList.add('has-files');
+
+        attachedFiles.forEach((file, index) => {
+            const chip = document.createElement('div');
+            chip.className = 'attachment-chip';
+
+            // Icono según tipo
+            const isImage = file.type.startsWith('image/');
+            const iconSvg = isImage
+                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
+                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+
+            const sizeFmt = file.size > 1024 * 1024
+                ? (file.size / (1024 * 1024)).toFixed(1) + ' MB'
+                : Math.round(file.size / 1024) + ' KB';
+
+            chip.innerHTML = `
+                ${iconSvg}
+                <span title="${file.name}">${file.name}</span>
+                <span style="color:#94a3b8;font-weight:400">(${sizeFmt})</span>
+                <button class="attachment-chip-remove" onclick="removeAttachment(${index})" title="Quitar">&times;</button>
+            `;
+            preview.appendChild(chip);
+        });
+    }
+
+    function removeAttachment(index) {
+        attachedFiles.splice(index, 1);
+        renderAttachments();
+    }
+
+    // ============================================================
+    // LIMPIAR COMPOSITOR DESPUÉS DE ENVIAR
+    // ============================================================
+    function clearComposer() {
+        document.getElementById('message-input').innerHTML = '';
+        attachedFiles = [];
+        renderAttachments();
+    }
+
+    // ============================================================
+    // HELPER: obtener el contenido del editor para enviar
+    // ============================================================
+    function getMessageContent() {
+        return document.getElementById('message-input').innerHTML.trim();
+    }
+    function getMessageText() {
+        return document.getElementById('message-input').innerText.trim();
+    }
+</script>
