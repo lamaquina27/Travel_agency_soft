@@ -121,6 +121,7 @@ try {
                 "SELECT id, from_email, subject
                  FROM email_messages
                  WHERE id IN ($placeholders)
+                   AND message_type = 'lead'
                  ORDER BY received_at DESC",
                 $newDbIds
             );

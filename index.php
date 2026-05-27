@@ -223,6 +223,11 @@ switch ($path) {
         require_once 'modules/gmail/worker.php';
         break;
 
+    case '/gmail/chat':
+    case '/gmail/chat/send':
+        require_once 'modules/gmail/chat_api.php';
+        break;
+
     default:
         http_response_code(404);
         include 'pages/404.php';
