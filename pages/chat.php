@@ -1685,6 +1685,10 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         ]);
 
         await carga_datos();
+
+        // Cargar historial del chat y refrescar periódicamente para recibir nuevos mensajes
+        await cargar_chat();
+        setInterval(cargar_chat, 10000);
     });
 
     // ============================================================
@@ -1815,51 +1819,125 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         return document.getElementById('message-input').innerText.trim();
     }
 
+    const EMAIL_ACCOUNT_ID = <?= json_encode($cuenta_id) ?>;
+
     async function enviar_mensaje() {
         const message = getMessageContent();
-        if (!message || message == '') {
-            alert("El mensaje no puede estar vacio")
-            return
+        if (!message || message === '') {
+            alert("El mensaje no puede estar vacío");
+            return;
         }
-        const emailAccountId = <?= json_encode($cuenta_id) ?>;
+        if (!EMAIL_ACCOUNT_ID) {
+            alert("No hay una cuenta de Gmail activa configurada para enviar el mensaje.");
+            return;
+        }
+
+        const btnEnviar = document.getElementById('btn-send');
+        const textoOriginalBtn = btnEnviar.innerHTML;
+        btnEnviar.innerHTML = 'Enviando...';
+        btnEnviar.disabled = true;
+
         try {
-            const btnEnviar = document.querySelector('.btn-primary');
-            const textoOriginalBtn = btnEnviar.innerHTML;
-            btnEnviar.innerHTML = 'Enviando...';
-            btnEnviar.disabled = true;
             const payload = {
                 pipeline_id: PIPELINE_ID,
                 message_body: message,
-                email_account_id: emailAccountId
-            }
+                email_account_id: EMAIL_ACCOUNT_ID
+            };
 
-            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?action=send`,
-                {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }
-            )
+            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?action=send`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
             const result = await response.json();
-            if (response.ok || response.success) {
-                clearComposer();
-            } else {
-                alert("ERROR al enviar mensaje")
-            }
 
+            if (response.ok && result.success) {
+                clearComposer();
+                _lastMessageCount = -1; // forzar re-render
+                await cargar_chat();
+            } else {
+                alert(result.error || "Error al enviar el mensaje");
+            }
         } catch (error) {
-            console.log("Error en el envio de mensaje " + error);
+            console.error("Error en el envío de mensaje:", error);
+            alert("Error de red al enviar el mensaje");
         } finally {
-            const btnEnviar = document.querySelector('.btn-primary');
-            btnEnviar.innerHTML = `
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg> Enviar
-            `;
+            btnEnviar.innerHTML = textoOriginalBtn;
             btnEnviar.disabled = false;
         }
+    }
 
+    // ============================================================
+    // CARGA Y RENDER DEL HISTORIAL DE CHAT
+    // ============================================================
+    let _lastMessageCount = 0;
+
+    function fmtMessageTime(ts) {
+        if (!ts) return '';
+        const d = new Date(String(ts).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return ts;
+        return d.toLocaleString('es-ES', {
+            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    // Elimina la cita del mensaje anterior que Gmail (y otros clientes) añaden al responder,
+    // para mostrar solo el texto nuevo de cada mensaje.
+    function stripQuotedReply(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html || '';
+        // Contenedores de cita de Gmail + atribución ("On ... wrote:") + blockquotes genéricos
+        tmp.querySelectorAll('.gmail_quote_container, .gmail_quote, .gmail_attr, blockquote').forEach(el => el.remove());
+        return tmp.innerHTML.trim();
+    }
+
+    function renderMessage(msg) {
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.direction === 'outbound' ? 'outbound' : 'inbound');
+        const time = document.createElement('span');
+        time.className = 'message-time';
+        time.textContent = fmtMessageTime(msg.received_at);
+        // El body ya viene como HTML desde el backend (correo / mensaje del agente)
+        const content = document.createElement('div');
+        content.innerHTML = stripQuotedReply(msg.body || '');
+        div.appendChild(content);
+        div.appendChild(time);
+        return div;
+    }
+
+    async function cargar_chat() {
+        try {
+            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?pipeline_id=${PIPELINE_ID}`);
+            if (!response.ok) return;
+            const data = await response.json();
+
+            const all = [];
+            if (data.origin) {
+                all.push({
+                    direction: 'inbound',
+                    body: data.origin.body,
+                    received_at: data.origin.received_at
+                });
+            }
+            (data.messages || []).forEach(m => all.push(m));
+
+            // Solo re-renderizar si cambió el número de mensajes (evita parpadeo en el polling)
+            if (all.length === _lastMessageCount) return;
+            _lastMessageCount = all.length;
+
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+
+            if (!all.length) {
+                container.innerHTML = '<div style="margin:auto;color:#94a3b8;font-size:14px;">No hay mensajes todavía.</div>';
+                return;
+            }
+
+            all.forEach(m => container.appendChild(renderMessage(m)));
+            container.scrollTop = container.scrollHeight;
+        } catch (error) {
+            console.error('Error cargando el chat:', error);
+        }
     }
 
     // ============================================================

@@ -55,12 +55,14 @@ class ChatService {
 
         $gmailMessageId = null;
         try {
-            $gmailClient    = new GmailClient($emailAccountId);
-            $gmailMessageId = $gmailClient->sendEmail(
+            $gmailClient  = new GmailClient($emailAccountId);
+            $gmailMessage = $gmailClient->sendEmail(
                 $clientName ? "$clientName <$clientEmail>" : $clientEmail,
                 $subject,
                 $messageBody
             );
+            // sendEmail() devuelve un objeto Google\Service\Gmail\Message; guardamos solo su ID
+            $gmailMessageId = is_object($gmailMessage) ? $gmailMessage->getId() : $gmailMessage;
         } catch (\Exception $e) {
             return ['success' => false, 'message_id' => null, 'error' => $e->getMessage()];
         }
