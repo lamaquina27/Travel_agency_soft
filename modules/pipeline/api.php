@@ -110,8 +110,7 @@ class PipelineAPI
                 'telefono_cliente' => $data['telefono_cliente'] ?? null,
                 'viajeros' => $data['viajeros'] ?? null,
                 'fecha_salida' => $data['fecha_salida'] ?? null,
-                'fecha_llegada' => $data['fecha_llegada'] ?? null,
-                'destino' => $data['destino'] ?? null,
+                'fecha_llegada' => $data['fecha_llegada'] ?? null
             ],
             'id = ? AND agencia_id = ?',
             [$pipeline_id, $agencia_id]
