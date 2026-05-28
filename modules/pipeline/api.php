@@ -65,6 +65,12 @@ class PipelineAPI
                 case 'filtrar_pipeline':
                     $result = $this->filtrarPipeline();
                     break;
+                case 'get_programas':
+                    $result = $this->get_programas();
+                    break;
+                case 'asignar_itinerario':
+                    $result = $this->asignar_itinerario();
+                    break;
                 default:
                     throw new Exception('Acción no válida: ' . $action);
             }
@@ -284,10 +290,11 @@ class PipelineAPI
 
 
 
-        $templates = $this->db->fetch(
+        $templates = $this->db->fetchAll(
             "SELECT id, nombre, texto
             FROM template_mensaje
-            WHERE agencia_id = ?",
+            WHERE agencia_id = ?
+            ORDER BY nombre ASC",
             [$agencia_id]
         );
 
@@ -452,6 +459,64 @@ class PipelineAPI
         );
 
         return ['success' => true, 'data' => $leads];
+    }
+
+    private function get_programas()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $programas = $this->db->fetchAll(
+            "SELECT id, nombre, destino, fecha_salida
+             FROM programa_solicitudes
+             WHERE agencia_id = ? AND plantilla = 0
+             ORDER BY created_at DESC",
+            [$agencia_id]
+        );
+
+        return ['success' => true, 'data' => $programas];
+    }
+
+    private function asignar_itinerario()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $pipeline_id = $data['pipeline_id'] ?? null;
+        $solicitud_id = $data['solicitud_id'] ?? null;
+
+        if (!$pipeline_id)
+            throw new Exception('pipeline_id requerido');
+        if (!$solicitud_id)
+            throw new Exception('solicitud_id requerido');
+
+        $lead = $this->db->fetch(
+            "SELECT id FROM pipeline WHERE id = ? AND agencia_id = ?",
+            [$pipeline_id, $agencia_id]
+        );
+        if (!$lead)
+            throw new Exception('Lead no encontrado o sin permisos');
+
+        $programa = $this->db->fetch(
+            "SELECT id FROM programa_solicitudes WHERE id = ? AND agencia_id = ?",
+            [$solicitud_id, $agencia_id]
+        );
+        if (!$programa)
+            throw new Exception('Programa no encontrado o sin permisos');
+
+        $this->db->update(
+            'pipeline',
+            ['solicitud_id' => intval($solicitud_id)],
+            'id = ?',
+            [$pipeline_id]
+        );
+
+        return ['success' => true, 'message' => 'Itinerario asignado correctamente'];
     }
 
     private function sendError($message)

@@ -13,8 +13,9 @@ require_once dirname(__DIR__, 2) . '/config/app.php';
 App::init();
 App::requireLogin();
 
-class ProgramaAPI{
-    
+class ProgramaAPI
+{
+
     private function togglePlantilla()
     {
         $programa_id = $_POST['programa_id'] ?? null;
@@ -23,8 +24,8 @@ class ProgramaAPI{
         }
 
         $agencia_id = $_SESSION['agencia_id'] ?? null;
-        $user_id    = $_SESSION['user_id'];
-        $user_role  = $_SESSION['user_role'] ?? 'agent';
+        $user_id = $_SESSION['user_id'];
+        $user_role = $_SESSION['user_role'] ?? 'agent';
 
         // Solo el dueño o un admin pueden cambiar el flag
         $where = $user_role === 'admin'
@@ -53,9 +54,9 @@ class ProgramaAPI{
         );
 
         return [
-            'success'   => true,
+            'success' => true,
             'plantilla' => $nuevo_valor,
-            'message'   => $nuevo_valor ? 'Marcado como plantilla' : 'Desmarcado como plantilla'
+            'message' => $nuevo_valor ? 'Marcado como plantilla' : 'Desmarcado como plantilla'
         ];
     }
 
@@ -417,7 +418,7 @@ class ProgramaAPI{
                 'apellido' => $original['apellido'],
                 'titular_id' => $original['titular_id'], // <- Hereda el titular
                 'comprado' => 0, // <- Las copias nacen sin comprar
-                'plantilla' => 0,                        
+                'plantilla' => 0,
                 'destino' => $original['destino'],
                 'fecha_llegada' => $original['fecha_llegada'],
                 'fecha_salida' => $original['fecha_salida'],
@@ -850,14 +851,14 @@ class ProgramaAPI{
     {
         try {
             error_log("=== 🆕 CREANDO NUEVO PROGRAMA ===");
-
+            $pipeline_id = $_POST['pipeline_id'] ?? null;
             // Datos para inserción (basado en estructura real de la DB)
             $data = [
                 'nombre' => trim($_POST['traveler_name'] ?? ''),
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
-                'plantilla'  => !empty($_POST['plantilla']) ? 1 : 0,
+                'plantilla' => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -909,7 +910,13 @@ class ProgramaAPI{
             }
 
             error_log("✅ ID de solicitud generado: $request_id");
-
+            error_log("✅ ID de solicitud generado: $pipeline_id");
+            if ($pipeline_id) {
+                $update_result_pipeline = $this->db->update('pipeline', ['solicitud_id' => $programa_id], 'id = ? ', [$pipeline_id]);
+                if ($update_result_pipeline) {
+                    error_log("✅ holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                }
+            }
             return [
                 'programa_id' => $programa_id,
                 'request_id' => $request_id
@@ -976,7 +983,7 @@ class ProgramaAPI{
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
-                'plantilla'  => !empty($_POST['plantilla']) ? 1 : 0,
+                'plantilla' => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,

@@ -5,6 +5,7 @@ Thumbs.db
 # Logs y debug
 logs/
 debug/
+vendor/
 *.log
 error_log
 

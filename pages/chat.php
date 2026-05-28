@@ -10,10 +10,60 @@ if (!$pipeline_id) {
     die("ID de cotización requerido.");
 }
 
+$db = Database::getInstance();
+$cuenta_row = $db->fetch("SELECT id FROM email_accounts WHERE user_id = ? AND provider = 'gmail' AND status = 'active' LIMIT 1", [$_SESSION['user_id']]);
+$cuenta_id = $cuenta_row ? $cuenta_row['id'] : 0;
+$pipeline_data = $db->fetch("SELECT solicitud_id FROM pipeline WHERE id = ?", [$pipeline_id]);
+
+// Extraemos la columna del array de forma segura
+$sol_id = $pipeline_data['solicitud_id'] ?? null;
+
+// =====================================
+// Colores dinámicos según la agencia del usuario
+// =====================================
+$user = App::getUser();
+$userColors = App::getColorsForRole($user['role'] ?? 'agent');
+$primaryColor = $userColors['primary'] ?? '#3b82f6';
+$secondaryColor = $userColors['secondary'] ?? '#2563eb';
+$primaryRgb = implode(', ', sscanf($primaryColor, "#%02x%02x%02x"));
+
+// Luminancia: si el color de la agencia es casi blanco, usamos un acento
+// oscuro de respaldo para que el texto/bordes no se "escondan" sobre fondo blanco.
+$lum = function ($hex) {
+    $hex = ltrim($hex, '#');
+    return 0.299 * hexdec(substr($hex, 0, 2))
+        + 0.587 * hexdec(substr($hex, 2, 2))
+        + 0.114 * hexdec(substr($hex, 4, 2));
+};
+$primaryIsLight = $lum($primaryColor) > 210;
+$accentColor = $primaryIsLight ? '#334155' : $primaryColor; // texto/bordes sobre fondo claro
+$onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo de color
 ?>
 
 <head>
     <style>
+        /* Colores dinámicos de la agencia */
+        :root {
+            --primary-color:
+                <?= $primaryColor ?>
+            ;
+            --secondary-color:
+                <?= $secondaryColor ?>
+            ;
+            --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            --primary-rgb:
+                <?= $primaryRgb ?>
+            ;
+            --accent-color:
+                <?= $accentColor ?>
+            ;
+            /* color seguro para texto/bordes sobre blanco */
+            --on-primary:
+                <?= $onPrimary ?>
+            ;
+            /* texto legible sobre el color de la agencia */
+        }
+
         /* Agrega esto a tu index.css o un archivo específico de chat */
         .chat-container {
             display: flex;
@@ -45,8 +95,8 @@ if (!$pipeline_id) {
         }
 
         .badge {
-            background: #eff6ff;
-            color: #3b82f6;
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--accent-color);
             padding: 4px 10px;
             border-radius: 12px;
             font-size: 12px;
@@ -115,7 +165,7 @@ if (!$pipeline_id) {
 
         .info-group-content input:focus {
             background-color: transparent;
-            border-bottom-color: #3b82f6;
+            border-bottom-color: var(--accent-color);
         }
 
         .info-group-content input::placeholder {
@@ -143,7 +193,7 @@ if (!$pipeline_id) {
 
         .info-select:focus {
             background-color: transparent;
-            border-bottom-color: #3b82f6;
+            border-bottom-color: var(--accent-color);
         }
 
         /* Opciones desplegables personalizadas */
@@ -182,7 +232,7 @@ if (!$pipeline_id) {
         }
 
         .custom-option:hover {
-            background: #3b82f6;
+            background: var(--accent-color);
             color: #ffffff;
         }
 
@@ -198,7 +248,7 @@ if (!$pipeline_id) {
         }
 
         .dates-summary:hover {
-            color: #3b82f6;
+            color: var(--accent-color);
         }
 
         .dates-summary svg {
@@ -249,8 +299,8 @@ if (!$pipeline_id) {
         }
 
         .date-field input[type="date"]:focus {
-            border-color: #3b82f6;
-            background: #eff6ff;
+            border-color: var(--accent-color);
+            background: rgba(var(--primary-rgb), 0.08);
         }
 
         .sidebar-divider {
@@ -340,11 +390,11 @@ if (!$pipeline_id) {
 
         .message.outbound {
             align-self: flex-end;
-            background: #3b82f6;
-            /* Azul premium */
-            color: #ffffff;
+            background: var(--primary-gradient);
+            /* Color de la agencia */
+            color: var(--on-primary);
             border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
         }
 
         .message-time {
@@ -398,8 +448,8 @@ if (!$pipeline_id) {
         }
 
         .fmt-btn.active {
-            background: #e0eaff;
-            color: #3b82f6;
+            background: rgba(var(--primary-rgb), 0.12);
+            color: var(--accent-color);
         }
 
         .fmt-btn b {
@@ -574,8 +624,8 @@ if (!$pipeline_id) {
 
         /* Botón enviar */
         .btn-send {
-            background: #3b82f6;
-            color: white;
+            background: var(--primary-gradient);
+            color: var(--on-primary);
             border: none;
             padding: 0 20px;
             height: 36px;
@@ -592,8 +642,8 @@ if (!$pipeline_id) {
         }
 
         .btn-send:hover {
-            background: #2563eb;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            filter: brightness(0.95);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
         }
 
         .btn-send:active {
@@ -661,6 +711,396 @@ if (!$pipeline_id) {
             border-color: #cbd5e1;
             transform: scale(1.05);
         }
+
+        /* === Modal Itinerario (estilo TiPi) === */
+        .tipi-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .tipi-overlay.active {
+            display: flex;
+        }
+
+        .tipi-modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 80%;
+            font-family: 'Inter', sans-serif;
+
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+            overflow: hidden;
+            animation: slideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .tipi-header {
+            background: var(--primary-gradient);
+            padding: 28px 28px 20px;
+            color: var(--on-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tipi-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 4px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tipi-header p {
+            font-size: 13px;
+            opacity: 0.75;
+            margin: 0;
+        }
+
+        .tipi-header-illustration {
+            position: absolute;
+            right: 20px;
+            bottom: 0;
+            opacity: 0.35;
+        }
+
+        .tipi-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            transition: background 0.2s;
+        }
+
+        .tipi-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tipi-body {
+            padding: 20px 24px 24px;
+        }
+
+        .tipi-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent-color);
+            margin: 0 0 12px;
+        }
+
+        .tipi-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+        }
+
+        .tipi-row-text h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0 0 2px;
+        }
+
+        .tipi-row-text p {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .tipi-btn {
+            background: #fff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tipi-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: rgba(var(--primary-rgb), 0.06);
+        }
+
+        .tipi-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 8px 0;
+        }
+
+        /* Selector expandible */
+        .tipi-select-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .tipi-select-container.open {
+            max-height: 160px;
+            opacity: 1;
+        }
+
+        .tipi-select-inner {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 0 4px;
+        }
+
+        .tipi-select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: #0f172a;
+            background: #f8fafc;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .tipi-select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .tipi-btn-confirm {
+            background: var(--primary-gradient);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.15s;
+        }
+
+        .tipi-btn-confirm:hover {
+            filter: brightness(0.92);
+        }
+
+        .tipi-btn-confirm:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* =============================================
+           Modal de Templates (plantillas de mensaje)
+        ============================================= */
+        .tpl-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .tpl-overlay.active {
+            display: flex;
+        }
+
+        .tpl-modal {
+            background: #fff;
+            border-radius: 14px;
+            width: 90%;
+            font-family: 'Inter', sans-serif;
+            max-width: 900px;
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+            overflow: hidden;
+            animation: slideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .tpl-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 22px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            flex-shrink: 0;
+        }
+
+        .tpl-modal-header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .tpl-modal-header #tpl-search {
+            flex: 1;
+            background: #f4f5f7;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 11px 14px;
+            font-size: 14px;
+            color: #1e293b;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .tpl-modal-header #tpl-search:focus {
+            background: #fff;
+            border-color: #cbd5e1;
+        }
+
+        .tpl-create-btn {
+            background: var(--primary-gradient);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
+            padding: 11px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.15s;
+        }
+
+        .tpl-create-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .tpl-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 26px;
+            line-height: 1;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+
+        .tpl-close:hover {
+            color: #1e293b;
+        }
+
+        .tpl-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .tpl-row {
+            padding: 18px 24px;
+            font-size: 15px;
+            color: #334155;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .tpl-row:hover {
+            background: #f8fafc;
+            color: var(--accent-color);
+        }
+
+        .tpl-empty {
+            padding: 40px 24px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Formulario de creación dentro del modal */
+        .tpl-form {
+            flex-direction: column;
+            gap: 10px;
+            padding: 20px 24px;
+            border-top: 1px solid #f1f5f9;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+
+        .tpl-form input,
+        .tpl-form textarea {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #1e293b;
+            outline: none;
+            resize: vertical;
+            transition: border-color 0.15s;
+        }
+
+        .tpl-form input:focus,
+        .tpl-form textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .tpl-form textarea {
+            min-height: 90px;
+        }
+
+        .tpl-form button {
+            align-self: flex-end;
+            background: var(--primary-gradient);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
+            padding: 9px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .tpl-form button:hover {
+            filter: brightness(0.95);
+        }
     </style>
 </head>
 <div class="chat-container">
@@ -679,7 +1119,7 @@ if (!$pipeline_id) {
             </button>
 
             <!-- itinerario -->
-            <button class="btn-itinerary" onclick="" title="Itinerario">
+            <button class="btn-itinerary" onclick="abrir_modal_itinerario()" title="Itinerario">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -876,7 +1316,7 @@ if (!$pipeline_id) {
     <main class="chat-main">
         <header class="chat-header">
             <h3>Conversación (Vía Gmail)</h3>
-            <p id="lead-email" class="subtitle">--</p>
+
         </header>
         <div class="chat-messages" id="chat-messages">
             <!-- Los mensajes se inyectarán aquí con JS -->
@@ -926,7 +1366,7 @@ if (!$pipeline_id) {
 
                     <!-- Templates de mensajes -->
                     <button class="action-btn" id="btn-templates" title="Plantillas de mensaje"
-                        onclick="toggleCustomSelect()">
+                        onclick="abrir_modal_templates()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                             stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -945,7 +1385,7 @@ if (!$pipeline_id) {
 
 
                     <!-- Botón Enviar -->
-                    <button id="btn-send" class="btn-send">
+                    <button id="btn-send" class="btn-send" onclick="enviar_mensaje()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                             stroke-linejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13" />
@@ -1080,7 +1520,102 @@ if (!$pipeline_id) {
             });
         } catch (error) { console.error('Error:', error); }
     }
+    // ============================================================
+    // TEMPLATES DE MENSAJE
+    // ============================================================
+    let templatesData = [];
 
+    function abrir_modal_templates() {
+        document.getElementById('tpl-overlay').classList.add('active');
+        document.getElementById('tpl-search').value = '';
+        document.getElementById('tpl-form').style.display = 'none';
+        llamar_templates();
+    }
+
+    function cerrar_modal_templates(e) {
+        // Si viene de un click en el overlay, cerrar solo si fue sobre el fondo
+        if (e && e.target !== document.getElementById('tpl-overlay')) return;
+        document.getElementById('tpl-overlay').classList.remove('active');
+    }
+
+    async function llamar_templates() {
+        try {
+            const response = await fetch(`${APP_URL}/pipeline/api?action=get_templates`, { method: 'GET' });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const result = await response.json();
+            templatesData = result.data || [];
+            render_templates(templatesData);
+        } catch (error) {
+            console.error('Error cargando templates:', error);
+        }
+    }
+
+    function render_templates(lista) {
+        const container = document.getElementById('tpl-list');
+        container.innerHTML = '';
+
+        if (!lista.length) {
+            container.innerHTML = '<div class="tpl-empty">No hay templates todavía. Crea el primero.</div>';
+            return;
+        }
+
+        lista.forEach(t => {
+            const row = document.createElement('div');
+            row.className = 'tpl-row';
+            row.textContent = t.nombre;
+            row.title = 'Insertar en el mensaje';
+            row.onclick = () => usar_template(t);
+            container.appendChild(row);
+        });
+    }
+
+    function filtrar_templates() {
+        const q = document.getElementById('tpl-search').value.toLowerCase();
+        render_templates(templatesData.filter(t => (t.nombre || '').toLowerCase().includes(q)));
+    }
+
+    // Seleccionar un template => mostrarlo en el composer del chat
+    function usar_template(t) {
+        const editor = document.getElementById('message-input');
+        editor.innerHTML = t.texto || '';
+        editor.focus();
+        cerrar_modal_templates();
+    }
+
+    function abrir_form_template() {
+        const form = document.getElementById('tpl-form');
+        form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    async function guardar_template() {
+        const nombre = document.getElementById('tpl-nombre').value.trim();
+        const texto = document.getElementById('tpl-texto').value.trim();
+        if (!nombre || !texto) {
+            alert('El nombre y el contenido son obligatorios');
+            return;
+        }
+        try {
+            const fd = new FormData();
+            fd.append('nombre', nombre);
+            fd.append('texto', texto);
+
+            const response = await fetch(`${APP_URL}/pipeline/api?action=crear_template`, {
+                method: 'POST',
+                body: fd
+            });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('tpl-nombre').value = '';
+                document.getElementById('tpl-texto').value = '';
+                document.getElementById('tpl-form').style.display = 'none';
+                llamar_templates();
+            } else {
+                alert(result.message || 'Error al crear el template');
+            }
+        } catch (error) {
+            console.error('Error guardando template:', error);
+        }
+    }
     async function carga_datos() {
         try {
             const response = await fetch(`${APP_URL}/pipeline/api?action=get_pipeline&id=${PIPELINE_ID}`, {
@@ -1094,7 +1629,7 @@ if (!$pipeline_id) {
 
             if (result.success && result.data) {
                 const data = result.data;
-                console.log(data);
+
                 // Text elements
                 document.getElementById('lead-name').textContent = data.nombre_cliente || '--';
 
@@ -1131,7 +1666,6 @@ if (!$pipeline_id) {
                 viajeros: document.getElementById('lead-travelers').value,
                 fecha_salida: document.getElementById('lead-date-start').value,
                 fecha_llegada: document.getElementById('lead-date-end').value,
-                destino: document.getElementById('lead-destination').value
             }
             const response = await fetch(`${APP_URL}/pipeline/api?action=save_pipeline&id=${PIPELINE_ID}`, {
                 method: 'PUT',
@@ -1280,4 +1814,246 @@ if (!$pipeline_id) {
     function getMessageText() {
         return document.getElementById('message-input').innerText.trim();
     }
+
+    async function enviar_mensaje() {
+        const message = getMessageContent();
+        if (!message || message == '') {
+            alert("El mensaje no puede estar vacio")
+            return
+        }
+        const emailAccountId = <?= json_encode($cuenta_id) ?>;
+        try {
+            const btnEnviar = document.querySelector('.btn-primary');
+            const textoOriginalBtn = btnEnviar.innerHTML;
+            btnEnviar.innerHTML = 'Enviando...';
+            btnEnviar.disabled = true;
+            const payload = {
+                pipeline_id: PIPELINE_ID,
+                message_body: message,
+                email_account_id: emailAccountId
+            }
+
+            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?action=send`,
+                {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }
+            )
+            const result = await response.json();
+            if (response.ok || response.success) {
+                clearComposer();
+            } else {
+                alert("ERROR al enviar mensaje")
+            }
+
+        } catch (error) {
+            console.log("Error en el envio de mensaje " + error);
+        } finally {
+            const btnEnviar = document.querySelector('.btn-primary');
+            btnEnviar.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg> Enviar
+            `;
+            btnEnviar.disabled = false;
+        }
+
+    }
+
+    // ============================================================
+    // MODAL ITINERARIO
+    // ============================================================
+    let _programas_cargados = false;
+
+    function abrir_modal_itinerario() {
+        document.getElementById('tipi-overlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        if (!_programas_cargados) {
+            cargar_programas();
+        }
+    }
+
+    function cerrar_modal_itinerario(e) {
+        // Si se llama con evento (click en overlay), cerrar solo si el click fue en el fondo
+        if (e && e.target !== document.getElementById('tipi-overlay')) return;
+        document.getElementById('tipi-overlay').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    async function cargar_programas() {
+        const select = document.getElementById('tipi-programa-select');
+        try {
+            const res = await fetch(`${APP_URL}/pipeline/api?action=get_programas`);
+            const result = await res.json();
+            if (!result.success) throw new Error(result.message);
+            const SOLICITUD_ID = "<?= $sol_id ?>";
+
+            const asignacion = typeof SOLICITUD_ID !== 'undefined';
+            const programas = result.data;
+            if (!asignacion) {
+                select.innerHTML = '<option value="">-- Elige un itinerario --</option>';
+            }
+            programas.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                const fecha = p.fecha_salida ? ` · ${p.fecha_salida.slice(0, 7)}` : '';
+                opt.textContent = `${p.nombre} (${p.destino}${fecha})`;
+                if (asignacion && Number(p.id) === Number(SOLICITUD_ID)) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+            _programas_cargados = true;
+
+            // Habilitar botón Asignar cuando el usuario elija uno
+            select.addEventListener('change', () => {
+                document.getElementById('btn-confirmar-asignacion').disabled = !select.value;
+            });
+        } catch (err) {
+            select.innerHTML = '<option value="">Error al cargar programas</option>';
+            console.error('cargar_programas:', err);
+        }
+    }
+
+    function mostrar_selector_programas() {
+        const container = document.getElementById('tipi-select-container');
+        container.classList.toggle('open');
+    }
+
+    async function confirmar_asignacion() {
+        const solicitud_id = document.getElementById('tipi-programa-select').value;
+        if (!solicitud_id) return;
+
+        const btn = document.getElementById('btn-confirmar-asignacion');
+
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${APP_URL}/pipeline/api?action=asignar_itinerario`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pipeline_id: PIPELINE_ID, solicitud_id: parseInt(solicitud_id) })
+            });
+            const result = await res.json();
+            if (!result.success) throw new Error(result.message);
+
+            cerrar_modal_itinerario();
+            // Feedback visual
+            const flash = document.createElement('div');
+            flash.textContent = '✓ Itinerario asignado correctamente';
+            flash.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--primary-gradient);color:var(--on-primary);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(var(--primary-rgb),.35);';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 3000);
+        } catch (err) {
+            alert('Error al asignar: ' + err.message);
+            btn.textContent = 'Asignar';
+            btn.disabled = false;
+        }
+    }
+
+    function ir_crear_itinerario() {
+        window.location.href = `${APP_URL}/programa?pipeline_id=${PIPELINE_ID}`;
+    }
+
 </script>
+
+<!-- Modal Itinerario -->
+<div class="tipi-overlay" id="tipi-overlay" onclick="cerrar_modal_itinerario(event)">
+    <div class="tipi-modal">
+        <!-- Cabecera -->
+        <div class="tipi-header">
+            <button class="tipi-close" onclick="cerrar_modal_itinerario()">&times;</button>
+            <h2>Asignar Itinerario</h2>
+            <p>Conecta este lead con un programa de viaje.</p>
+            <svg class="tipi-header-illustration" width="110" height="70" viewBox="0 0 110 70" fill="none">
+                <rect x="5" y="30" width="20" height="40" rx="2" fill="#fff" opacity=".2" />
+                <rect x="10" y="20" width="10" height="10" rx="1" fill="#fff" opacity=".25" />
+                <rect x="30" y="20" width="24" height="50" rx="2" fill="#fff" opacity=".2" />
+                <rect x="36" y="10" width="12" height="12" rx="1" fill="#fff" opacity=".25" />
+                <rect x="60" y="35" width="18" height="35" rx="2" fill="#fff" opacity=".2" />
+                <rect x="83" y="28" width="22" height="42" rx="2" fill="#fff" opacity=".2" />
+                <rect x="88" y="18" width="12" height="12" rx="1" fill="#fff" opacity=".25" />
+                <path d="M0 68 Q55 45 110 68" stroke="#fff" stroke-width="1.5" opacity=".3" fill="none" />
+            </svg>
+        </div>
+
+        <!-- Cuerpo -->
+        <div class="tipi-body">
+
+            <!-- Sección 1: Itinerario existente -->
+            <p class="tipi-section-label">Usar un itinerario existente</p>
+            <div class="tipi-row">
+                <div class="tipi-row-text">
+                    <h4>Cargar un itinerario anterior</h4>
+                    <p>Puedes asignar un programa que ya tengas creado.</p>
+                </div>
+                <button class="tipi-btn" id="btn-mostrar-selector" onclick="mostrar_selector_programas()">
+                    Seleccionar
+                </button>
+            </div>
+
+            <!-- Select expandible -->
+            <div class="tipi-select-container" id="tipi-select-container">
+                <div class="tipi-select-inner">
+                    <select class="tipi-select" id="tipi-programa-select">
+                        <option value="">-- Cargando... --</option>
+                    </select>
+                    <button class="tipi-btn-confirm" id="btn-confirmar-asignacion" onclick="confirmar_asignacion()">
+                        Asignar
+                    </button>
+                </div>
+            </div>
+
+            <div class="tipi-divider"></div>
+
+            <!-- Sección 2: Crear nuevo -->
+            <p class="tipi-section-label">Crear nuevo itinerario</p>
+            <div class="tipi-row">
+                <div class="tipi-row-text">
+                    <h4>Crear un nuevo programa</h4>
+                    <p>Empieza desde cero; el itinerario quedará ligado a este lead automáticamente.</p>
+                </div>
+                <button class="tipi-btn" onclick="ir_crear_itinerario()">
+                    Crear
+                </button>
+            </div>
+
+            <div class="tipi-divider"></div>
+
+            <!-- Sección 3: Biblioteca -->
+            <div class="tipi-row">
+                <div class="tipi-row-text">
+                    <h4>Biblioteca de contenido</h4>
+                    <p>Administra tus días, actividades y alojamientos reutilizables.</p>
+                </div>
+                <button class="tipi-btn" onclick="window.open(`${APP_URL}/biblioteca`, '_blank')">
+                    Biblioteca
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Templates -->
+<div class="tpl-overlay" id="tpl-overlay" onclick="cerrar_modal_templates(event)">
+    <div class="tpl-modal">
+        <div class="tpl-modal-header">
+            <h2>Templates</h2>
+            <input type="text" id="tpl-search" placeholder="Buscar un template..." oninput="filtrar_templates()">
+            <button class="tpl-create-btn" onclick="abrir_form_template()">Crear template</button>
+            <button class="tpl-close" onclick="cerrar_modal_templates()">&times;</button>
+        </div>
+
+        <div class="tpl-list" id="tpl-list"></div>
+
+        <!-- Formulario de creación (oculto por defecto) -->
+        <div class="tpl-form" id="tpl-form" style="display:none">
+            <input type="text" id="tpl-nombre" placeholder="Nombre del template">
+            <textarea id="tpl-texto" placeholder="Contenido del mensaje..."></textarea>
+            <button onclick="guardar_template()">Guardar template</button>
+        </div>
+    </div>
+</div>
