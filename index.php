@@ -206,6 +206,11 @@ switch ($path) {
         include 'modules/pipeline/api.php';
         break;
 
+    case '/rooming/api':
+        App::requireLogin();
+        include 'modules/rooming/api.php';
+        break;
+
     case '/chat':
         App::requireLogin();
         include 'pages/chat.php';

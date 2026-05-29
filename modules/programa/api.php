@@ -9,6 +9,8 @@ error_reporting(E_ALL);
 
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
+require_once dirname(__DIR__, 2) . '/classes/FechaCalculator.php';
+require_once dirname(__DIR__, 2) . '/classes/RoomingModel.php';
 
 App::init();
 App::requireLogin();
@@ -540,6 +542,9 @@ class ProgramaAPI
 
             error_log("=== DÍAS DUPLICADOS ===");
 
+            // Recalcular fecha_dia de los días duplicados (no arrastrar fechas viejas)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $nuevo_programa_id);
+
         } catch (Exception $e) {
             error_log("❌ Error duplicando días: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
@@ -1020,6 +1025,25 @@ class ProgramaAPI
             }
 
             error_log("✅ Solicitud actualizada");
+
+            // Recalcular y persistir fecha_dia de cada día (pudo cambiar fecha_llegada)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $programa_id);
+
+            // Detectar venta: generar el Rooming List una sola vez, o resetear si se desmarca
+            try {
+                $roomingModel = new RoomingModel();
+                $compradoNow  = !empty($_POST['comprado']) ? 1 : 0;
+                $agId         = (int) ($_SESSION['agencia_id'] ?? 0);
+                if ($compradoNow === 1) {
+                    $roomingModel->generarSiVendido((int) $programa_id, $agId);
+                } else {
+                    $roomingModel->resetRoomingGenerado((int) $programa_id, $agId);
+                }
+                // Mantener al día la cantidad de pasajeros en los roomings existentes
+                $roomingModel->sincronizarPasajeros((int) $programa_id, $agId);
+            } catch (Exception $e) {
+                error_log("Rooming auto-generación: " . $e->getMessage());
+            }
 
             // ACTUALIZAR personalización
             $personalizacion_data = [
