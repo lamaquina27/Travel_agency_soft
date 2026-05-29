@@ -35,8 +35,29 @@ class PipelineAPI
                 case 'get_estados':
                     $result = $this->getEstados();
                     break;
+                case 'save_estados':
+                    $result = $this->saveEstados();
+                    break;
+                case 'update_estados':
+                    $result = $this->updateEstados();
+                    break;
+                case 'delete_estados':
+                    $result = $this->deleteEstados();
+                    break;
+                case 'reordenar_estados':
+                    $result = $this->reordenarEstados();
+                    break;
                 case 'get_tags':
                     $result = $this->getTags();
+                    break;
+                case 'save_tags':
+                    $result = $this->saveTags();
+                    break;
+                case 'update_tags':
+                    $result = $this->updateTags();
+                    break;
+                case 'delete_tags':
+                    $result = $this->deleteTags();
                     break;
                 case 'get_agentes':
                     $result = $this->getAgentes();
@@ -135,6 +156,153 @@ class PipelineAPI
 
         return ['success' => true, 'data' => $estados];
     }
+    private function saveEstados()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        // Calcular la siguiente posición para que el estado quede al final
+        // (evita chocar con UNIQUE(agencia_id, posicion) por el DEFAULT 0).
+        $pos = $this->db->fetch(
+            "SELECT COALESCE(MAX(posicion), 0) + 1 AS siguiente
+            FROM pipeline_estados
+            WHERE agencia_id = ?",
+            [$agencia_id]
+        );
+        $siguiente = $pos['siguiente'];
+
+        $nuevo_id = $this->db->insert(
+            'pipeline_estados',
+            [
+                'agencia_id' => $agencia_id,
+                'nombre' => $data['nombre'],
+                'descripcion' => $data['descripcion'],
+                'es_final' => $data['es_final'],
+                'posicion' => $siguiente
+            ]
+        );
+        return ['success' => true, 'id' => $nuevo_id, 'posicion' => $siguiente, 'mensaje' => 'estado guardado exitosamente'];
+    }
+    private function updateEstados()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->update(
+            'pipeline_estados',
+            [
+
+                'nombre' => $data['nombre'],
+                'descripcion' => $data['descripcion'],
+                'es_final' => $data['es_final']
+            ],
+            'agencia_id = ? AND id=?',
+            [$agencia_id, $data['id']]
+        );
+        return ['success' => true, 'mensaje' => 'estado actualizado exitosamente'];
+    }
+    private function deleteEstados()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (empty($data['id']))
+            throw new Exception('ID requerido');
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+        $cantidad = $this->db->fetch(
+            'SELECT COUNT(*) AS total FROM pipeline 
+            WHERE estado_id = ? AND agencia_id = ?',
+            [$data['id'], $agencia_id]
+        );
+        if ($cantidad['total'] == 0) {
+            $this->db->delete(
+                'pipeline_estados',
+                'id = ? AND agencia_id = ?',
+
+                [$data['id'], $agencia_id]
+            );
+            return ['success' => true, 'mensaje' => 'Estado Borrado  exitosamente'];
+        } else {
+            return throw new Exception("No se puede eliminar el estado tiene leads asignados");
+        }
+
+    }
+    private function reordenarEstados()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $orden = $data['orden'] ?? null;
+        if (!is_array($orden) || count($orden) === 0) {
+            throw new Exception('Orden inválido o vacío');
+        }
+        $orden = array_map('intval', $orden);
+
+        $existentes = $this->db->fetchAll(
+            "SELECT id FROM pipeline_estados WHERE agencia_id = ?",
+            [$agencia_id]
+        );
+        $idsAgencia = array_map('intval', array_column($existentes, 'id'));
+
+        $a = $orden;
+        $b = $idsAgencia;
+        sort($a);
+        sort($b);
+        if ($a !== $b) {
+            throw new Exception('La lista enviada no coincide con los estados de la agencia');
+        }
+
+
+        $pdo = $this->db->getConnection();
+        $pdo->beginTransaction();
+        try {
+            foreach ($orden as $i => $id) {
+                $this->db->update(
+                    'pipeline_estados',
+                    ['posicion' => -($i + 1)],
+                    'id = ? AND agencia_id = ?',
+                    [$id, $agencia_id]
+                );
+            }
+            foreach ($orden as $i => $id) {
+                $this->db->update(
+                    'pipeline_estados',
+                    ['posicion' => $i + 1],
+                    'id = ? AND agencia_id = ?',
+                    [$id, $agencia_id]
+                );
+            }
+            $pdo->commit();
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        return ['success' => true, 'mensaje' => 'Orden de estados actualizado'];
+    }
     private function getTags()
     {
         $agencia_id = $_SESSION['agencia_id'] ?? null;
@@ -151,6 +319,73 @@ class PipelineAPI
         );
 
         return ['success' => true, 'data' => $tags];
+    }
+    private function saveTags()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->insert(
+            'tags',
+            [
+                'agencia_id' => $agencia_id,
+                'nombre' => $data['nombre'],
+            ]
+
+        );
+        return ['success' => true, 'mensaje' => 'tags guardado exitosamente'];
+    }
+    private function updateTags()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->update(
+            'tags',
+            [
+                'nombre' => $data['nombre'],
+            ],
+            'agencia_id = ? AND id=?',
+            [$agencia_id, $data['id']]
+        );
+        return ['success' => true, 'mensaje' => 'tags actualizados exitosamente'];
+    }
+    private function deleteTags()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (empty($data['id']))
+            throw new Exception('ID requerido');
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->delete(
+            'tags',
+            'id = ? AND agencia_id = ?',
+
+            [$data['id'], $agencia_id]
+        );
+        return ['success' => true, 'mensaje' => 'tags eliminados exitosamente'];
     }
     private function getAgentes()
     {
