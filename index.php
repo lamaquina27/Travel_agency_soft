@@ -18,7 +18,21 @@ $path = $path ?: '/';
 
 // Limpiar path de múltiples slashes
 $path = preg_replace('#/+#', '/', $path);
-
+if (App::isLoggedIn()) {
+    $user = App::getUser();
+    if ($user['role'] === 'operador') {
+        $rutasOperador = [
+            '/perfil',
+            '/perfil/api',
+            '/auth/logout',
+            // '/futura-vista',
+        ];
+        if (!in_array($path, $rutasOperador, true)) {
+            App::redirect('/perfil');
+            exit;
+        }
+    }
+}
 switch ($path) {
     case '/':
     case '/login':
@@ -144,9 +158,9 @@ switch ($path) {
 
     case '/perfil':
         App::requireLogin();
-        // Solo permitir acceso a agentes
+        // Solo permitir acceso a agentes y operadores
         $user = App::getUser();
-        if ($user['role'] !== 'agent') {
+        if (!in_array($user['role'], ['agent', 'operador'])) {
             App::redirect('/dashboard');
             exit;
         }
@@ -155,9 +169,9 @@ switch ($path) {
 
     case '/perfil/api':
         App::requireLogin();
-        // Solo permitir acceso a agentes  
+        // Solo permitir acceso a agentes y operadores
         $user = App::getUser();
-        if ($user['role'] !== 'agent') {
+        if (!in_array($user['role'], ['agent', 'operador'])) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Acceso no autorizado']);
             exit;

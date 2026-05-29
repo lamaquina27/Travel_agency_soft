@@ -6,18 +6,20 @@
 // Incluir constantes adicionales
 require_once __DIR__ . '/../config/constants.php';
 
-class UIComponents {
-    
+class UIComponents
+{
+
     /**
      * Renderiza el logo de la empresa de forma recursiva
      * @param string $size - 'small', 'medium', 'large', 'extra-large'
      * @param array $options - Opciones adicionales de customización
      * @return string HTML del logo
      */
-    public static function renderLogo($size = 'medium', $options = []) {
+    public static function renderLogo($size = 'medium', $options = [])
+    {
         $companyName = App::getCompanyName();
         $logo = App::getLogo();
-        
+
         // Configuración de tamaños
         $sizes = [
             'small' => ['width' => '32px', 'height' => '32px', 'font' => '12px'],
@@ -26,20 +28,20 @@ class UIComponents {
             'extra-large' => ['width' => '80px', 'height' => '80px', 'font' => '24px'],
             'custom' => $options['custom_size'] ?? ['width' => '48px', 'height' => '48px', 'font' => '16px']
         ];
-        
+
         $sizeConfig = $sizes[$size] ?? $sizes['medium'];
-        
+
         // Opciones adicionales
         $borderRadius = $options['border_radius'] ?? '12px';
         $shadow = $options['shadow'] ?? 'rgba(0, 0, 0, 0.1)';
         $hoverEffect = $options['hover_effect'] ?? true;
         $gradient = $options['gradient'] ?? 'var(--primary-gradient)';
         $className = $options['class'] ?? '';
-        
+
         // Si el gradiente es transparent, no mostrar fondo ni sombra
         $backgroundStyle = $gradient === 'transparent' ? 'transparent' : $gradient;
         $shadowStyle = $gradient === 'transparent' ? 'none' : '0 4px 15px ' . $shadow;
-        
+
         $logoHtml = '<div class="company-logo-component ' . $className . '" style="
             width: ' . $sizeConfig['width'] . ';
             height: ' . $sizeConfig['height'] . ';
@@ -56,55 +58,56 @@ class UIComponents {
             transition: all 0.3s ease;
             position: relative;
         "';
-        
+
         if ($hoverEffect && $gradient !== 'transparent') {
             $logoHtml .= ' onmouseover="this.style.transform=\'scale(1.05)\'; this.style.boxShadow=\'0 8px 25px ' . $shadow . '\'"';
             $logoHtml .= ' onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'0 4px 15px ' . $shadow . '\'"';
         }
-        
+
         $logoHtml .= '>';
-        
+
         if ($logo && fileExists($logo)) {
             $logoUrl = getPublicUrl($logo);
             $logoHtml .= '<img src="' . htmlspecialchars($logoUrl) . '" 
                                alt="' . htmlspecialchars($companyName) . '" 
                                style="width: 100%; height: 100%; object-fit: cover; border-radius: ' . $borderRadius . ';">';
         } else {
-            $logoHtml .= '<span style="font-weight: 700; letter-spacing: 1px;">' . 
-                         strtoupper(substr($companyName, 0, 2)) . '</span>';
+            $logoHtml .= '<span style="font-weight: 700; letter-spacing: 1px;">' .
+                strtoupper(substr($companyName, 0, 2)) . '</span>';
         }
-        
+
         $logoHtml .= '</div>';
-        
+
         return $logoHtml;
     }
-    
+
     /**
      * Renderiza la barra lateral completa con navegación basada en roles
      * @param array $user - Información del usuario actual
      * @param string $currentPage - Página actual para marcar como activa
      * @return string HTML de la sidebar
      */
-    public static function renderSidebar($user, $currentPage = '') {
+    public static function renderSidebar($user, $currentPage = '')
+    {
         ConfigManager::init();
         $companyName = ConfigManager::getCompanyName();
         $logo = ConfigManager::getLogo();
         $userColors = App::getColorsForRole($user['role']);
-        
+
         $sidebarHtml = '
         <div class="enhanced-sidebar" id="sidebar">
             <div class="sidebar-header-enhanced">
                 ' . self::renderLogo('large', [
-                    'border_radius' => '16px',
-                    'shadow' => 'rgba(0, 0, 0, 0.15)',
-                    'class' => 'sidebar-logo',
-                    'gradient' => 'transparent'
-                ]) . '
+                        'border_radius' => '16px',
+                        'shadow' => 'rgba(0, 0, 0, 0.15)',
+                        'class' => 'sidebar-logo',
+                        'gradient' => 'transparent'
+                    ]) . '
                 <div class="company-info">
                     <h3 class="company-name">' . htmlspecialchars($companyName) . '</h3>
                     <div class="role-indicator">
                         <span class="role-badge-sidebar ' . $user['role'] . '">
-                            ' . ($user['role'] === 'admin' ? 'Administrador' : 'Agente de Viajes') . '
+                            ' . ($user['role'] === 'admin' ? 'Administrador' : ($user['role'] === 'operador' ? 'Operador' : 'Agente de Viajes')) . '
                         </span>
                     </div>
                 </div>
@@ -124,10 +127,10 @@ class UIComponents {
                 ' . self::renderMenuItems($user['role'], $currentPage) . '
             </nav>
         </div>';
-        
+
         return $sidebarHtml;
     }
-    
+
     /**
      * Genera los elementos del menú según el rol del usuario
      * @param string $role - Rol del usuario (admin/agent)
@@ -135,7 +138,8 @@ class UIComponents {
      * @return string HTML de los elementos del menú
      */
 
-    private static function renderSidebarIcon($icon) {
+    private static function renderSidebarIcon($icon)
+    {
         $icons = [
             'dashboard' => '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect></svg>',
             'users' => '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
@@ -148,17 +152,20 @@ class UIComponents {
 
         return $icons[$icon] ?? $icons['dashboard'];
     }
-    private static function renderMenuItems($role, $currentPage) {
+    private static function renderMenuItems($role, $currentPage)
+    {
         $menuItems = [];
-        
+
         // Dashboard siempre presente para ambos roles
-        $menuItems[] = [
-            'url' => '/dashboard',
-            'icon' => 'dashboard',
-            'title' => 'Dashboard',
-            'description' => 'Panel principal del sistema'
-        ];
-        
+        if ($role !== 'operador') {
+            $menuItems[] = [
+                'url' => '/dashboard',
+                'icon' => 'dashboard',
+                'title' => 'Dashboard',
+                'description' => 'Panel principal del sistema'
+            ];
+        }
+
         if ($role === 'admin') {
             // Menú COMPLETO para Administrador
             $menuItems = array_merge($menuItems, [
@@ -189,7 +196,7 @@ class UIComponents {
                     'description' => 'Administrar todos los itinerarios'
                 ]
             ]);
-        } else {
+        } else if ($role === 'agent') {
             // Menú LIMITADO para Agente - Solo las opciones específicas
             $menuItems = array_merge($menuItems, [
                 [
@@ -211,8 +218,19 @@ class UIComponents {
                     'description' => 'Configuración personal'
                 ]
             ]);
+        } else if ($role === 'operador') {
+            // Menú LIMITADO para Agente - Solo las opciones específicas
+            $menuItems = array_merge($menuItems, [
+
+                [
+                    'url' => '/perfil',
+                    'icon' => 'profile',
+                    'title' => 'Mi Perfil',
+                    'description' => 'Configuración personal'
+                ]
+            ]);
         }
-        
+
         // Agregar logout al final para ambos roles
         $menuItems[] = [
             'url' => '/auth/logout',
@@ -221,13 +239,13 @@ class UIComponents {
             'description' => 'Salir del sistema',
             'special' => 'logout'
         ];
-        
+
         $menuHtml = '';
         foreach ($menuItems as $item) {
             $isActive = strpos($_SERVER['REQUEST_URI'], $item['url']) !== false || $currentPage === $item['url'];
             $activeClass = $isActive ? 'active' : '';
             $specialClass = isset($item['special']) ? 'menu-item-' . $item['special'] : '';
-            
+
             $menuHtml .= '
             <a href="' . APP_URL . $item['url'] . '" class="menu-item-enhanced ' . $activeClass . ' ' . $specialClass . '">
                 <div class="menu-item-icon">
@@ -237,26 +255,27 @@ class UIComponents {
                     <div class="menu-item-title">' . $item['title'] . '</div>
                     <div class="menu-item-description">' . $item['description'] . '</div>
                 </div>';
-            
+
             if (isset($item['badge'])) {
                 $menuHtml .= '<div class="menu-item-badge">' . $item['badge'] . '</div>';
             }
-            
+
             if ($isActive) {
                 $menuHtml .= '<div class="active-indicator"></div>';
             }
-            
+
             $menuHtml .= '</a>';
         }
-        
+
         return $menuHtml;
     }
-    
+
     /**
      * Genera los estilos CSS para los componentes
      * @return string CSS de los componentes
      */
-    public static function getComponentStyles() {
+    public static function getComponentStyles()
+    {
         return '
         <style>
         /* ===== SISTEMA DE MODALES ESTÉTICOS ===== */
@@ -858,18 +877,19 @@ class UIComponents {
         }
         </script>';
     }
-    
+
     /**
      * Renderiza el header con logo y controles
      * @param array $user - Información del usuario
      * @return string HTML del header
      */
-    public static function renderHeader($user) {
+    public static function renderHeader($user)
+    {
         ConfigManager::init();
         $companyName = ConfigManager::getCompanyName();
         $logo = ConfigManager::getLogo();
         $defaultLanguage = App::getDefaultLanguage();
-        
+
         return '
         <div class="header">
             <div class="header-left">
@@ -887,7 +907,7 @@ class UIComponents {
                     <div class="user-avatar" translate="no">' . strtoupper(substr($user['name'], 0, 2)) . '</div>
                     <div>
                         <div style="font-size: 14px; font-weight: 500;">' . htmlspecialchars($user['name']) . '</div>
-                        <div style="font-size: 12px; opacity: 0.8;">' . ($user['role'] === 'admin' ? 'Administrador' : 'Agente de Viajes') . '</div>
+                        <div style="font-size: 12px; opacity: 0.8;">' . ($user['role'] === 'admin' ? 'Administrador' : ($user['role'] === 'operador' ? 'Operador' : 'Agente de Viajes')) . '</div>
                     </div>
                 </div>
             </div>
