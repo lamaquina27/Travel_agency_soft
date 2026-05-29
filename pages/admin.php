@@ -873,6 +873,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             <option value="">Seleccionar rol</option>
                             <option value="agent">Agente de viajes</option>
                             <option value="admin">Administrador</option>
+                            <option value="operador">Operador</option>
                         </select>
                     </div>
 

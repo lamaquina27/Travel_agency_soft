@@ -46,38 +46,64 @@ class AeroDataBox {
     /**
      * Llama a AeroDataBox y devuelve los datos del vuelo mapeados a codigos_vuelos.
      * Devuelve null si el vuelo no existe o la API falla.
+     * Si hay error, lanza una excepción con el mensaje del error.
      *
      * @param string $flightNumber  Código IATA (ej: EK384)
      * @param string $date          Fecha YYYY-MM-DD
+     * @throws Exception
      */
     public static function fetchFlight(string $flightNumber, string $date): ?array {
+        error_log("AeroDataBox::fetchFlight - START | flight={$flightNumber}, date={$date}");
+        
         // --- SECCIÓN 1: Ejecutar el request HTTP ---
+        $url = self::buildFlightUrl($flightNumber, $date);
+        error_log("AeroDataBox::fetchFlight - URL: {$url}");
+        
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL            => self::buildFlightUrl($flightNumber, $date),
+            CURLOPT_URL            => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER     => self::getHeaders(),
             CURLOPT_TIMEOUT        => 10,
         ]);
+        
         $response = curl_exec($ch);
         $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
+        error_log("AeroDataBox::fetchFlight - HTTP Code: {$httpCode}");
+        if ($curlError) {
+            error_log("AeroDataBox::fetchFlight - Curl Error: {$curlError}");
+        }
+        error_log("AeroDataBox::fetchFlight - Response (first 500 chars): " . substr((string)$response, 0, 500));
+
         // --- SECCIÓN 2: Validar la respuesta ---
-        if ($response === false || $httpCode !== 200) {
-            return null;
+        if ($response === false) {
+            error_log("AeroDataBox::fetchFlight - ERROR: curl_exec returned false");
+            throw new \Exception("Error de conexión con AeroDataBox: " . ($curlError ?: "Conexión rechazada"));
+        }
+
+        if ($httpCode !== 200) {
+            // Intentar extraer el mensaje de error de la respuesta
+            $errorData = json_decode($response, true);
+            $errorMessage = $errorData['message'] ?? "HTTP {$httpCode}";
+            error_log("AeroDataBox::fetchFlight - ERROR: HTTP {$httpCode} - {$errorMessage}");
+            throw new \Exception("AeroDataBox: {$errorMessage}");
         }
 
         $data = json_decode($response, true);
+        error_log("AeroDataBox::fetchFlight - Decoded data: " . json_encode($data));
 
         if (empty($data) || !isset($data[0])) {
+            error_log("AeroDataBox::fetchFlight - ERROR: No flight data in response");
             return null;
         }
 
         // --- SECCIÓN 3: Mapear la respuesta a los campos de codigos_vuelos ---
         $flight = $data[0];
 
-        return [
+        $result = [
             'codigo_vuelo'              => strtoupper(trim($flightNumber)),
             'aerolinea'                 => $flight['airline']['name']                          ?? '',
             'ciudad_origen'             => $flight['departure']['airport']['municipalityName'] ?? '',
@@ -90,5 +116,8 @@ class AeroDataBox {
             'hora_salida'               => substr($flight['departure']['scheduledTime']['local'] ?? '', 11, 5),
             'hora_llegada'              => substr($flight['arrival']['scheduledTime']['local']   ?? '', 11, 5),
         ];
+        
+        error_log("AeroDataBox::fetchFlight - SUCCESS: " . json_encode($result));
+        return $result;
     }
 }

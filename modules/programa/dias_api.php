@@ -250,6 +250,9 @@ class ProgramaDiasAPI
                 $pdo->commit();
                 error_log("✅ COMMIT exitoso - Reordenamiento completado");
 
+                // Persistir la fecha_dia de cada día (cambió el orden -> cambian las fechas)
+                FechaCalculator::recalcularYGuardar($this->db, (int) $programaId);
+
                 return [
                     'success' => true,
                     'message' => 'Días reordenados correctamente',
@@ -385,6 +388,9 @@ class ProgramaDiasAPI
                 // Actualizar fecha de salida
                 $this->actualizarFechaSalida($programaId);
 
+                // Persistir la fecha_dia de cada día (se corrió la estructura)
+                FechaCalculator::recalcularYGuardar($this->db, (int) $programaId);
+
                 $pdo->commit();  // ✅ CONFIRMAR TRANSACCIÓN
 
                 return [
@@ -500,6 +506,9 @@ class ProgramaDiasAPI
 
             // Actualizar fecha de salida
             $this->actualizarFechaSalida($dia['programa_id']);
+
+            // Persistir la fecha_dia de cada día (cambió la estructura)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $dia['programa_id']);
 
             return [
                 'success' => true,
@@ -684,6 +693,9 @@ class ProgramaDiasAPI
 
             // Actualizar fecha de salida
             $this->actualizarFechaSalida($dia['solicitud_id']);
+
+            // Persistir la fecha_dia de cada día (cambió la duración)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $dia['solicitud_id']);
 
             return [
                 'success' => true,

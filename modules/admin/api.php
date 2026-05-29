@@ -14,6 +14,7 @@ error_reporting(E_ALL);
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
 require_once dirname(__DIR__, 2) . '/config/config_functions.php';
+require_once dirname(__DIR__, 2) . '/classes/OperadorManager.php';
 
 // Verificar sesión y permisos
 App::init();
@@ -176,7 +177,7 @@ class AdminAPI {
                 throw new Exception('El email no tiene un formato válido');
             }
             
-            if (!in_array($role, ['admin', 'agent'])) {
+            if (!in_array($role, ['admin', 'agent', 'operador'])) {
                 throw new Exception('Rol no válido');
             }
             
@@ -208,7 +209,10 @@ class AdminAPI {
             if (!$userId) {
                 throw new Exception('Error al crear el usuario en la base de datos');
             }
-            
+
+            // Sincronizar pool de operadores según el rol
+            OperadorManager::sync($this->db, (int) $userId, (int) $agenciaId, $role);
+
             return [
                 'success' => true,
                 'message' => 'Usuario creado correctamente',
@@ -261,7 +265,7 @@ class AdminAPI {
                 throw new Exception('El email no tiene un formato válido');
             }
             
-            if (!in_array($role, ['admin', 'agent'])) {
+            if (!in_array($role, ['admin', 'agent', 'operador'])) {
                 throw new Exception('Rol no válido');
             }
             
@@ -329,8 +333,11 @@ class AdminAPI {
             
             // Construir y ejecutar consulta
             $sql = "UPDATE users SET " . implode(", ", $updateFields) . " WHERE id = ?";
-            
+
             $stmt = $this->db->query($sql, $updateValues);
+
+            // Sincronizar pool de operadores según el rol
+            OperadorManager::sync($this->db, (int) $id, (int) $agenciaId, $role);
             
             if (!$stmt) {
                 throw new Exception('Error al actualizar el usuario en la base de datos');

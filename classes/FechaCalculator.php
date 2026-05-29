@@ -5,6 +5,8 @@
 // Se usa desde dias_api.php y bonos_api.php (y cualquier otro que lo necesite).
 // ====================================================================
 
+require_once __DIR__ . '/../config/database.php';
+
 class FechaCalculator
 {
     /**
@@ -43,5 +45,50 @@ class FechaCalculator
         unset($dia);
 
         return $dias;
+    }
+
+    /**
+     * Recalcula y PERSISTE la fecha_dia de todos los días de una solicitud,
+     * usando la fecha_llegada de la solicitud + la duración acumulada.
+     * Es la fuente de verdad: se llama cada vez que cambia la fecha_llegada
+     * o la estructura/duración de los días.
+     *
+     * @param Database $db          Instancia de base de datos
+     * @param int      $solicitudId ID de la solicitud (programa)
+     * @return void
+     */
+    public static function recalcularYGuardar(Database $db, int $solicitudId): void
+    {
+        // 1. Fecha base (día 1). Sin ella no hay nada que calcular.
+        $solicitud = $db->fetch(
+            "SELECT fecha_llegada FROM programa_solicitudes WHERE id = ?",
+            [$solicitudId]
+        );
+        if (!$solicitud || empty($solicitud['fecha_llegada'])) {
+            return;
+        }
+
+        // 2. Días ordenados, con su duración (default 1 si es null).
+        $dias = $db->fetchAll(
+            "SELECT id, COALESCE(duracion_estancia, 1) AS duracion_estancia
+             FROM programa_dias
+             WHERE solicitud_id = ?
+             ORDER BY dia_numero ASC",
+            [$solicitudId]
+        );
+        if (!$dias) {
+            return;
+        }
+
+        // 3. Reusar el cálculo existente para obtener fecha_calculada por día.
+        $dias = self::calcularFechasDias($dias, $solicitud['fecha_llegada']);
+
+        // 4. Persistir la fecha de cada día en la base de datos.
+        foreach ($dias as $dia) {
+            $db->query(
+                "UPDATE programa_dias SET fecha_dia = ? WHERE id = ?",
+                [$dia['fecha_calculada'], $dia['id']]
+            );
+        }
     }
 }
