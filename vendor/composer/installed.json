@@ -307,17 +307,17 @@
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.441.1",
-            "version_normalized": "0.441.1.0",
+            "version": "v0.442.0",
+            "version_normalized": "0.442.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client-services.git",
-                "reference": "b389588a2f9f375ec448d6cd8d0903d83c571ae0"
+                "reference": "3afe7b5c9d1cebf2a5be018820ce62eeb906b81f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/b389588a2f9f375ec448d6cd8d0903d83c571ae0",
-                "reference": "b389588a2f9f375ec448d6cd8d0903d83c571ae0",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/3afe7b5c9d1cebf2a5be018820ce62eeb906b81f",
+                "reference": "3afe7b5c9d1cebf2a5be018820ce62eeb906b81f",
                 "shasum": ""
             },
             "require": {
@@ -326,7 +326,7 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.6"
             },
-            "time": "2026-05-17T01:38:24+00:00",
+            "time": "2026-05-25T01:34:24+00:00",
             "type": "library",
             "installation-source": "source",
             "autoload": {
@@ -348,7 +348,7 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client-services/issues",
-                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.441.1"
+                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.442.0"
             },
             "install-path": "../google/apiclient-services"
         },
@@ -635,17 +635,17 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.10.1",
-            "version_normalized": "2.10.1.0",
+            "version": "2.10.2",
+            "version_normalized": "2.10.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "73ab136360b5dfd858006eae9795e8fe43c80361"
+                "reference": "a1bbdc172f32a25fe999965b65b6e71fd87da9ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/73ab136360b5dfd858006eae9795e8fe43c80361",
-                "reference": "73ab136360b5dfd858006eae9795e8fe43c80361",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/a1bbdc172f32a25fe999965b65b6e71fd87da9ed",
+                "reference": "a1bbdc172f32a25fe999965b65b6e71fd87da9ed",
                 "shasum": ""
             },
             "require": {
@@ -667,7 +667,7 @@
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
-            "time": "2026-05-20T09:27:36+00:00",
+            "time": "2026-05-25T22:58:15+00:00",
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -735,7 +735,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.10.1"
+                "source": "https://github.com/guzzle/psr7/tree/2.10.2"
             },
             "funding": [
                 {
@@ -1554,6 +1554,6 @@
             "install-path": "../thecodingmachine/safe"
         }
     ],
-    "dev": true,
+    "dev": false,
     "dev-package-names": []
 }
