@@ -10,7 +10,7 @@ require_once 'config/config_functions.php';
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../includes/ui_components.php';
 
-$user = App::getUser(); 
+$user = App::getUser();
 
 // Obtener configuración de colores para admin
 ConfigManager::init();
@@ -21,20 +21,29 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 ?>
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios - <?= htmlspecialchars($companyName) ?></title>
-    
+
     <!-- Incluir estilos de componentes -->
     <?= UIComponents::getComponentStyles() ?>
-    
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
-            --admin-primary: <?= $adminColors['primary'] ?>;
-            --admin-secondary: <?= $adminColors['secondary'] ?>;
+            --admin-primary:
+                <?= $adminColors['primary'] ?>
+            ;
+            --admin-secondary:
+                <?= $adminColors['secondary'] ?>
+            ;
             --admin-gradient: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
             --primary-color: var(--admin-primary);
             --secondary-color: var(--admin-secondary);
@@ -135,7 +144,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         .VIpgJd-ZVi9od-xl07Ob-lTBxed span[style*="border-left"],
         .goog-te-banner-frame.skiptranslate,
         .VIpgJd-ZVi9od-ORHb-OEVmcd,
-        .goog-te-gadget img { display: none !important; }
+        .goog-te-gadget img {
+            display: none !important;
+        }
 
         .goog-te-gadget-simple {
             background: transparent !important;
@@ -154,7 +165,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             gap: 6px !important;
         }
 
-        body { top: 0px !important; }
+        body {
+            top: 0px !important;
+        }
 
         .user-info {
             display: flex;
@@ -169,7 +182,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             color: var(--text);
         }
 
-        .user-info:hover { box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); }
+        .user-info:hover {
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
 
         .user-avatar {
             width: 38px;
@@ -193,7 +208,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             min-height: calc(100vh - 70px);
         }
 
-        .main-content.sidebar-open { margin-left: 320px; }
+        .main-content.sidebar-open {
+            margin-left: 320px;
+        }
 
         .management-section {
             background: rgba(255, 255, 255, 0.94);
@@ -340,8 +357,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             font-weight: 550;
         }
 
-        .users-table tr:hover td { background: #fbfdff; }
-        .users-table tr:last-child td { border-bottom: none; }
+        .users-table tr:hover td {
+            background: #fbfdff;
+        }
+
+        .users-table tr:last-child td {
+            border-bottom: none;
+        }
 
         .table-user-avatar {
             width: 38px;
@@ -402,7 +424,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             border: 1px solid color-mix(in srgb, var(--admin-primary) 18%, #e5e7eb);
         }
 
-        .role-agent {
+        .role-agent,
+        .role-operador {
             background: color-mix(in srgb, var(--admin-secondary) 10%, #ffffff);
             color: var(--admin-secondary);
             border: 1px solid color-mix(in srgb, var(--admin-secondary) 18%, #e5e7eb);
@@ -451,7 +474,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             border-color: color-mix(in srgb, var(--admin-secondary) 14%, #e5e7eb);
         }
 
-        .action-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+        }
 
         .date-muted {
             color: var(--text-muted);
@@ -478,8 +504,27 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             animation: modalFadeIn 0.22s ease;
         }
 
-        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes modalSlideIn { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
 
         .modal-content {
             background: #ffffff;
@@ -561,7 +606,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             align-items: center;
         }
 
-        .password-input-container input { padding-right: 52px !important; }
+        .password-input-container input {
+            padding-right: 52px !important;
+        }
 
         .password-toggle {
             position: absolute;
@@ -619,10 +666,23 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             transition: all 0.2s ease;
         }
 
-        .password-requirement.valid { color: var(--admin-primary); }
-        .password-requirement.invalid { color: #64748b; }
-        .password-requirement.valid::before { content: "✓"; margin-right: 6px; }
-        .password-requirement.invalid::before { content: "×"; margin-right: 6px; }
+        .password-requirement.valid {
+            color: var(--admin-primary);
+        }
+
+        .password-requirement.invalid {
+            color: #64748b;
+        }
+
+        .password-requirement.valid::before {
+            content: "✓";
+            margin-right: 6px;
+        }
+
+        .password-requirement.invalid::before {
+            content: "×";
+            margin-right: 6px;
+        }
 
         .form-actions {
             display: flex;
@@ -672,7 +732,15 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             margin: 0 auto 14px;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
         .error-message,
         .success-message {
@@ -683,8 +751,17 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             font-size: 13px;
         }
 
-        .error-message { background: #f8fafc; color: #64748b; border: 1px solid #e5e7eb; }
-        .success-message { background: color-mix(in srgb, var(--admin-primary) 8%, #ffffff); color: var(--admin-primary); border: 1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb); }
+        .error-message {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e5e7eb;
+        }
+
+        .success-message {
+            background: color-mix(in srgb, var(--admin-primary) 8%, #ffffff);
+            color: var(--admin-primary);
+            border: 1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb);
+        }
 
         .toast {
             position: fixed;
@@ -702,10 +779,21 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             font-size: 13px;
         }
 
-        .toast.show { transform: translateX(0); }
-        .toast.success { background: var(--admin-gradient); }
-        .toast.error { background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary)); }
-        .toast.info { background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary)); }
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: var(--admin-gradient);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+        }
 
         .toast-content {
             display: flex;
@@ -719,7 +807,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             border-radius: 999px;
             background: currentColor;
             opacity: .85;
-            box-shadow: 0 0 0 4px rgba(255,255,255,.16);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, .16);
         }
 
         .overlay {
@@ -733,7 +821,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             backdrop-filter: blur(4px);
         }
 
-        .overlay.show { opacity: 1; visibility: visible; }
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
 
 
         /* Ajustes visuales para mantener coherencia con dashboard/sidebar */
@@ -757,28 +848,82 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         @media (max-width: 920px) {
-            .main-content { padding: 24px 18px; }
-            .main-content.sidebar-open { margin-left: 0; }
-            .form-grid { grid-template-columns: 1fr; }
+            .main-content {
+                padding: 24px 18px;
+            }
+
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            .header { padding: 12px 16px; }
-            .management-section { padding: 20px; border-radius: 22px; }
-            .section-header { flex-direction: column; align-items: stretch; }
-            .add-btn { width: 100%; }
-            .users-table { font-size: 12px; }
-            .users-table th, .users-table td { padding: 12px; }
-            .action-buttons { flex-direction: column; align-items: stretch; }
-            .action-btn { width: 100%; }
-            .modal.show { padding: 14px; align-items: flex-start; }
-            .modal-content { padding: 20px; border-radius: 22px; }
-            .modal-title { font-size: 20px; }
-            .form-actions { flex-direction: column-reverse; }
-            .btn-primary, .btn-secondary { width: 100%; }
+            .header {
+                padding: 12px 16px;
+            }
+
+            .management-section {
+                padding: 20px;
+                border-radius: 22px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .add-btn {
+                width: 100%;
+            }
+
+            .users-table {
+                font-size: 12px;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 12px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+
+            .modal.show {
+                padding: 14px;
+                align-items: flex-start;
+            }
+
+            .modal-content {
+                padding: 20px;
+                border-radius: 22px;
+            }
+
+            .modal-title {
+                font-size: 20px;
+            }
+
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+            }
         }
     </style>
 </head>
+
 <body>
     <!-- Header con componentes -->
     <?= UIComponents::renderHeader($user) ?>
@@ -796,7 +941,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             <div class="section-header">
                 <div class="section-title-wrap">
                     <span class="section-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
                     </span>
                     <div>
                         <h2 class="section-title">Gestión de Usuarios</h2>
@@ -804,7 +954,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </div>
                 </div>
                 <button class="add-btn" onclick="openUserModal('create')">
-                    <span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span>
+                    <span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                            <path d="M12 5v14"></path>
+                            <path d="M5 12h14"></path>
+                        </svg></span>
                     Nuevo Usuario
                 </button>
             </div>
@@ -842,7 +995,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title" id="userModalTitle">
-                    <span class="modal-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M22 11h-6"></path></svg></span>
+                    <span class="modal-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M19 8v6"></path>
+                            <path d="M22 11h-6"></path>
+                        </svg></span>
                     Nuevo Usuario
                 </h2>
                 <button class="close-btn" onclick="closeUserModal()">&times;</button>
@@ -854,17 +1012,20 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="username">Nombre de usuario *</label>
-                        <input type="text" id="username" name="username" required placeholder="usuario123" maxlength="50">
+                        <input type="text" id="username" name="username" required placeholder="usuario123"
+                            maxlength="50">
                     </div>
 
                     <div class="form-group">
                         <label for="email">Correo electrónico *</label>
-                        <input type="email" id="email" name="email" required placeholder="usuario@ejemplo.com" maxlength="100">
+                        <input type="email" id="email" name="email" required placeholder="usuario@ejemplo.com"
+                            maxlength="100">
                     </div>
 
                     <div class="form-group">
                         <label for="full_name">Nombre completo *</label>
-                        <input type="text" id="full_name" name="full_name" required placeholder="Juan Pérez García" maxlength="100">
+                        <input type="text" id="full_name" name="full_name" required placeholder="Juan Pérez García"
+                            maxlength="100">
                     </div>
 
                     <div class="form-group">
@@ -873,24 +1034,31 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             <option value="">Seleccionar rol</option>
                             <option value="agent">Agente de viajes</option>
                             <option value="admin">Administrador</option>
+                            <option value="operador">Operador</option>
                         </select>
                     </div>
 
                     <div class="form-group" id="passwordGroup">
                         <label for="password">Contraseña *</label>
                         <div class="password-input-container">
-                            <input type="password" id="password" name="password" placeholder="8+ caracteres, mayúscula, minúscula, número y carácter especial" minlength="8">
-                            <button type="button" class="password-toggle" id="passwordToggle" onclick="togglePassword()" title="Mostrar contraseña">
-                                <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <input type="password" id="password" name="password"
+                                placeholder="8+ caracteres, mayúscula, minúscula, número y carácter especial"
+                                minlength="8">
+                            <button type="button" class="password-toggle" id="passwordToggle" onclick="togglePassword()"
+                                title="Mostrar contraseña">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
                             </button>
                         </div>
                         <div id="passwordHelp" class="password-help">
-                                <div class="password-requirement" id="req-length">Mínimo 8 caracteres</div>
-                                <div class="password-requirement" id="req-upper">Una letra mayúscula (A-Z)</div>
-                                <div class="password-requirement" id="req-lower">Una letra minúscula (a-z)</div>
-                                <div class="password-requirement" id="req-number">Un número (0-9)</div>
-                                <div class="password-requirement" id="req-special">Un carácter especial (!@#$%^&*)</div>
-                            </div>
+                            <div class="password-requirement" id="req-length">Mínimo 8 caracteres</div>
+                            <div class="password-requirement" id="req-upper">Una letra mayúscula (A-Z)</div>
+                            <div class="password-requirement" id="req-lower">Una letra minúscula (a-z)</div>
+                            <div class="password-requirement" id="req-number">Un número (0-9)</div>
+                            <div class="password-requirement" id="req-special">Un carácter especial (!@#$%^&*)</div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -940,10 +1108,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         function loadSavedLanguage() {
-            const saved = sessionStorage.getItem('language') || 
-                         localStorage.getItem('preferredLanguage') || 
-                         '<?= $defaultLanguage ?>';
-            
+            const saved = sessionStorage.getItem('language') ||
+                localStorage.getItem('preferredLanguage') ||
+                '<?= $defaultLanguage ?>';
+
             if (saved && saved !== '<?= $defaultLanguage ?>') {
                 const select = document.querySelector('.goog-te-combo');
                 if (select) {
@@ -954,24 +1122,24 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         // Escuchar cambios de idioma
-        setTimeout(function() {
+        setTimeout(function () {
             const select = document.querySelector('.goog-te-combo');
             if (select) {
-                select.addEventListener('change', function() {
+                select.addEventListener('change', function () {
                     if (this.value) saveLanguage(this.value);
                 });
             }
         }, 2000);
 
         // ===== INICIALIZACIÓN PRINCIPAL =====
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadStatistics();
             loadUsers();
             // NO llamar initializeGoogleTranslate() aquí - se llama automáticamente
         });
 
         // Validación de contraseña en tiempo real
-        document.getElementById('password').addEventListener('input', function(e) {
+        document.getElementById('password').addEventListener('input', function (e) {
             validatePasswordRealTime(e.target.value);
         });
 
@@ -983,7 +1151,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 'req-number': /[0-9]/.test(password),
                 'req-special': /[!@#$%^&*(),.?":{}|<>]/.test(password)
             };
-            
+
             Object.keys(requirements).forEach(reqId => {
                 const element = document.getElementById(reqId);
                 if (element) {
@@ -997,9 +1165,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             sidebarOpen = !sidebarOpen;
-            
+
             if (sidebarOpen) {
                 sidebar.classList.add('open');
                 overlay.classList.add('show');
@@ -1041,7 +1209,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
 
                 const data = await response.json();
-                
+
                 if (!data.success) {
                     throw new Error(data.error || 'Error en la respuesta del servidor');
                 }
@@ -1069,7 +1237,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 document.querySelectorAll('.stat-loading').forEach(el => el.style.display = 'none');
             } catch (error) {
                 console.error('Error al cargar estadísticas:', error);
-                
+
                 // Mostrar valores por defecto en caso de error
                 const totalUsersEl = document.getElementById('totalUsers');
                 const totalProgramsEl = document.getElementById('totalPrograms');
@@ -1080,7 +1248,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 if (totalProgramsEl) totalProgramsEl.textContent = '0';
                 if (totalResourcesEl) totalResourcesEl.textContent = '0';
                 if (activeSessionsEl) activeSessionsEl.textContent = '0';
-                
+
                 document.querySelectorAll('.stat-loading').forEach(el => el.style.display = 'none');
             }
         }
@@ -1089,7 +1257,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         function animateCounter(elementId, targetValue) {
             const element = document.getElementById(elementId);
             if (!element) return;
-            
+
             const startValue = 0;
             const duration = 1000;
             const startTime = performance.now();
@@ -1097,7 +1265,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             function updateCounter(currentTime) {
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
                 element.textContent = currentValue;
 
@@ -1114,21 +1282,21 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const loading = document.getElementById('usersLoading');
             const table = document.getElementById('usersTable');
             const errorDiv = document.getElementById('usersError');
-            
+
             loading.style.display = 'block';
             table.style.display = 'none';
             errorDiv.style.display = 'none';
-            
+
             try {
                 const response = await apiRequest('/admin/api?action=users');
                 users = response.data;
                 renderUsers();
-                
+
                 loading.style.display = 'none';
                 table.style.display = 'table';
             } catch (error) {
                 console.error('Error al cargar usuarios:', error);
-                
+
                 loading.style.display = 'none';
                 errorDiv.textContent = `Error al cargar usuarios: ${error.message}`;
                 errorDiv.style.display = 'block';
@@ -1143,8 +1311,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // Crear fila de usuario mejorada
         function createUserRow(user) {
-            const roleClass = user.role === 'admin' ? 'role-admin' : 'role-agent';
-            const roleText = user.role === 'admin' ? 'Administrador' : 'Agente';
+            const roleMap = {
+                admin: { class: "role-admin", text: "Administrador" },
+                operador: { class: "role-operador", text: "Operador" },
+                agent: { class: "role-agent", text: "Agente" }
+            }
+            const { class: roleClass, text: roleText } = roleMap[user.role] || roleMap.agent;
             const statusClass = user.active ? 'status-active' : 'status-inactive';
             const statusText = user.active ? 'Activo' : 'Inactivo';
             const initials = user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -1239,7 +1411,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const user = users.find(u => u.id == id);
             if (user) {
                 console.log('Cargando usuario:', user);
-                
+
                 document.getElementById('userId').value = user.id;
                 document.getElementById('username').value = user.username || '';
                 document.getElementById('email').value = user.email || '';
@@ -1259,14 +1431,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         }
 
         // Submit del formulario de usuario
-        document.getElementById('userForm').addEventListener('submit', async function(e) {
+        document.getElementById('userForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             if (isLoading) return;
 
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
-            
+
             try {
                 isLoading = true;
                 submitBtn.innerHTML = 'Guardando...';
@@ -1311,63 +1483,63 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         });
 
         // Toggle status del usuario
-async function toggleUserStatus(id) {
-    // Esperar un poco para que se cargue showConfirmModal
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    try {
-        const user = users.find(u => u.id === id);
-        const action = user.active ? 'desactivar' : 'activar';
-        const confirmed = await showConfirmModal({
-            title: `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`,
-            message: `¿Estás seguro de que quieres ${action} al usuario "${user.username}"?`,
-            details: user.active ? 
-                'El usuario no podrá acceder al sistema hasta que lo reactives.' : 
-                'El usuario podrá acceder nuevamente al sistema.',
-            icon: '',
-            confirmText: action.charAt(0).toUpperCase() + action.slice(1),
-            cancelText: 'Cancelar',
-            confirmButtonStyle: 'danger'
-        });
+        async function toggleUserStatus(id) {
+            // Esperar un poco para que se cargue showConfirmModal
+            await new Promise(resolve => setTimeout(resolve, 100));
 
-        if (!confirmed) {
-            return;
+            try {
+                const user = users.find(u => u.id === id);
+                const action = user.active ? 'desactivar' : 'activar';
+                const confirmed = await showConfirmModal({
+                    title: `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`,
+                    message: `¿Estás seguro de que quieres ${action} al usuario "${user.username}"?`,
+                    details: user.active ?
+                        'El usuario no podrá acceder al sistema hasta que lo reactives.' :
+                        'El usuario podrá acceder nuevamente al sistema.',
+                    icon: '',
+                    confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+                    cancelText: 'Cancelar',
+                    confirmButtonStyle: 'danger'
+                });
+
+                if (!confirmed) {
+                    return;
+                }
+
+                // Proceder con la acción
+                console.log('Enviando toggle para usuario:', user.username, 'Estado actual:', user.active);
+
+                const formData = new FormData();
+                formData.append('action', 'toggle_user');
+                formData.append('id', id);
+
+                console.log('FormData enviada:', Object.fromEntries(formData.entries()));
+
+                const response = await fetch(`${APP_URL}/admin/api`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Respuesta de la API:', data);
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Error al cambiar estado del usuario');
+                }
+
+                showToast(data.message, 'success');
+                await loadUsers();
+                await loadStatistics();
+
+            } catch (error) {
+                console.error('Error al cambiar estado:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            }
         }
-
-        // Proceder con la acción
-        console.log('Enviando toggle para usuario:', user.username, 'Estado actual:', user.active);
-        
-        const formData = new FormData();
-        formData.append('action', 'toggle_user');
-        formData.append('id', id);
-
-        console.log('FormData enviada:', Object.fromEntries(formData.entries()));
-
-        const response = await fetch(`${APP_URL}/admin/api`, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Respuesta de la API:', data);
-
-        if (!data.success) {
-            throw new Error(data.error || 'Error al cambiar estado del usuario');
-        }
-
-        showToast(data.message, 'success');
-        await loadUsers();
-        await loadStatistics();
-
-    } catch (error) {
-        console.error('Error al cambiar estado:', error);
-        showToast(`Error: ${error.message}`, 'error');
-    }
-}
 
         // Escape HTML para prevenir XSS
         function escapeHtml(text) {
@@ -1378,25 +1550,25 @@ async function toggleUserStatus(id) {
                 '"': '&quot;',
                 "'": '&#039;'
             };
-            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+            return text.replace(/[&<>"']/g, function (m) { return map[m]; });
         }
 
         // Mostrar notificaciones toast mejoradas
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
+
             toast.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="toast-dot" aria-hidden="true"></span>
                     <span>${message}</span>
                 </div>
             `;
-            
+
             document.body.appendChild(toast);
-            
+
             setTimeout(() => toast.classList.add('show'), 100);
-            
+
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => document.body.removeChild(toast), 300);
@@ -1407,7 +1579,7 @@ async function toggleUserStatus(id) {
         function togglePassword() {
             const passwordField = document.getElementById('password');
             const toggleButton = document.getElementById('passwordToggle');
-            
+
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
                 toggleButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20C5.5 20 2 12 2 12a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path><path d="M1 1l22 22"></path></svg>';
@@ -1418,19 +1590,19 @@ async function toggleUserStatus(id) {
                 toggleButton.title = 'Mostrar contraseña';
             }
         }
-        
+
         // Cerrar modal al hacer clic fuera
-	    /*
+        /*
         document.getElementById('userModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeUserModal();
             }
         });
-	    */
+        */
 
         // Event listeners responsive
-        document.addEventListener('DOMContentLoaded', function() {
-            window.addEventListener('resize', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            window.addEventListener('resize', function () {
                 if (window.innerWidth <= 768 && sidebarOpen) {
                     document.getElementById('mainContent').classList.remove('sidebar-open');
                 } else if (window.innerWidth > 768 && sidebarOpen) {
@@ -1440,7 +1612,7 @@ async function toggleUserStatus(id) {
         });
 
         // Actualizar estadísticas cada 5 minutos
-        setInterval(function() {
+        setInterval(function () {
             loadStatistics();
         }, 300000);
     </script>
@@ -1448,4 +1620,5 @@ async function toggleUserStatus(id) {
     <!-- Google Translate Script - UNA SOLA VEZ -->
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
+
 </html>

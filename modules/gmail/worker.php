@@ -41,6 +41,11 @@ require_once $root . '/config/app.php';
 require_once __DIR__ . '/EmailSyncService.php';
 require_once __DIR__ . '/RuleEngine.php';
 
+// Zona horaria consistente con el resto de la app (también en CLI/cron, donde
+// App::init() no se ejecuta). Evita que received_at de los correos entrantes
+// quede en otra zona y desordene el chat respecto a los mensajes salientes.
+date_default_timezone_set('America/Bogota');
+
 // ── Autenticación ─────────────────────────────────────────────────────────────
 if (!$isCli) {
     App::init();
@@ -121,6 +126,7 @@ try {
                 "SELECT id, from_email, subject
                  FROM email_messages
                  WHERE id IN ($placeholders)
+                   AND message_type = 'lead'
                  ORDER BY received_at DESC",
                 $newDbIds
             );

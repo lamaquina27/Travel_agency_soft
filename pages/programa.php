@@ -4978,7 +4978,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             <!-- Contenido de la pestaña Mi Programa -->
             <div id="mi-programa" class="tab-content active">
                 <form id="programa-form" method="POST" enctype="multipart/form-data" novalidate>
-
+                    <input type="hidden" name="pipeline_id" value="<?php echo $_GET['pipeline_id'] ?? ''; ?>">
                     <!-- Campos ocultos -->
                     <?php if ($is_editing): ?>
                         <input type="hidden" id="programa-id-hidden" name="programa_id" value="<?= $programa_id ?>">
@@ -11958,7 +11958,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         showAlert('Día actualizado correctamente', 'success');
                         cerrarEdicionDia(diaId);
                         await cargarDiasPrograma();
-                        
+
                         // Refrescar la vista de detalle para reflejar los cambios (incluyendo el formulario limpio)
                         if (typeof selectedDayId !== 'undefined' && selectedDayId == diaId) {
                             seleccionarDiaEnSidebar(diaId);
@@ -12414,7 +12414,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     for (let i = 1; i <= 3; i++) {
                         const imgInput = document.getElementById(`edit-act-imagen${i}-${actividadId}`);
                         const existingImg = document.querySelector(`#edit-actividad-form-${actividadId} .image-preview-item[data-image-number="${i}"] .preview-img`);
-                        
+
                         if ((!imgInput || !imgInput.files || !imgInput.files[0]) && !existingImg) {
                             // Fue eliminada
                             dataToUpdate[`actividad_imagen${i}`] = '';

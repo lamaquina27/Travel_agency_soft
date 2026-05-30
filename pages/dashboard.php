@@ -842,7 +842,7 @@ function dashboardIcon($name) {
         <!-- Welcome Section -->
         <div class="welcome-section animate-in">
             <div class="role-badge">
-                <?= $user['role'] === 'admin' ? 'Administrador del Sistema' : 'Agente de Viajes' ?>
+                <?= $user['role'] === 'admin' ? 'Administrador del Sistema' : ($user['role'] === 'operador' ? 'Operador' : 'Agente de Viajes') ?>
             </div>
             <h1 class="welcome-title">¡Bienvenido<?= $user['role'] === 'admin' ? '' : '' ?>, <?= htmlspecialchars($user['name']) ?>!</h1>
             
