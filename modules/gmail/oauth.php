@@ -16,6 +16,17 @@ function redirectAfterOauth() {
 
 $action = $_GET['action'] ?? '';
 
+if ($action === 'disconnect') {
+    $db = Database::getInstance();
+    $user = App::getUser();
+    $db->execute(
+        "DELETE FROM email_accounts WHERE user_id = ? AND provider = 'gmail'",
+        [$user['id']]
+    );
+    $_SESSION['flash_success'] = 'Cuenta Gmail desconectada correctamente.';
+    redirectAfterOauth();
+}
+
 if ($action === 'connect') {
     $gmailClient = new GmailClient();
     $authUrl = $gmailClient->getAuthUrl();

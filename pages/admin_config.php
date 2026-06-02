@@ -12,6 +12,15 @@ require_once __DIR__ . '/../includes/ui_components.php';
 
 $user = App::getUser();
 
+// Gmail account del admin actual
+$db = Database::getInstance();
+$gmailAccount = $db->fetch(
+    "SELECT id, email, status FROM email_accounts WHERE user_id = ? AND provider = 'gmail' ORDER BY id DESC LIMIT 1",
+    [$user['id']]
+);
+$flashSuccess = $_SESSION['flash_success'] ?? null; unset($_SESSION['flash_success']);
+$flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error']);
+
 // Inicializar ConfigManager
 ConfigManager::init();
 $config = ConfigManager::get();
@@ -1206,6 +1215,59 @@ if (!function_exists('adminConfigIcon')) {
             </div>
 
         </form>
+
+        <!-- ============================================================ -->
+        <!-- Gmail — Cuenta de correo del administrador                  -->
+        <!-- ============================================================ -->
+        <div class="config-section">
+            <h2 class="section-title">
+                <span class="section-icon"><?= adminConfigIcon('plane') ?></span>
+                Cuenta Gmail
+            </h2>
+            <?php if ($flashSuccess): ?>
+            <div style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                <?= htmlspecialchars($flashSuccess) ?>
+            </div>
+            <?php endif; ?>
+            <?php if ($flashError): ?>
+            <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                <?= htmlspecialchars($flashError) ?>
+            </div>
+            <?php endif; ?>
+            <p style="font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6;">
+                Conecta tu cuenta de Gmail para que el pipeline capture los correos de leads entrantes y puedas responder desde la plataforma. Esta cuenta es la principal de la agencia.
+            </p>
+            <?php if ($gmailAccount && $gmailAccount['status'] === 'active'): ?>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">✉️</div>
+                    <div>
+                        <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
+                        <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?></div>
+                    </div>
+                </div>
+                <a href="<?= APP_URL ?>/gmail/oauth?action=disconnect"
+                   onclick="return confirm('¿Desconectar esta cuenta de Gmail?')"
+                   style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+                    Desconectar
+                </a>
+            </div>
+            <?php else: ?>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">✉️</div>
+                    <div>
+                        <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
+                        <div style="font-size:13px;color:#94a3b8;">Conecta Gmail para capturar leads y responder correos</div>
+                    </div>
+                </div>
+                <a href="<?= APP_URL ?>/gmail/oauth?action=connect"
+                   style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--primary-gradient);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+                    Conectar Gmail
+                </a>
+            </div>
+            <?php endif; ?>
+        </div>
 
         <!-- ============================================================ -->
         <!-- Pipeline: Estados y Tags                                     -->

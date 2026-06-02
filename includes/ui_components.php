@@ -147,7 +147,8 @@ class UIComponents
             'library' => '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path></svg>',
             'map' => '<svg viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path></svg>',
             'profile' => '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>',
-            'logout' => '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>'
+            'logout'   => '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>',
+            'pipeline' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>'
         ];
 
         return $icons[$icon] ?? $icons['dashboard'];
@@ -184,6 +185,12 @@ class UIComponents
                     'badge' => 'Config'
                 ],
                 [
+                    'url'         => '/pipeline',
+                    'icon'        => 'pipeline',
+                    'title'       => 'Pipeline Comercial',
+                    'description' => 'CRM y gestión de leads'
+                ],
+                [
                     'url' => '/biblioteca',
                     'icon' => 'library',
                     'title' => 'Supervisar Biblioteca',
@@ -199,6 +206,12 @@ class UIComponents
         } else if ($role === 'agent') {
             // Menú LIMITADO para Agente - Solo las opciones específicas
             $menuItems = array_merge($menuItems, [
+                [
+                    'url'         => '/pipeline',
+                    'icon'        => 'pipeline',
+                    'title'       => 'Mi Pipeline',
+                    'description' => 'Mis leads asignados'
+                ],
                 [
                     'url' => '/itinerarios',
                     'icon' => 'map',

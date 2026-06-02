@@ -62,10 +62,16 @@ if ($method === 'GET') {
     $history = $chatService->getChatHistory($pipelineId);
     $origin  = $chatService->getLeadOriginMessage($pipelineId);
 
+    $cuentaRow = $db->fetch(
+        "SELECT id FROM email_accounts WHERE user_id = ? AND provider = 'gmail' AND status = 'active' LIMIT 1",
+        [$user['id']]
+    );
+
     echo json_encode([
-        'lead'     => $lead,
-        'origin'   => $origin,   // correo que creó el lead (null si fue manual)
-        'messages' => $history,
+        'lead'             => $lead,
+        'origin'           => $origin,
+        'messages'         => $history,
+        'email_account_id' => $cuentaRow ? (int) $cuentaRow['id'] : 0,
     ]);
     exit;
 }

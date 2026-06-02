@@ -71,6 +71,12 @@ class PipelineAPI
                 case 'get_templates':
                     $result = $this->getTemplates();
                     break;
+                case 'update_template':
+                    $result = $this->updateTemplate();
+                    break;
+                case 'delete_template':
+                    $result = $this->deleteTemplate();
+                    break;
                 case 'mover_estado':
                     $result = $this->moverEstado();
                     break;
@@ -79,6 +85,9 @@ class PipelineAPI
                     break;
                 case 'get_pipeline':
                     $result = $this->getPipeline();
+                    break;
+                case 'get_mensajes':
+                    $result = $this->getMensajes();
                     break;
                 case 'save_pipeline':
                     $result = $this->savePipeline();
@@ -91,6 +100,12 @@ class PipelineAPI
                     break;
                 case 'asignar_itinerario':
                     $result = $this->asignar_itinerario();
+                    break;
+                case 'asignar_tag':
+                    $result = $this->asignarTag();
+                    break;
+                case 'editar_lead':
+                    $result = $this->editarLead();
                     break;
                 default:
                     throw new Exception('Acción no válida: ' . $action);
@@ -125,7 +140,8 @@ class PipelineAPI
             'pipeline',
             [
                 'estado_id' => $data['estado_id'] ?? null,
-                'tag_id' => $data['tag_id'] ?? null,
+                'tag_id'  => $data['tag_id']  ?? null,
+                'tag_id2' => $data['tag_id2'] ?? null,
                 'usuario_id' => $data['usuario_id'] ?? null,
                 'budget' => $data['budget'] ?? null,
                 'telefono_cliente' => $data['telefono_cliente'] ?? null,
@@ -147,7 +163,7 @@ class PipelineAPI
         }
 
         $estados = $this->db->fetchAll(
-            "SELECT id, nombre, descripcion, posicion
+            "SELECT id, nombre, color, descripcion, posicion
             FROM pipeline_estados
             WHERE agencia_id = ?
             ORDER BY posicion ASC",
@@ -182,11 +198,12 @@ class PipelineAPI
         $nuevo_id = $this->db->insert(
             'pipeline_estados',
             [
-                'agencia_id' => $agencia_id,
-                'nombre' => $data['nombre'],
-                'descripcion' => $data['descripcion'],
-                'es_final' => $data['es_final'],
-                'posicion' => $siguiente
+                'agencia_id'  => $agencia_id,
+                'nombre'      => $data['nombre'],
+                'color'       => $data['color'] ?? '#6366f1',
+                'descripcion' => $data['descripcion'] ?? null,
+                'es_final'    => $data['es_final'] ?? 0,
+                'posicion'    => $siguiente
             ]
         );
         return ['success' => true, 'id' => $nuevo_id, 'posicion' => $siguiente, 'mensaje' => 'estado guardado exitosamente'];
@@ -206,10 +223,10 @@ class PipelineAPI
         $this->db->update(
             'pipeline_estados',
             [
-
-                'nombre' => $data['nombre'],
-                'descripcion' => $data['descripcion'],
-                'es_final' => $data['es_final']
+                'nombre'      => $data['nombre'],
+                'color'       => $data['color'] ?? '#6366f1',
+                'descripcion' => $data['descripcion'] ?? null,
+                'es_final'    => $data['es_final'] ?? 0,
             ],
             'agencia_id = ? AND id=?',
             [$agencia_id, $data['id']]
@@ -473,7 +490,8 @@ class PipelineAPI
             'source' => trim($_POST['source'] ?? '') ?: null,
             'estado_id' => intval($estado_id),
             'usuario_id' => !empty($_POST['usuario_id']) ? intval($_POST['usuario_id']) : null,
-            'tag_id' => !empty($_POST['tag_id']) ? intval($_POST['tag_id']) : null,
+            'tag_id'  => !empty($_POST['tag_id'])  ? intval($_POST['tag_id'])  : null,
+            'tag_id2' => !empty($_POST['tag_id2']) ? intval($_POST['tag_id2']) : null,
         ];
 
         $nuevo_id = $this->db->insert('pipeline', $data);
@@ -533,6 +551,39 @@ class PipelineAPI
         );
 
         return ['success' => true, 'data' => $templates];
+    }
+    private function updateTemplate()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) throw new Exception('Usuario sin agencia asignada');
+
+        $id     = (int) ($_POST['id'] ?? 0);
+        $nombre = trim($_POST['nombre'] ?? '');
+        $texto  = trim($_POST['texto'] ?? '');
+
+        if (!$id || !$nombre || !$texto) throw new Exception('ID, nombre y texto son requeridos');
+
+        $this->db->query(
+            "UPDATE template_mensaje SET nombre = ?, texto = ? WHERE id = ? AND agencia_id = ?",
+            [$nombre, $texto, $id, $agencia_id]
+        );
+
+        return ['success' => true, 'message' => 'Template actualizado'];
+    }
+    private function deleteTemplate()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) throw new Exception('Usuario sin agencia asignada');
+
+        $id = (int) ($_POST['id'] ?? 0);
+        if (!$id) throw new Exception('ID requerido');
+
+        $this->db->query(
+            "DELETE FROM template_mensaje WHERE id = ? AND agencia_id = ?",
+            [$id, $agencia_id]
+        );
+
+        return ['success' => true, 'message' => 'Template eliminado'];
     }
     private function moverEstado()
     {
@@ -639,8 +690,14 @@ class PipelineAPI
             throw new Exception('Usuario sin agencia asignada');
         }
 
-        $where = ["p.agencia_id = ?"];
+        $where  = ["p.agencia_id = ?"];
         $params = [$agencia_id];
+
+        // Agentes solo ven sus propios leads — se aplica en backend, no solo en frontend
+        if (($_SESSION['user_role'] ?? '') === 'agent') {
+            $where[]  = "p.usuario_id = ?";
+            $params[] = $_SESSION['user_id'];
+        }
 
         if (!empty($_GET['estado_id'])) {
             $where[] = "p.estado_id = ?";
@@ -653,7 +710,8 @@ class PipelineAPI
         }
 
         if (!empty($_GET['tag_id'])) {
-            $where[] = "p.tag_id = ?";
+            $where[] = "(p.tag_id = ? OR p.tag_id2 = ?)";
+            $params[] = intval($_GET['tag_id']);
             $params[] = intval($_GET['tag_id']);
         }
 
@@ -679,14 +737,16 @@ class PipelineAPI
 
         $leads = $this->db->fetchAll(
             "SELECT p.*,
-                    pe.nombre  AS estado_nombre,
+                    pe.nombre   AS estado_nombre,
                     pe.posicion AS estado_posicion,
                     u.full_name AS asesor_nombre,
-                    t.nombre   AS tag_nombre
+                    t.nombre    AS tag_nombre,
+                    t2.nombre   AS tag_nombre2
             FROM pipeline p
-            LEFT JOIN pipeline_estados pe ON p.estado_id = pe.id
+            LEFT JOIN pipeline_estados pe ON p.estado_id  = pe.id
             LEFT JOIN users            u  ON p.usuario_id = u.id
-            LEFT JOIN tags             t  ON p.tag_id = t.id
+            LEFT JOIN tags             t  ON p.tag_id     = t.id
+            LEFT JOIN tags             t2 ON p.tag_id2    = t2.id
             WHERE $where_sql
             ORDER BY p.created_at DESC",
             $params
@@ -702,12 +762,23 @@ class PipelineAPI
             throw new Exception('Usuario sin agencia asignada');
         }
 
+        $user_role = $_SESSION['user_role'] ?? 'agent';
+        $user_id   = $_SESSION['user_id']   ?? null;
+
+        $where  = "agencia_id = ?";
+        $params = [$agencia_id];
+
+        if ($user_role === 'agent' && $user_id) {
+            $where   .= " AND user_id = ?";
+            $params[] = $user_id;
+        }
+
         $programas = $this->db->fetchAll(
             "SELECT id, nombre, destino, fecha_salida
              FROM programa_solicitudes
-             WHERE agencia_id = ? AND plantilla = 0
+             WHERE $where
              ORDER BY created_at DESC",
-            [$agencia_id]
+            $params
         );
 
         return ['success' => true, 'data' => $programas];
@@ -751,6 +822,107 @@ class PipelineAPI
         );
 
         return ['success' => true, 'message' => 'Itinerario asignado correctamente'];
+    }
+
+    private function editarLead()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        $user_role  = $_SESSION['user_role']  ?? 'agent';
+        if (!$agencia_id) throw new Exception('Usuario sin agencia asignada');
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $pipeline_id = $data['pipeline_id'] ?? null;
+        if (!$pipeline_id) throw new Exception('pipeline_id requerido');
+
+        $where  = $user_role === 'admin' ? "id = ? AND agencia_id = ?" : "id = ? AND agencia_id = ? AND usuario_id = ?";
+        $params = $user_role === 'admin' ? [$pipeline_id, $agencia_id] : [$pipeline_id, $agencia_id, $_SESSION['user_id']];
+        $lead   = $this->db->fetch("SELECT id FROM pipeline WHERE $where", $params);
+        if (!$lead) throw new Exception('Lead no encontrado o sin permisos');
+
+        $nombre  = trim($data['nombre_cliente'] ?? '');
+        $email   = trim($data['email_cliente']  ?? '');
+        $destino = trim($data['destino']        ?? '');
+        if (!$nombre)  throw new Exception('El nombre no puede estar vacío');
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) throw new Exception('Email inválido');
+        if (!$destino) throw new Exception('El destino no puede estar vacío');
+
+        $this->db->update('pipeline', [
+            'nombre_cliente'   => $nombre,
+            'email_cliente'    => $email,
+            'telefono_cliente' => trim($data['telefono_cliente'] ?? '') ?: null,
+            'destino'          => $destino,
+            'fecha_salida'     => $data['fecha_salida']  ?: null,
+            'fecha_llegada'    => $data['fecha_llegada'] ?: null,
+            'viajeros'         => intval($data['viajeros'] ?? 1),
+            'budget'           => $data['budget'] !== '' && $data['budget'] !== null ? floatval($data['budget']) : null,
+            'source'           => trim($data['source']      ?? '') ?: null,
+            'descripcion'      => trim($data['descripcion'] ?? '') ?: null,
+        ], 'id = ?', [$pipeline_id]);
+
+        return ['success' => true, 'message' => 'Lead actualizado'];
+    }
+
+    private function asignarTag()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) throw new Exception('Usuario sin agencia asignada');
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $pipeline_id = $data['pipeline_id'] ?? null;
+        if (!$pipeline_id) throw new Exception('pipeline_id requerido');
+
+        $lead = $this->db->fetch(
+            "SELECT id FROM pipeline WHERE id = ? AND agencia_id = ?",
+            [$pipeline_id, $agencia_id]
+        );
+        if (!$lead) throw new Exception('Lead no encontrado');
+
+        $this->db->update(
+            'pipeline',
+            [
+                'tag_id'  => !empty($data['tag_id'])  ? intval($data['tag_id'])  : null,
+                'tag_id2' => !empty($data['tag_id2']) ? intval($data['tag_id2']) : null,
+            ],
+            'id = ?',
+            [$pipeline_id]
+        );
+
+        return ['success' => true, 'message' => 'Tags actualizados'];
+    }
+
+    private function getMensajes()
+    {
+        $agencia_id  = $_SESSION['agencia_id'] ?? null;
+        $pipeline_id = $_GET['pipeline_id'] ?? null;
+
+        if (!$pipeline_id) throw new Exception('pipeline_id requerido');
+
+        // Verificar que el lead pertenece a esta agencia (y al agente si aplica)
+        $whereOwn = "id = ? AND agencia_id = ?";
+        $paramsOwn = [$pipeline_id, $agencia_id];
+        if (($_SESSION['user_role'] ?? '') === 'agent') {
+            $whereOwn  .= " AND usuario_id = ?";
+            $paramsOwn[] = $_SESSION['user_id'];
+        }
+        $lead = $this->db->fetch("SELECT id FROM pipeline WHERE $whereOwn", $paramsOwn);
+        if (!$lead) throw new Exception('Lead no encontrado o sin permisos');
+
+        $mensajes = $this->db->fetchAll(
+            "SELECT id, from_email, to_email, subject, body, direction,
+                    received_at, created_at
+             FROM email_messages
+             WHERE pipeline_id = ? AND agency_id = ?
+             ORDER BY COALESCE(received_at, created_at) ASC",
+            [$pipeline_id, $agencia_id]
+        );
+
+        // Sanear el body para mostrarlo de forma segura
+        foreach ($mensajes as &$m) {
+            $m['body_plain'] = trim(strip_tags($m['body'] ?? ''));
+        }
+        unset($m);
+
+        return ['success' => true, 'data' => $mensajes];
     }
 
     private function sendError($message)
