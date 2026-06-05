@@ -9,12 +9,84 @@ error_reporting(E_ALL);
 
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
+require_once dirname(__DIR__, 2) . '/classes/FechaCalculator.php';
+require_once dirname(__DIR__, 2) . '/classes/RoomingModel.php';
 
 App::init();
 App::requireLogin();
 
 class ProgramaAPI
 {
+
+    private function togglePlantilla()
+    {
+        $programa_id = $_POST['programa_id'] ?? null;
+        if (!$programa_id) {
+            throw new Exception('ID de programa requerido');
+        }
+
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        $user_role = $_SESSION['user_role'] ?? 'agent';
+
+        // Solo los administradores pueden guardar/quitar plantillas
+        if ($user_role !== 'admin') {
+            throw new Exception('Solo los administradores pueden guardar plantillas');
+        }
+
+        $programa = $this->db->fetch(
+            "SELECT id, plantilla FROM programa_solicitudes WHERE id = ? AND agencia_id = ?",
+            [$programa_id, $agencia_id]
+        );
+
+        if (!$programa) {
+            throw new Exception('Programa no encontrado o sin permisos');
+        }
+
+        $nuevo_valor = $programa['plantilla'] ? 0 : 1;
+
+        $this->db->update(
+            'programa_solicitudes',
+            ['plantilla' => $nuevo_valor],
+            'id = ?',
+            [$programa_id]
+        );
+
+        return [
+            'success' => true,
+            'plantilla' => $nuevo_valor,
+            'message' => $nuevo_valor ? 'Marcado como plantilla' : 'Desmarcado como plantilla'
+        ];
+    }
+
+    private function listPlantillas()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $plantillas = $this->db->fetchAll(
+            "SELECT ps.*,
+                    u.full_name as created_by_name,
+                    pp.titulo_programa,
+                    pp.foto_portada,
+                    pp.idioma_predeterminado,
+                    pr.cantidad_adultos,
+                    pr.cantidad_ninos,
+                    (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
+                    FROM programa_dias pd
+                    WHERE pd.solicitud_id = ps.id) as total_dias_real
+            FROM programa_solicitudes ps
+            LEFT JOIN users u ON ps.user_id = u.id
+            LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
+            LEFT JOIN programa_precios pr ON ps.id = pr.solicitud_id
+            WHERE ps.agencia_id = ? AND ps.plantilla = 1
+            ORDER BY ps.created_at DESC",
+            [$agencia_id]
+        );
+
+        return ['success' => true, 'data' => $plantillas];
+    }
     private $db;
 
     public function __construct()
@@ -41,6 +113,12 @@ class ProgramaAPI
             error_log("FILES: " . print_r(array_keys($_FILES), true));
 
             switch ($action) {
+                case 'toggle_plantilla':
+                    $result = $this->togglePlantilla();
+                    break;
+                case 'list_plantillas':
+                    $result = $this->listPlantillas();
+                    break;
                 case 'save_programa':
                     $result = $this->savePrograma();
                     break;
@@ -97,6 +175,7 @@ class ProgramaAPI
                         pp.idioma_predeterminado,
                         pr.cantidad_adultos,
                         pr.cantidad_ninos,
+                        v.numero_documento,
                         (SELECT COALESCE(SUM(pd.duracion_estancia), COUNT(pd.id))
                          FROM programa_dias pd
                          WHERE pd.solicitud_id = ps.id) as total_dias_real,
@@ -107,6 +186,7 @@ class ProgramaAPI
                 LEFT JOIN users u ON ps.user_id = u.id
                 LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
                 LEFT JOIN programa_precios pr ON ps.id = pr.solicitud_id
+                LEFT JOIN viajeros v ON ps.titular_id = v.id 
                 WHERE ps.agencia_id = ?
                 ORDER BY ps.created_at DESC",
                 [$agencia_id]
@@ -335,7 +415,8 @@ class ProgramaAPI
                 'nombre' => $original['nombre'],
                 'apellido' => $original['apellido'],
                 'titular_id' => $original['titular_id'], // <- Hereda el titular
-                'comprado' => 0,                         // <- Las copias nacen sin comprar
+                'comprado' => 0, // <- Las copias nacen sin comprar
+                'plantilla' => 0,
                 'destino' => $original['destino'],
                 'fecha_llegada' => $original['fecha_llegada'],
                 'fecha_salida' => $original['fecha_salida'],
@@ -456,6 +537,9 @@ class ProgramaAPI
             }
 
             error_log("=== DÍAS DUPLICADOS ===");
+
+            // Recalcular fecha_dia de los días duplicados (no arrastrar fechas viejas)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $nuevo_programa_id);
 
         } catch (Exception $e) {
             error_log("❌ Error duplicando días: " . $e->getMessage());
@@ -768,13 +852,14 @@ class ProgramaAPI
     {
         try {
             error_log("=== 🆕 CREANDO NUEVO PROGRAMA ===");
-
+            $pipeline_id = $_POST['pipeline_id'] ?? null;
             // Datos para inserción (basado en estructura real de la DB)
             $data = [
                 'nombre' => trim($_POST['traveler_name'] ?? ''),
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
+                'plantilla' => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -826,7 +911,13 @@ class ProgramaAPI
             }
 
             error_log("✅ ID de solicitud generado: $request_id");
-
+            error_log("✅ ID de solicitud generado: $pipeline_id");
+            if ($pipeline_id) {
+                $update_result_pipeline = $this->db->update('pipeline', ['solicitud_id' => $programa_id], 'id = ? ', [$pipeline_id]);
+                if ($update_result_pipeline) {
+                    error_log("✅ holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                }
+            }
             return [
                 'programa_id' => $programa_id,
                 'request_id' => $request_id
@@ -893,6 +984,7 @@ class ProgramaAPI
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
+                'plantilla' => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -929,6 +1021,25 @@ class ProgramaAPI
             }
 
             error_log("✅ Solicitud actualizada");
+
+            // Recalcular y persistir fecha_dia de cada día (pudo cambiar fecha_llegada)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $programa_id);
+
+            // Detectar venta: generar el Rooming List una sola vez, o resetear si se desmarca
+            try {
+                $roomingModel = new RoomingModel();
+                $compradoNow  = !empty($_POST['comprado']) ? 1 : 0;
+                $agId         = (int) ($_SESSION['agencia_id'] ?? 0);
+                if ($compradoNow === 1) {
+                    $roomingModel->generarSiVendido((int) $programa_id, $agId);
+                } else {
+                    $roomingModel->resetRoomingGenerado((int) $programa_id, $agId);
+                }
+                // Mantener al día la cantidad de pasajeros en los roomings existentes
+                $roomingModel->sincronizarPasajeros((int) $programa_id, $agId);
+            } catch (Exception $e) {
+                error_log("Rooming auto-generación: " . $e->getMessage());
+            }
 
             // ACTUALIZAR personalización
             $personalizacion_data = [

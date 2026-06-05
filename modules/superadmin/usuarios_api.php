@@ -12,6 +12,7 @@ error_reporting(E_ALL);
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
 require_once dirname(__DIR__, 2) . '/config/functions.php';
+require_once dirname(__DIR__, 2) . '/classes/OperadorManager.php';
 
 App::init();
 App::requireRole('superadmin'); // Solo superadmin puede acceder
@@ -171,8 +172,8 @@ class SuperadminUsuariosAPI {
                 throw new Exception('La contraseña es requerida');
             }
             
-            if (empty($role) || !in_array($role, ['admin', 'agent'])) {
-                throw new Exception('El rol debe ser admin o agent');
+            if (empty($role) || !in_array($role, ['admin', 'agent', 'operador'])) {
+                throw new Exception('El rol debe ser admin, agent u operador');
             }
             
             // Validar email
@@ -242,7 +243,10 @@ class SuperadminUsuariosAPI {
             if (!$userId) {
                 throw new Exception('Error al crear el usuario');
             }
-            
+
+            // Sincronizar pool de operadores según el rol
+            OperadorManager::sync($this->db, (int) $userId, (int) $agenciaId, $role);
+
             // REGISTRAR EN HISTORIAL DE AGENCIA (Tarea 3.6)
             $datosNuevos = json_encode([
                 'user_id' => $userId,
@@ -370,8 +374,8 @@ class SuperadminUsuariosAPI {
             if (isset($_POST['role']) && !empty($_POST['role'])) {
                 $role = $_POST['role'];
                 
-                if (!in_array($role, ['admin', 'agent'])) {
-                    throw new Exception('El rol debe ser admin o agent');
+                if (!in_array($role, ['admin', 'agent', 'operador'])) {
+                    throw new Exception('El rol debe ser admin, agent u operador');
                 }
                 
                 $updateData['role'] = $role;
@@ -406,7 +410,10 @@ class SuperadminUsuariosAPI {
             if (!$updated) {
                 throw new Exception('Error al actualizar el usuario');
             }
-            
+
+            // Sincronizar pool de operadores según el rol efectivo
+            OperadorManager::sync($this->db, (int) $userId, (int) $userActual['agencia_id'], $updateData['role'] ?? $userActual['role']);
+
             // REGISTRAR EN HISTORIAL
             $descripcionCambios = [];
             if (isset($updateData['email'])) {

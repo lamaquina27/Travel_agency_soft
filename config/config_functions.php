@@ -44,8 +44,9 @@ class ConfigManager {
                     admin_primary_color,
                     admin_secondary_color,
                     agent_primary_color,
-                    agent_secondary_color
-                 FROM agencias 
+                    agent_secondary_color,
+                    rooming_agentes_visible
+                 FROM agencias
                  WHERE id = ? AND activa = 1",
                 [$agencia_id]
             );
@@ -66,6 +67,7 @@ class ConfigManager {
                 'admin_secondary_color' => self::$agenciaData['admin_secondary_color'] ?? '#fd746c',
                 'agent_primary_color' => self::$agenciaData['agent_primary_color'] ?? '#667eea',
                 'agent_secondary_color' => self::$agenciaData['agent_secondary_color'] ?? '#764ba2',
+                'rooming_agentes_visible' => (int)(self::$agenciaData['rooming_agentes_visible'] ?? 0),
                 'default_language' => 'es',
                 'max_file_size' => 10
             ];
@@ -88,6 +90,7 @@ class ConfigManager {
             'admin_secondary_color' => '#fd746c',
             'agent_primary_color' => '#667eea',
             'agent_secondary_color' => '#764ba2',
+            'rooming_agentes_visible' => 0,
             'login_bg_color' => '#667eea',
             'login_secondary_color' => '#764ba2',
             'default_language' => 'es',
@@ -131,6 +134,14 @@ class ConfigManager {
     
     public static function getDefaultLanguage() {
         return self::get('default_language') ?: 'es';
+    }
+
+    /**
+     * ¿Los agentes de la agencia pueden ver el módulo de Rooming/Traslados?
+     * El admin siempre lo ve; esto solo controla la visibilidad para agentes.
+     */
+    public static function roomingAgentesVisible() {
+        return (int) (self::get('rooming_agentes_visible') ?? 0) === 1;
     }
     
     public static function getColorsForRole($role) {
@@ -296,6 +307,13 @@ function uploadAgenciaImageBiblioteca($file, $agencia_id, $tipo, $resourceId, $f
  * Reduce tamaño de archivo pero mantiene alta calidad
  */
 function optimizeImageWithoutQualityLoss($filePath, $extension) {
+    // Si la extensión GD no está disponible, no se puede optimizar.
+    // Se conserva la imagen original (ya fue movida) en lugar de provocar un
+    // error fatal por llamar a una función inexistente (imagecreatefrom*).
+    if (!function_exists('imagecreatefromjpeg')) {
+        error_log("GD no disponible: se omite la optimización de imagen y se conserva el original");
+        return;
+    }
     try {
         // Leer imagen según tipo
         switch(strtolower($extension)) {
@@ -327,8 +345,8 @@ function optimizeImageWithoutQualityLoss($filePath, $extension) {
                 }
                 break;
         }
-    } catch (Exception $e) {
-        // Si falla la optimización, mantener original
+    } catch (\Throwable $e) {
+        // Si falla la optimización (incl. errores de GD), mantener el original.
         error_log("No se pudo optimizar imagen: " . $e->getMessage());
     }
 }

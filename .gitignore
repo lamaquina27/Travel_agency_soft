@@ -5,6 +5,7 @@ Thumbs.db
 # Logs y debug
 logs/
 debug/
+vendor/
 *.log
 error_log
 
@@ -35,3 +36,5 @@ assets/uploads/agencia_1
 
 #Archivos viejos, guardados solo como respaldo en local
 pages/old
+.claude/
+.vendor/

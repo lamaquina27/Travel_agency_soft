@@ -12,6 +12,17 @@ require_once __DIR__ . '/../includes/ui_components.php';
 
 $user = App::getUser();
 
+// Gmail account del admin actual
+$db = Database::getInstance();
+$gmailAccount = $db->fetch(
+    "SELECT id, email, status FROM email_accounts WHERE user_id = ? AND provider = 'gmail' ORDER BY id DESC LIMIT 1",
+    [$user['id']]
+);
+$flashSuccess = $_SESSION['flash_success'] ?? null;
+unset($_SESSION['flash_success']);
+$flashError = $_SESSION['flash_error'] ?? null;
+unset($_SESSION['flash_error']);
+
 // Inicializar ConfigManager
 ConfigManager::init();
 $config = ConfigManager::get();
@@ -21,7 +32,8 @@ $logo = ConfigManager::getLogo();
 $defaultLanguage = ConfigManager::getDefaultLanguage();
 
 if (!function_exists('adminConfigIcon')) {
-    function adminConfigIcon($name) {
+    function adminConfigIcon($name)
+    {
         $icons = [
             'eye' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
             'building' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path><path d="M9 8h1"></path><path d="M14 8h1"></path><path d="M9 12h1"></path><path d="M14 12h1"></path><path d="M10 21v-4h4v4"></path></svg>',
@@ -42,21 +54,29 @@ if (!function_exists('adminConfigIcon')) {
 ?>
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuración - <?= htmlspecialchars($companyName) ?></title>
-    
+
     <!-- Incluir estilos de componentes -->
     <?= UIComponents::getComponentStyles() ?>
-    
-    <style>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
-            --admin-primary: <?= $adminColors['primary'] ?>;
-            --admin-secondary: <?= $adminColors['secondary'] ?>;
+            --admin-primary:
+                <?= $adminColors['primary'] ?>
+            ;
+            --admin-secondary:
+                <?= $adminColors['secondary'] ?>
+            ;
             --admin-gradient: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
             --primary-color: var(--admin-primary);
             --secondary-color: var(--admin-secondary);
@@ -85,25 +105,32 @@ if (!function_exists('adminConfigIcon')) {
         }
 
         .header {
-            background: rgba(255,255,255,.92) !important;
+            background: rgba(255, 255, 255, .92) !important;
             color: var(--text) !important;
             padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 1px 0 rgba(226,232,240,.9), 0 12px 32px rgba(15,23,42,.06);
+            box-shadow: 0 1px 0 rgba(226, 232, 240, .9), 0 12px 32px rgba(15, 23, 42, .06);
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1001;
             backdrop-filter: blur(14px);
-            border-bottom: 1px solid rgba(226,232,240,.85);
+            border-bottom: 1px solid rgba(226, 232, 240, .85);
         }
 
-        .header-left, .header-right { display: flex; align-items: center; gap: 14px; }
+        .header-left,
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
 
-        .menu-toggle, .back-btn, .nav-link {
+        .menu-toggle,
+        .back-btn,
+        .nav-link {
             border: 1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb) !important;
             background: color-mix(in srgb, var(--admin-primary) 8%, #ffffff) !important;
             color: var(--admin-primary) !important;
@@ -113,8 +140,23 @@ if (!function_exists('adminConfigIcon')) {
             text-decoration: none !important;
         }
 
-        .menu-toggle { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
-        .menu-toggle:hover, .back-btn:hover, .nav-link:hover { transform: translateY(-1px) !important; background: color-mix(in srgb, var(--admin-primary) 12%, #ffffff) !important; color: var(--admin-primary) !important; }
+        .menu-toggle {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .menu-toggle:hover,
+        .back-btn:hover,
+        .nav-link:hover {
+            transform: translateY(-1px) !important;
+            background: color-mix(in srgb, var(--admin-primary) 12%, #ffffff) !important;
+            color: var(--admin-primary) !important;
+        }
 
         .user-info {
             display: flex;
@@ -128,114 +170,664 @@ if (!function_exists('adminConfigIcon')) {
             border: 1px solid var(--border);
             color: var(--text);
         }
-        .user-info:hover { box-shadow: 0 10px 24px rgba(15,23,42,.08); }
-        .user-avatar { width: 38px; height: 38px; background: var(--admin-gradient); color: #ffffff; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:800; border:3px solid color-mix(in srgb, var(--admin-primary) 14%, #ffffff); }
 
-        #google_translate_element { background:#fff; border:1px solid var(--border); border-radius:14px; padding:7px 10px; box-shadow:0 8px 18px rgba(15,23,42,.05); }
-        .goog-te-gadget-icon, .VIpgJd-ZVi9od-xl07Ob-lTBxed img, .VIpgJd-ZVi9od-xl07Ob-lTBxed span[style*="border-left"], .goog-te-banner-frame.skiptranslate, .VIpgJd-ZVi9od-ORHb-OEVmcd, .goog-te-gadget img { display:none !important; }
-        .goog-te-gadget-simple { background:transparent !important; border:none !important; font-family:inherit !important; }
-        .VIpgJd-ZVi9od-xl07Ob-lTBxed { color:var(--text-soft) !important; text-decoration:none !important; font-family:inherit !important; font-size:12px !important; font-weight:700 !important; display:flex !important; align-items:center !important; gap:6px !important; }
+        .user-info:hover {
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+        }
 
-        .main-content { margin-left:0; margin-top:70px; padding:34px 38px; transition:margin-left .35s cubic-bezier(.4,0,.2,1); min-height:calc(100vh - 70px); }
-        .main-content.sidebar-open { margin-left:320px; }
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            background: var(--admin-gradient);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            border: 3px solid color-mix(in srgb, var(--admin-primary) 14%, #ffffff);
+        }
 
-        .preview-section, .config-section {
-            background: rgba(255,255,255,.94);
-            border-radius: 28px;
-            padding: 28px;
-            margin-bottom: 28px;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(226,232,240,.9);
+        #google_translate_element {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 7px 10px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+        }
+
+        .goog-te-gadget-icon,
+        .VIpgJd-ZVi9od-xl07Ob-lTBxed img,
+        .VIpgJd-ZVi9od-xl07Ob-lTBxed span[style*="border-left"],
+        .goog-te-banner-frame.skiptranslate,
+        .VIpgJd-ZVi9od-ORHb-OEVmcd,
+        .goog-te-gadget img {
+            display: none !important;
+        }
+
+        .goog-te-gadget-simple {
+            background: transparent !important;
+            border: none !important;
+            font-family: inherit !important;
+        }
+
+        .VIpgJd-ZVi9od-xl07Ob-lTBxed {
+            color: var(--text-soft) !important;
+            text-decoration: none !important;
+            font-family: inherit !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px;
+            padding: 30px 32px 56px;
+            transition: margin-left .35s cubic-bezier(.4, 0, .2, 1);
+            min-height: calc(100vh - 70px);
+            background: #f1f5f9;
+        }
+
+        .main-content.sidebar-open {
+            margin-left: 320px;
+        }
+
+        /* Contenedor centrado: todo en una columna ordenada, no flotando */
+        .config-shell {
+            max-width: 940px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .config-shell #configForm {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Encabezado de la página */
+        .config-pagehead {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 4px 2px 2px;
+        }
+
+        .config-pagehead .cph-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: var(--admin-gradient);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+        }
+
+        .config-pagehead .cph-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: #fff;
+        }
+
+        .config-pagehead h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -.02em;
+            margin: 0;
+        }
+
+        .config-pagehead p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 2px 0 0;
+        }
+
+        /* Pestañas */
+        .cfg-tabnav {
+            display: flex;
+            gap: 6px;
+            background: #fff;
+            border: 1px solid #e7ecf3;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+            overflow-x: auto;
+        }
+
+        .cfg-tabnav button {
+            flex: 1;
+            min-width: 92px;
+            border: none;
+            background: transparent;
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .18s;
+            font-family: inherit;
+        }
+
+        .cfg-tabnav button:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .cfg-tabnav button.active {
+            background: var(--admin-gradient);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .14);
+        }
+
+        .preview-section,
+        .config-section {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px 26px;
+            margin: 0;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 1px 2px rgba(15, 23, 42, .04);
+            border: 1px solid #e7ecf3;
             position: relative;
             overflow: hidden;
         }
-        .preview-section::before, .config-section::before { content:''; position:absolute; inset:0 0 auto 0; height:4px; background:var(--admin-gradient); opacity:.95; }
 
-        .section-title { font-size:22px; color:var(--text); margin-bottom:22px; display:flex; align-items:center; gap:12px; letter-spacing:-.03em; font-weight:800; }
-        .section-title .section-icon, .section-icon { width:40px; height:40px; border-radius:14px; background:color-mix(in srgb, var(--admin-primary) 10%, #ffffff); color:var(--admin-primary); display:inline-grid; place-items:center; border:1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb); flex-shrink:0; }
-        .section-icon svg, .field-icon svg, .upload-icon svg, .save-btn svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-
-        .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:22px; }
-        .form-group { display:flex; flex-direction:column; gap:9px; }
-        .form-group label { font-weight:700; color:var(--text-soft); font-size:13px; display:flex; align-items:center; gap:8px; }
-        .form-group small, .helper-text { color:var(--text-muted) !important; font-size:12px !important; line-height:1.45; }
-        .field-icon { width:22px; height:22px; display:inline-grid; place-items:center; color:var(--admin-primary); }
-        .field-icon svg { width:16px; height:16px; }
-
-        .form-group input, .form-group select, .form-group textarea {
-            padding:13px 15px;
-            border:1px solid var(--border);
-            border-radius:14px;
-            font-size:14px;
-            transition:all .2s ease;
-            color:var(--text);
-            background:#ffffff;
+        .preview-section::before,
+        .config-section::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+            background: var(--admin-gradient);
+            opacity: .95;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:color-mix(in srgb, var(--admin-primary) 45%, #e5e7eb); box-shadow:0 0 0 4px color-mix(in srgb, var(--admin-primary) 11%, transparent); }
-        input[readonly] { background:#f8fafc !important; cursor:not-allowed; color:#64748b !important; }
 
-        .color-input { display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--border); border-radius:16px; background:#fff; }
-        .color-picker { width:54px; height:42px; border:none; border-radius:12px; cursor:pointer; overflow:hidden; background:transparent; }
-        .color-text { flex:1; font-family:'SFMono-Regular', Consolas, monospace; text-transform:uppercase; background:#f8fafc !important; }
+        .section-title {
+            font-size: 17px;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -.03em;
+            font-weight: 800;
+        }
 
-        .role-title { margin: 26px 0 15px 0; color:var(--text); font-size:15px; font-weight:800; display:flex; align-items:center; gap:10px; }
-        .role-title:first-of-type { margin-top:0; }
+        .section-title .section-icon,
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--admin-primary) 10%, #ffffff);
+            color: var(--admin-primary);
+            display: inline-grid;
+            place-items: center;
+            border: 1px solid color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb);
+            flex-shrink: 0;
+        }
 
-        .image-upload { border:1.5px dashed color-mix(in srgb, var(--admin-primary) 26%, #e2e8f0); border-radius:22px; padding:24px; text-align:center; cursor:pointer; transition:all .2s ease; position:relative; background:linear-gradient(180deg,#fff,#f8fafc); }
-        .image-upload:hover, .image-upload.dragover { border-color:var(--admin-primary); background:color-mix(in srgb, var(--admin-primary) 5%, #ffffff); transform:translateY(-1px); }
-        .image-upload input { display:none; }
-        .upload-content { display:flex; flex-direction:column; align-items:center; gap:12px; color:var(--text-soft); }
-        .upload-icon { width:54px; height:54px; border-radius:18px; display:grid; place-items:center; color:#fff; background:var(--admin-gradient); box-shadow:0 14px 28px color-mix(in srgb, var(--admin-primary) 22%, transparent); }
-        .upload-content strong { color:var(--text); font-size:15px; }
-        .image-preview { max-width:100%; max-height:180px; border-radius:16px; margin-top:16px; border:1px solid var(--border); box-shadow:var(--shadow-card); object-fit:contain; background:#fff; }
+        .section-icon svg,
+        .field-icon svg,
+        .upload-icon svg,
+        .save-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
 
-        .preview-tabs { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
-        .preview-tab { padding:11px 18px; border:1px solid var(--border); border-radius:999px; cursor:pointer; transition:all .2s ease; background:#fff; color:var(--text-soft); font-weight:700; font-size:13px; }
-        .preview-tab:hover { border-color:color-mix(in srgb, var(--admin-primary) 26%, #e5e7eb); color:var(--admin-primary); }
-        .preview-tab.active { border-color:color-mix(in srgb, var(--admin-primary) 22%, transparent); background:color-mix(in srgb, var(--admin-primary) 11%, #ffffff); color:var(--admin-primary); box-shadow:0 12px 24px rgba(15,23,42,.06); }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+        }
 
-        .preview-header { padding:26px 30px; border-radius:24px; color:white; margin-bottom:4px; transition:all .2s ease; box-shadow:0 16px 36px rgba(15,23,42,.12); }
-        .preview-company { font-size:26px; font-weight:850; letter-spacing:-.04em; }
-        .preview-tagline { opacity:.9; margin-top:6px; font-size:14px; }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
 
-        .advanced-content { display:none; margin-top:20px; }
-        .advanced-content.show { display:block; }
+        .form-group label {
+            font-weight: 700;
+            color: var(--text-soft);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .save-section { text-align:center; margin:34px 0 8px; }
-        .save-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; background:var(--admin-gradient); color:white; border:none; padding:15px 30px; min-width:245px; border-radius:18px; font-size:15px; font-weight:800; cursor:pointer; transition:all .2s ease; box-shadow:0 16px 30px color-mix(in srgb, var(--admin-primary) 26%, transparent); }
-        .save-btn:hover { transform:translateY(-2px); box-shadow:0 20px 36px color-mix(in srgb, var(--admin-primary) 32%, transparent); }
-        .save-btn:disabled { opacity:.62; cursor:not-allowed; transform:none; }
+        .form-group small,
+        .helper-text {
+            color: var(--text-muted) !important;
+            font-size: 12px !important;
+            line-height: 1.45;
+        }
 
-        .message { padding:15px 18px; border-radius:16px; margin:20px 0; font-weight:700; display:none; border:1px solid var(--border); }
-        .message.success { background:color-mix(in srgb, var(--admin-primary) 9%, #ffffff); color:var(--admin-primary); border-color:color-mix(in srgb, var(--admin-primary) 20%, #e5e7eb); }
-        .message.error { background:#fef2f2; color:var(--danger); border-color:#fecaca; }
+        .field-icon {
+            width: 22px;
+            height: 22px;
+            display: inline-grid;
+            place-items: center;
+            color: var(--admin-primary);
+        }
 
-        .loading-spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,.45); border-top:2px solid #fff; border-radius:50%; animation:spin 1s linear infinite; }
-        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+        .field-icon svg {
+            width: 16px;
+            height: 16px;
+        }
 
-        .overlay { position:fixed; inset:0; background:rgba(15,23,42,.35); z-index:999; opacity:0; visibility:hidden; transition:all .3s ease; backdrop-filter:blur(3px); }
-        .overlay.show { opacity:1; visibility:visible; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 13px 15px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            font-size: 14px;
+            transition: all .2s ease;
+            color: var(--text);
+            background: #ffffff;
+        }
 
-        .toast { position:fixed; top:90px; right:20px; padding:16px 18px; border-radius:18px; color:var(--text); z-index:20000; transform:translateX(420px); transition:transform .3s ease; box-shadow:0 18px 42px rgba(15,23,42,.16); backdrop-filter:blur(12px); min-width:300px; max-width:420px; background:#fff; border:1px solid var(--border); font-weight:650; }
-        .toast.show { transform:translateX(0); }
-        .toast.success { border-color:color-mix(in srgb, var(--admin-primary) 22%, #e5e7eb); color:var(--admin-primary); }
-        .toast.error { border-color:#fecaca; color:var(--danger); }
-        .toast.info { border-color:color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb); color:var(--text-soft); }
-        .toast-dot { width:10px; height:10px; border-radius:999px; background:currentColor; flex:0 0 10px; }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: color-mix(in srgb, var(--admin-primary) 45%, #e5e7eb);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--admin-primary) 11%, transparent);
+        }
+
+        input[readonly] {
+            background: #f8fafc !important;
+            cursor: not-allowed;
+            color: #64748b !important;
+        }
+
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: #fff;
+        }
+
+        .color-picker {
+            width: 54px;
+            height: 42px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .color-text {
+            flex: 1;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            text-transform: uppercase;
+            background: #f8fafc !important;
+        }
+
+        .role-title {
+            margin: 26px 0 15px 0;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .role-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .image-upload {
+            border: 1.5px dashed color-mix(in srgb, var(--admin-primary) 26%, #e2e8f0);
+            border-radius: 22px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s ease;
+            position: relative;
+            background: linear-gradient(180deg, #fff, #f8fafc);
+        }
+
+        .image-upload:hover,
+        .image-upload.dragover {
+            border-color: var(--admin-primary);
+            background: color-mix(in srgb, var(--admin-primary) 5%, #ffffff);
+            transform: translateY(-1px);
+        }
+
+        .image-upload input {
+            display: none;
+        }
+
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-soft);
+        }
+
+        .upload-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: var(--admin-gradient);
+            box-shadow: 0 14px 28px color-mix(in srgb, var(--admin-primary) 22%, transparent);
+        }
+
+        .upload-content strong {
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 16px;
+            margin-top: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-card);
+            object-fit: contain;
+            background: #fff;
+        }
+
+        .preview-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preview-tab {
+            padding: 11px 18px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all .2s ease;
+            background: #fff;
+            color: var(--text-soft);
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .preview-tab:hover {
+            border-color: color-mix(in srgb, var(--admin-primary) 26%, #e5e7eb);
+            color: var(--admin-primary);
+        }
+
+        .preview-tab.active {
+            border-color: color-mix(in srgb, var(--admin-primary) 22%, transparent);
+            background: color-mix(in srgb, var(--admin-primary) 11%, #ffffff);
+            color: var(--admin-primary);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, .06);
+        }
+
+        .preview-header {
+            padding: 26px 30px;
+            border-radius: 24px;
+            color: white;
+            margin-bottom: 4px;
+            transition: all .2s ease;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, .12);
+        }
+
+        .preview-company {
+            font-size: 26px;
+            font-weight: 850;
+            letter-spacing: -.04em;
+        }
+
+        .preview-tagline {
+            opacity: .9;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .advanced-content {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .advanced-content.show {
+            display: block;
+        }
+
+        .save-section {
+            text-align: center;
+            margin: 34px 0 8px;
+        }
+
+        .save-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--admin-gradient);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            min-width: 245px;
+            border-radius: 18px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s ease;
+            box-shadow: 0 16px 30px color-mix(in srgb, var(--admin-primary) 26%, transparent);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 36px color-mix(in srgb, var(--admin-primary) 32%, transparent);
+        }
+
+        .save-btn:disabled {
+            opacity: .62;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 15px 18px;
+            border-radius: 16px;
+            margin: 20px 0;
+            font-weight: 700;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        .message.success {
+            background: color-mix(in srgb, var(--admin-primary) 9%, #ffffff);
+            color: var(--admin-primary);
+            border-color: color-mix(in srgb, var(--admin-primary) 20%, #e5e7eb);
+        }
+
+        .message.error {
+            background: #fef2f2;
+            color: var(--danger);
+            border-color: #fecaca;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, .45);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .35);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all .3s ease;
+            backdrop-filter: blur(3px);
+        }
+
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            color: var(--text);
+            z-index: 20000;
+            transform: translateX(420px);
+            transition: transform .3s ease;
+            box-shadow: 0 18px 42px rgba(15, 23, 42, .16);
+            backdrop-filter: blur(12px);
+            min-width: 300px;
+            max-width: 420px;
+            background: #fff;
+            border: 1px solid var(--border);
+            font-weight: 650;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-color: color-mix(in srgb, var(--admin-primary) 22%, #e5e7eb);
+            color: var(--admin-primary);
+        }
+
+        .toast.error {
+            border-color: #fecaca;
+            color: var(--danger);
+        }
+
+        .toast.info {
+            border-color: color-mix(in srgb, var(--admin-primary) 16%, #e5e7eb);
+            color: var(--text-soft);
+        }
+
+        .toast-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: currentColor;
+            flex: 0 0 10px;
+        }
 
         @media (max-width:768px) {
-            .header { padding:13px 18px; }
-            .main-content { padding:22px 16px; }
-            .main-content.sidebar-open { margin-left:0; }
-            .form-grid { grid-template-columns:1fr; }
-            .preview-section, .config-section { padding:22px 18px; border-radius:22px; }
-            .preview-company { font-size:22px; }
-            .toast { left:16px; right:16px; min-width:0; transform:translateY(-140px); }
-            .toast.show { transform:translateY(0); }
+            .header {
+                padding: 13px 18px;
+            }
+
+            .main-content {
+                padding: 22px 16px;
+            }
+
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-section,
+            .config-section {
+                padding: 22px 18px;
+                border-radius: 22px;
+            }
+
+            .preview-company {
+                font-size: 22px;
+            }
+
+            .toast {
+                left: 16px;
+                right: 16px;
+                min-width: 0;
+                transform: translateY(-140px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
         }
 
+
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text-soft);
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .icon-btn:hover {
+            color: var(--admin-primary);
+            border-color: color-mix(in srgb, var(--admin-primary) 30%, #e5e7eb);
+            transform: translateY(-1px);
+        }
+
+        .icon-btn.danger:hover {
+            color: var(--danger);
+            border-color: #fecaca;
+        }
+
+        .icon-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
     </style>
 </head>
+
 <body>
     <!-- Header con componentes -->
     <?= UIComponents::renderHeader($user) ?>
@@ -248,525 +840,649 @@ if (!function_exists('adminConfigIcon')) {
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
-        <!-- Preview Section -->
-        <div class="preview-section">
-            <h2 class="section-title">
-                <span class="section-icon"><?= adminConfigIcon('eye') ?></span>
-                Vista Previa por Roles
-            </h2>
-
-            <!-- Tabs para diferentes vistas -->
-            <div class="preview-tabs">
-                <div class="preview-tab active" onclick="switchPreview('admin')">Vista Admin</div>
-                <div class="preview-tab" onclick="switchPreview('agent')">Vista Agente</div>
+        <div class="config-shell">
+            <div class="config-pagehead">
+                <div class="cph-icon"><?= adminConfigIcon('settings') ?></div>
+                <div>
+                    <h1>Configuración de la agencia</h1>
+                    <p>Personaliza marca, colores, módulos, Gmail y pipeline.</p>
+                </div>
             </div>
 
-            <!-- Admin Preview -->
-            <div class="preview-header" id="adminPreview" style="background: linear-gradient(135deg, <?= $config['admin_primary_color'] ?> 0%, <?= $config['admin_secondary_color'] ?> 100%);">
-                <div class="preview-company" id="companyPreviewAdmin"><?= htmlspecialchars($config['company_name']) ?></div>
-                <div class="preview-tagline">Panel de Administración</div>
+            <!-- Pestañas de configuración -->
+            <div class="cfg-tabnav">
+                <button type="button" data-tab="marca" class="active" onclick="cfgTab('marca')">Marca</button>
+                <button type="button" data-tab="colores" onclick="cfgTab('colores')">Colores</button>
+                <button type="button" data-tab="modulos" onclick="cfgTab('modulos')">Módulos</button>
+                <button type="button" data-tab="gmail" onclick="cfgTab('gmail')">Gmail</button>
             </div>
-
-            <!-- Agent Preview -->
-            <div class="preview-header" id="agentPreview" style="background: linear-gradient(135deg, <?= $config['agent_primary_color'] ?> 0%, <?= $config['agent_secondary_color'] ?> 100%); display: none;">
-                <div class="preview-company" id="companyPreviewAgent"><?= htmlspecialchars($config['company_name']) ?></div>
-                <div class="preview-tagline">Sistema de Gestión de Viajes</div>
-            </div>
-        </div>
-
-        <!-- Messages -->
-        <div id="successMessage" class="message success"></div>
-        <div id="errorMessage" class="message error"></div>
-
-        <!-- Configuration Form -->
-        <form id="configForm">
-            <!-- Basic Settings -->
-            <div class="config-section">
+            <!-- Preview Section -->
+            <div class="preview-section" data-cfgtab="colores">
                 <h2 class="section-title">
-                    <span class="section-icon"><?= adminConfigIcon('building') ?></span>
-                    Información de la Empresa
+                    <span class="section-icon"><?= adminConfigIcon('eye') ?></span>
+                    Vista Previa por Roles
                 </h2>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                    <label for="company_name">Nombre de la Agencia</label>
-                    <input type="text" id="company_name" name="company_name" 
-                        value="<?= htmlspecialchars($config['company_name']) ?>" 
-                        placeholder="Travel Agency" readonly 
-                        style="background-color: #f1f5f9; cursor: not-allowed; color: #64748b;">
-                    <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
-                        El nombre de la agencia solo puede ser modificado por el Superadmin desde la gestión de agencias
-                    </small>
-                </div>
+
+                <!-- Tabs para diferentes vistas -->
+                <div class="preview-tabs">
+                    <div class="preview-tab active" onclick="switchPreview('admin')">Vista Admin</div>
+                    <div class="preview-tab" onclick="switchPreview('agent')">Vista Agente</div>
                 </div>
 
-                <div class="form-grid" style="margin-top: 25px;">
-                    <div class="form-group">
-                        <label for="logo_url">Logo de la Empresa</label>
-                        <div class="image-upload" onclick="document.getElementById('logoInput').click()">
-                            <input type="file" id="logoInput" accept="image/*">
-                            <div class="upload-content">
-                                <div class="upload-icon"><?= adminConfigIcon('upload') ?></div>
-                                <div>
-                                    <strong>Subir Logo</strong><br>
-                                    <small>PNG, JPG, SVG o WebP (máx. <?= $config['max_file_size'] ?>MB)</small>
-                                </div>
-                            </div>
-                            <?php if ($config['logo_url']): ?>
-                            <img src="<?= htmlspecialchars($config['logo_url']) ?>" 
-                                 class="image-preview" id="logoPreview">
-                            <?php endif; ?>
-                        </div>
-                        <input type="hidden" id="logo_url" name="logo_url" value="<?= htmlspecialchars($config['logo_url'] ?? '') ?>">
+                <!-- Admin Preview -->
+                <div class="preview-header" id="adminPreview"
+                    style="background: linear-gradient(135deg, <?= $config['admin_primary_color'] ?> 0%, <?= $config['admin_secondary_color'] ?> 100%);">
+                    <div class="preview-company" id="companyPreviewAdmin">
+                        <?= htmlspecialchars($config['company_name']) ?>
                     </div>
+                    <div class="preview-tagline">Panel de Administración</div>
+                </div>
+
+                <!-- Agent Preview -->
+                <div class="preview-header" id="agentPreview"
+                    style="background: linear-gradient(135deg, <?= $config['agent_primary_color'] ?> 0%, <?= $config['agent_secondary_color'] ?> 100%); display: none;">
+                    <div class="preview-company" id="companyPreviewAgent">
+                        <?= htmlspecialchars($config['company_name']) ?>
+                    </div>
+                    <div class="preview-tagline">Sistema de Gestión de Viajes</div>
                 </div>
             </div>
 
-            <!-- Color Settings -->
-            <div class="config-section">
-                <h2 class="section-title">
-                    <span class="section-icon"><?= adminConfigIcon('palette') ?></span>
-                    Personalización de Colores por Roles
-                </h2>
-                
-                <!-- Admin Colors -->
-                <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('shield') ?></span>Colores del Administrador</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="admin_primary_color">Color Primario Admin</label>
-                        <div class="color-input">
-                            <input type="color" id="admin_primary_color" name="admin_primary_color" 
-                                   class="color-picker" value="<?= $config['admin_primary_color'] ?>">
-                            <input type="text" class="color-text" 
-                                   value="<?= $config['admin_primary_color'] ?>" readonly>
-                        </div>
-                    </div>
+            <!-- Messages -->
+            <div id="successMessage" class="message success"></div>
+            <div id="errorMessage" class="message error"></div>
 
-                    <div class="form-group">
-                        <label for="admin_secondary_color">Color Secundario Admin</label>
-                        <div class="color-input">
-                            <input type="color" id="admin_secondary_color" name="admin_secondary_color" 
-                                   class="color-picker" value="<?= $config['admin_secondary_color'] ?>">
-                            <input type="text" class="color-text" 
-                                   value="<?= $config['admin_secondary_color'] ?>" readonly>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Agent Colors -->
-                <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('plane') ?></span>Colores del Agente</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="agent_primary_color">Color Primario Agente</label>
-                        <div class="color-input">
-                            <input type="color" id="agent_primary_color" name="agent_primary_color" 
-                                   class="color-picker" value="<?= $config['agent_primary_color'] ?>">
-                            <input type="text" class="color-text" 
-                                   value="<?= $config['agent_primary_color'] ?>" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="agent_secondary_color">Color Secundario Agente</label>
-                        <div class="color-input">
-                            <input type="color" id="agent_secondary_color" name="agent_secondary_color" 
-                                   class="color-picker" value="<?= $config['agent_secondary_color'] ?>">
-                            <input type="text" class="color-text" 
-                                   value="<?= $config['agent_secondary_color'] ?>" readonly>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="advanced-content" id="advancedContent">
-                <div class="config-section">
+            <!-- Configuration Form -->
+            <form id="configForm">
+                <!-- Basic Settings -->
+                <div class="config-section" data-cfgtab="marca">
                     <h2 class="section-title">
-                        <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
-                        Configuraciones Técnicas
+                        <span class="section-icon"><?= adminConfigIcon('building') ?></span>
+                        Información de la Empresa
                     </h2>
-                    
+
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="maintenance_mode"><span class="field-icon"><?= adminConfigIcon('lock') ?></span>Modo Mantenimiento</label>
-                            <select id="maintenance_mode" name="maintenance_mode">
-                                <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>Desactivado</option>
-                                <option value="1" <?= $config['maintenance_mode'] ? 'selected' : '' ?>>Activado</option>
-                            </select>
-                            <small style="color: #718096;">Bloquea el acceso a usuarios no administradores</small>
+                            <label for="company_name">Nombre de la Agencia</label>
+                            <input type="text" id="company_name" name="company_name"
+                                value="<?= htmlspecialchars($config['company_name']) ?>" placeholder="Travel Agency"
+                                readonly style="background-color: #f1f5f9; cursor: not-allowed; color: #64748b;">
+                            <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
+                                El nombre de la agencia solo puede ser modificado por el Superadmin desde la gestión de
+                                agencias
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-grid" style="margin-top: 25px;">
+                        <div class="form-group">
+                            <label for="logo_url">Logo de la Empresa</label>
+                            <div class="image-upload" onclick="document.getElementById('logoInput').click()">
+                                <input type="file" id="logoInput" accept="image/*">
+                                <div class="upload-content">
+                                    <div class="upload-icon"><?= adminConfigIcon('upload') ?></div>
+                                    <div>
+                                        <strong>Subir Logo</strong><br>
+                                        <small>PNG, JPG, SVG o WebP (máx. <?= $config['max_file_size'] ?>MB)</small>
+                                    </div>
+                                </div>
+                                <?php if ($config['logo_url']): ?>
+                                    <img src="<?= htmlspecialchars($config['logo_url']) ?>" class="image-preview"
+                                        id="logoPreview">
+                                <?php endif; ?>
+                            </div>
+                            <input type="hidden" id="logo_url" name="logo_url"
+                                value="<?= htmlspecialchars($config['logo_url'] ?? '') ?>">
                         </div>
                     </div>
                 </div>
+
+                <!-- Color Settings -->
+                <div class="config-section" data-cfgtab="colores">
+                    <h2 class="section-title">
+                        <span class="section-icon"><?= adminConfigIcon('palette') ?></span>
+                        Personalización de Colores por Roles
+                    </h2>
+
+                    <!-- Admin Colors -->
+                    <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('shield') ?></span>Colores del
+                        Administrador</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="admin_primary_color">Color Primario Admin</label>
+                            <div class="color-input">
+                                <input type="color" id="admin_primary_color" name="admin_primary_color"
+                                    class="color-picker" value="<?= $config['admin_primary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['admin_primary_color'] ?>"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin_secondary_color">Color Secundario Admin</label>
+                            <div class="color-input">
+                                <input type="color" id="admin_secondary_color" name="admin_secondary_color"
+                                    class="color-picker" value="<?= $config['admin_secondary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['admin_secondary_color'] ?>"
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Colors -->
+                    <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('plane') ?></span>Colores del
+                        Agente
+                    </h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="agent_primary_color">Color Primario Agente</label>
+                            <div class="color-input">
+                                <input type="color" id="agent_primary_color" name="agent_primary_color"
+                                    class="color-picker" value="<?= $config['agent_primary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['agent_primary_color'] ?>"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent_secondary_color">Color Secundario Agente</label>
+                            <div class="color-input">
+                                <input type="color" id="agent_secondary_color" name="agent_secondary_color"
+                                    class="color-picker" value="<?= $config['agent_secondary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['agent_secondary_color'] ?>"
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="config-section" data-cfgtab="modulos">
+                    <h2 class="section-title">
+                        <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
+                        Módulos
+                    </h2>
+                    <label class="checkbox-row"
+                        style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:6px 0;">
+                        <input type="hidden" name="rooming_agentes_visible" value="0">
+                        <input type="checkbox" name="rooming_agentes_visible" value="1" style="margin-top:3px;"
+                            <?= !empty($config['rooming_agentes_visible']) ? 'checked' : '' ?>>
+                        <span>
+                            <strong style="display:block;color:#1e293b;font-size:14px;">Mostrar “Traslados / Rooming” a
+                                los agentes</strong>
+                            <small style="color:#718096;">El administrador siempre ve el módulo. Actívalo para que
+                                también lo vean los agentes de esta agencia. Útil en unas agencias; en otras puede ser
+                                información confidencial, así que está desactivado por defecto.</small>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="advanced-content" id="advancedContent" data-cfgtab="modulos">
+                    <div class="config-section">
+                        <h2 class="section-title">
+                            <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
+                            Configuraciones Técnicas
+                        </h2>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="maintenance_mode"><span
+                                        class="field-icon"><?= adminConfigIcon('lock') ?></span>Modo
+                                    Mantenimiento</label>
+                                <select id="maintenance_mode" name="maintenance_mode">
+                                    <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>Desactivado
+                                    </option>
+                                    <option value="1" <?= $config['maintenance_mode'] ? 'selected' : '' ?>>Activado
+                                    </option>
+                                </select>
+                                <small style="color: #718096;">Bloquea el acceso a usuarios no administradores</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- ============================================================ -->
+            <!-- Gmail — Cuenta de correo del administrador                  -->
+            <!-- ============================================================ -->
+            <div class="config-section" data-cfgtab="gmail">
+                <h2 class="section-title">
+                    <span class="section-icon"><?= adminConfigIcon('plane') ?></span>
+                    Cuenta Gmail
+                </h2>
+                <?php if ($flashSuccess): ?>
+                    <div
+                        style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                        <?= htmlspecialchars($flashSuccess) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($flashError): ?>
+                    <div
+                        style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                        <?= htmlspecialchars($flashError) ?>
+                    </div>
+                <?php endif; ?>
+                <p style="font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6;">
+                    Conecta tu cuenta de Gmail para que el pipeline capture los correos de leads entrantes y puedas
+                    responder desde la plataforma. Esta cuenta es la principal de la agencia.
+                </p>
+                <?php if ($gmailAccount && $gmailAccount['status'] === 'active'): ?>
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div
+                                style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">
+                                ✉️</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
+                                <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="<?= APP_URL ?>/gmail/oauth?action=disconnect"
+                            onclick="return confirm('¿Desconectar esta cuenta de Gmail?')"
+                            style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+                            Desconectar
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div
+                                style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">
+                                ✉️</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
+                                <div style="font-size:13px;color:#94a3b8;">Conecta Gmail para capturar leads y responder
+                                    correos</div>
+                            </div>
+                        </div>
+                        <a href="<?= APP_URL ?>/gmail/oauth?action=connect"
+                            style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--primary-gradient);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+                            Conectar Gmail
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
 
-            <!-- Save Section -->
-            <div class="save-section">
-                <button type="submit" class="save-btn" id="saveBtn">
-                    <?= adminConfigIcon('save') ?>
-                   Guardar Configuración
-                    <div class="loading-spinner" id="loadingSpinner"></div>
-                </button>
-            </div>
-        </form>
-    </div>
 
-    <!-- Scripts -->
-    <script>
-        const APP_URL = '<?= APP_URL ?>';
-        let isLoading = false;
-        let currentPreview = 'admin';
-        let sidebarOpen = false;
+        </div>
 
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeColorPickers();
-            initializeImageUploads();
-            initializeFormHandlers();
-            initializeGoogleTranslate();
-            applyDefaultLanguage();
-        });
+        <!-- Scripts -->
+        <script>
+            const APP_URL = '<?= APP_URL ?>';
+            let isLoading = false;
+            let currentPreview = 'admin';
+            let sidebarOpen = false;
 
-        // Funciones de sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            const mainContent = document.getElementById('mainContent');
-            
-            sidebarOpen = !sidebarOpen;
-            
-            if (sidebarOpen) {
-                sidebar.classList.add('open');
-                overlay.classList.add('show');
-                if (window.innerWidth > 768) {
-                    mainContent.classList.add('sidebar-open');
-                }
-            } else {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-                mainContent.classList.remove('sidebar-open');
+            // Inicialización
+            document.addEventListener('DOMContentLoaded', function () {
+                initializeColorPickers();
+                initializeImageUploads();
+                initializeFormHandlers();
+                initializeGoogleTranslate();
+                applyDefaultLanguage();
+                cfgTab('marca');
+            });
+
+            // Pestañas de configuración
+            function cfgTab(name) {
+                document.querySelectorAll('[data-cfgtab]').forEach(function (el) {
+                    el.style.display = (el.dataset.cfgtab === name) ? 'block' : 'none';
+                });
+                document.querySelectorAll('.cfg-tabnav button').forEach(function (b) {
+                    b.classList.toggle('active', b.dataset.tab === name);
+                });
+                var save = document.querySelector('.save-section');
+                if (save) save.style.display = (name === 'gmail' || name === 'pipeline') ? 'none' : '';
             }
-        }
 
-        function closeSidebar() {
-            if (sidebarOpen) {
-                toggleSidebar();
-            }
-        }
+            // Funciones de sidebar
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('overlay');
+                const mainContent = document.getElementById('mainContent');
 
-        function toggleUserMenu() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                window.location.href = '<?= APP_URL ?>/auth/logout';
-            }
-        }
+                sidebarOpen = !sidebarOpen;
 
-        // Aplicar idioma por defecto del sistema
-        function applyDefaultLanguage() {
-            const defaultLang = '<?= $config['default_language'] ?>';
-            if (defaultLang && defaultLang !== 'es') {
-                setTimeout(() => {
-                    const select = document.querySelector('.goog-te-combo');
-                    if (select) {
-                        select.value = defaultLang;
-                        select.dispatchEvent(new Event('change'));
+                if (sidebarOpen) {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('show');
+                    if (window.innerWidth > 768) {
+                        mainContent.classList.add('sidebar-open');
                     }
-                }, 2000);
+                } else {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('show');
+                    mainContent.classList.remove('sidebar-open');
+                }
             }
-        }
 
-        // Configurar color pickers
-        function initializeColorPickers() {
-            const colorInputs = [
-                'admin_primary_color', 'admin_secondary_color',
-                'agent_primary_color', 'agent_secondary_color'
-            ];
-
-            colorInputs.forEach(inputId => {
-                const colorPicker = document.getElementById(inputId);
-                if (colorPicker) {
-                    colorPicker.addEventListener('change', function() {
-                        this.nextElementSibling.value = this.value;
-                        updatePreview();
-                    });
+            function closeSidebar() {
+                if (sidebarOpen) {
+                    toggleSidebar();
                 }
-            });
+            }
 
-            // Actualizar preview cuando cambie el nombre
-            document.getElementById('company_name').addEventListener('input', updatePreview);
-        }
+            function toggleUserMenu() {
+                if (confirm('¿Desea cerrar sesión?')) {
+                    window.location.href = '<?= APP_URL ?>/auth/logout';
+                }
+            }
 
-        // Cambiar vista previa
-        function switchPreview(type) {
-            currentPreview = type;
-            
-            // Actualizar tabs
-            document.querySelectorAll('.preview-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Mostrar/ocultar previews
-            document.getElementById('adminPreview').style.display = type === 'admin' ? 'block' : 'none';
-            document.getElementById('agentPreview').style.display = type === 'agent' ? 'block' : 'none';
-        }
+            // Aplicar idioma por defecto del sistema
+            function applyDefaultLanguage() {
+                const defaultLang = '<?= $config['default_language'] ?>';
+                if (defaultLang && defaultLang !== 'es') {
+                    setTimeout(() => {
+                        const select = document.querySelector('.goog-te-combo');
+                        if (select) {
+                            select.value = defaultLang;
+                            select.dispatchEvent(new Event('change'));
+                        }
+                    }, 2000);
+                }
+            }
 
-        // Actualizar vista previa
-        function updatePreview() {
-            const companyName = document.getElementById('company_name').value || 'Travel Agency';
-            
-            // Obtener colores
-            const adminPrimary = document.getElementById('admin_primary_color').value;
-            const adminSecondary = document.getElementById('admin_secondary_color').value;
-            const agentPrimary = document.getElementById('agent_primary_color').value;
-            const agentSecondary = document.getElementById('agent_secondary_color').value;
+            // Configurar color pickers
+            function initializeColorPickers() {
+                const colorInputs = [
+                    'admin_primary_color', 'admin_secondary_color',
+                    'agent_primary_color', 'agent_secondary_color'
+                ];
 
-            // Actualizar nombres
-            document.getElementById('companyPreviewAdmin').textContent = companyName;
-            document.getElementById('companyPreviewAgent').textContent = companyName;
-
-            // Actualizar fondos
-            document.getElementById('adminPreview').style.background = 
-                `linear-gradient(135deg, ${adminPrimary} 0%, ${adminSecondary} 100%)`;
-            document.getElementById('agentPreview').style.background = 
-                `linear-gradient(135deg, ${agentPrimary} 0%, ${agentSecondary} 100%)`;
-        }
-
-        // Configurar subida de imágenes
-        function initializeImageUploads() {
-            setupImageUpload('logoInput', 'logo_url', 'logoPreview');
-        }
-
-        function setupImageUpload(inputId, hiddenId, previewId) {
-            const input = document.getElementById(inputId);
-            const hiddenField = document.getElementById(hiddenId);
-            
-            input.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    // Validar archivo
-                    const maxSize = <?= $config['max_file_size'] ?> * 1024 * 1024; // MB to bytes
-                    if (file.size > maxSize) {
-                        showMessage(`El archivo es demasiado grande (máximo <?= $config['max_file_size'] ?>MB)`, 'error');
-                        return;
+                colorInputs.forEach(inputId => {
+                    const colorPicker = document.getElementById(inputId);
+                    if (colorPicker) {
+                        colorPicker.addEventListener('change', function () {
+                            this.nextElementSibling.value = this.value;
+                            updatePreview();
+                        });
                     }
-
-                    if (!file.type.startsWith('image/')) {
-                        showMessage('Solo se permiten archivos de imagen', 'error');
-                        return;
-                    }
-
-                    // Subir archivo
-                    uploadImage(file, hiddenId, previewId);
-                }
-            });
-
-            // Drag and drop
-            const uploadDiv = input.parentElement;
-            
-            uploadDiv.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
-
-            uploadDiv.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-            });
-
-            uploadDiv.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    input.files = files;
-                    input.dispatchEvent(new Event('change'));
-                }
-            });
-        }
-
-        // Subir imagen al servidor
-        async function uploadImage(file, hiddenFieldId, previewId) {
-            try {
-                const formData = new FormData();
-                formData.append('action', 'upload_config_image');
-                formData.append('image', file);
-                formData.append('type', hiddenFieldId.includes('logo') ? 'logo' : 'background');
-
-                const response = await fetch(`${APP_URL}/admin/api`, {
-                    method: 'POST',
-                    body: formData
                 });
 
-                const data = await response.json();
-
-                if (!data.success) {
-                    throw new Error(data.error || 'Error al subir imagen');
-                }
-
-                // Actualizar campo oculto
-                document.getElementById(hiddenFieldId).value = data.url;
-
-                // Mostrar preview
-                let preview = document.getElementById(previewId);
-                if (!preview) {
-                    preview = document.createElement('img');
-                    preview.id = previewId;
-                    preview.className = 'image-preview';
-                    document.getElementById(hiddenFieldId).parentElement.appendChild(preview);
-                }
-                preview.src = data.url;
-
-                showMessage('Imagen subida correctamente', 'success');
-
-            } catch (error) {
-                console.error('Error al subir imagen:', error);
-                showMessage(`Error al subir imagen: ${error.message}`, 'error');
+                // Actualizar preview cuando cambie el nombre
+                document.getElementById('company_name').addEventListener('input', updatePreview);
             }
-        }
 
-        // Configurar manejadores de formulario
-        function initializeFormHandlers() {
-            document.getElementById('configForm').addEventListener('submit', saveConfiguration);
-        }
+            // Cambiar vista previa
+            function switchPreview(type) {
+                currentPreview = type;
 
-        // Guardar configuración
-        async function saveConfiguration(e) {
-            e.preventDefault();
+                // Actualizar tabs
+                document.querySelectorAll('.preview-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                event.target.classList.add('active');
 
-            if (isLoading) return;
+                // Mostrar/ocultar previews
+                document.getElementById('adminPreview').style.display = type === 'admin' ? 'block' : 'none';
+                document.getElementById('agentPreview').style.display = type === 'agent' ? 'block' : 'none';
+            }
 
-            try {
-                isLoading = true;
-                const saveBtn = document.getElementById('saveBtn');
-                const spinner = document.getElementById('loadingSpinner');
-                
-                saveBtn.disabled = true;
-                spinner.style.display = 'inline-block';
+            // Actualizar vista previa
+            function updatePreview() {
+                const companyName = document.getElementById('company_name').value || 'Travel Agency';
 
-                const formData = new FormData(e.target);
-                formData.append('action', 'save_config');
+                // Obtener colores
+                const adminPrimary = document.getElementById('admin_primary_color').value;
+                const adminSecondary = document.getElementById('admin_secondary_color').value;
+                const agentPrimary = document.getElementById('agent_primary_color').value;
+                const agentSecondary = document.getElementById('agent_secondary_color').value;
 
-                const response = await fetch(`${APP_URL}/admin/api`, {
-                    method: 'POST',
-                    body: formData
+                // Actualizar nombres
+                document.getElementById('companyPreviewAdmin').textContent = companyName;
+                document.getElementById('companyPreviewAgent').textContent = companyName;
+
+                // Actualizar fondos
+                document.getElementById('adminPreview').style.background =
+                    `linear-gradient(135deg, ${adminPrimary} 0%, ${adminSecondary} 100%)`;
+                document.getElementById('agentPreview').style.background =
+                    `linear-gradient(135deg, ${agentPrimary} 0%, ${agentSecondary} 100%)`;
+            }
+
+            // Configurar subida de imágenes
+            function initializeImageUploads() {
+                setupImageUpload('logoInput', 'logo_url', 'logoPreview');
+            }
+
+            function setupImageUpload(inputId, hiddenId, previewId) {
+                const input = document.getElementById(inputId);
+                const hiddenField = document.getElementById(hiddenId);
+
+                input.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validar archivo
+                        const maxSize = <?= $config['max_file_size'] ?> * 1024 * 1024; // MB to bytes
+                        if (file.size > maxSize) {
+                            showMessage(`El archivo es demasiado grande (máximo <?= $config['max_file_size'] ?>MB)`, 'error');
+                            return;
+                        }
+
+                        if (!file.type.startsWith('image/')) {
+                            showMessage('Solo se permiten archivos de imagen', 'error');
+                            return;
+                        }
+
+                        // Subir archivo
+                        uploadImage(file, hiddenId, previewId);
+                    }
                 });
 
-                const data = await response.json();
+                // Drag and drop
+                const uploadDiv = input.parentElement;
 
-                if (!data.success) {
-                    throw new Error(data.error || 'Error al guardar configuración');
-                }
+                uploadDiv.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
 
-                showMessage('Configuración guardada correctamente. Los cambios se aplicarán en el próximo inicio de sesión.', 'success');
+                uploadDiv.addEventListener('dragleave', function (e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
 
-                // Actualizar el título de la página si cambió el nombre
-                const newTitle = document.getElementById('company_name').value;
-                document.title = `Configuración - ${newTitle}`;
+                uploadDiv.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
 
-                // Preguntar si desea recargar la página para aplicar cambios
-                setTimeout(async () => {
-                    const confirmed = await showConfirmModal({
-                        title: '¡Configuración guardada!',
-                        message: '¿Desea recargar la página para ver los cambios aplicados?',
-                        details: 'Los cambios se aplicarán completamente al recargar la página.',
-                        icon: '',
-                        confirmText: 'Recargar página',
-                        cancelText: 'Continuar sin recargar'
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        input.files = files;
+                        input.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            // Subir imagen al servidor
+            async function uploadImage(file, hiddenFieldId, previewId) {
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'upload_config_image');
+                    formData.append('image', file);
+                    formData.append('type', hiddenFieldId.includes('logo') ? 'logo' : 'background');
+
+                    const response = await fetch(`${APP_URL}/admin/api`, {
+                        method: 'POST',
+                        body: formData
                     });
 
-                    if (confirmed) {
-                        window.location.reload();
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Error al subir imagen');
                     }
-                }, 2000);
 
-            } catch (error) {
-                console.error('Error al guardar configuración:', error);
-                showMessage(`Error: ${error.message}`, 'error');
-            } finally {
-                isLoading = false;
-                document.getElementById('saveBtn').disabled = false;
-                document.getElementById('loadingSpinner').style.display = 'none';
+                    // Actualizar campo oculto
+                    document.getElementById(hiddenFieldId).value = data.url;
+
+                    // Mostrar preview
+                    let preview = document.getElementById(previewId);
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = previewId;
+                        preview.className = 'image-preview';
+                        document.getElementById(hiddenFieldId).parentElement.appendChild(preview);
+                    }
+                    preview.src = data.url;
+
+                    showMessage('Imagen subida correctamente', 'success');
+
+                } catch (error) {
+                    console.error('Error al subir imagen:', error);
+                    showMessage(`Error al subir imagen: ${error.message}`, 'error');
+                }
             }
-        }
 
-// Usar el sistema de notificaciones de UIComponents (igual que admin.php)
-function showMessage(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    
-    const indicatorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
-    toast.innerHTML = `
+            // Configurar manejadores de formulario
+            function initializeFormHandlers() {
+                document.getElementById('configForm').addEventListener('submit', saveConfiguration);
+            }
+
+            // Guardar configuración
+            async function saveConfiguration(e) {
+                e.preventDefault();
+
+                if (isLoading) return;
+
+                try {
+                    isLoading = true;
+                    const saveBtn = document.getElementById('saveBtn');
+                    const spinner = document.getElementById('loadingSpinner');
+
+                    saveBtn.disabled = true;
+                    spinner.style.display = 'inline-block';
+
+                    const formData = new FormData(e.target);
+                    formData.append('action', 'save_config');
+
+                    const response = await fetch(`${APP_URL}/admin/api`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Error al guardar configuración');
+                    }
+
+                    showMessage('Configuración guardada correctamente. Los cambios se aplicarán en el próximo inicio de sesión.', 'success');
+
+                    // Actualizar el título de la página si cambió el nombre
+                    const newTitle = document.getElementById('company_name').value;
+                    document.title = `Configuración - ${newTitle}`;
+
+                    // Preguntar si desea recargar la página para aplicar cambios
+                    setTimeout(async () => {
+                        const confirmed = await showConfirmModal({
+                            title: '¡Configuración guardada!',
+                            message: '¿Desea recargar la página para ver los cambios aplicados?',
+                            details: 'Los cambios se aplicarán completamente al recargar la página.',
+                            icon: '',
+                            confirmText: 'Recargar página',
+                            cancelText: 'Continuar sin recargar'
+                        });
+
+                        if (confirmed) {
+                            window.location.reload();
+                        }
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error al guardar configuración:', error);
+                    showMessage(`Error: ${error.message}`, 'error');
+                } finally {
+                    isLoading = false;
+                    document.getElementById('saveBtn').disabled = false;
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            }
+
+            // Usar el sistema de notificaciones de UIComponents (igual que admin.php)
+            function showMessage(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+
+                const indicatorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+                toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
             <span class="toast-dot"></span>
             <span>${message}</span>
         </div>
     `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 100);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 300);
-    }, 4000);
-}
-        // Google Translate
-        function initializeGoogleTranslate() {
-            function googleTranslateElementInit() {
-                new google.translate.TranslateElement({
-                    pageLanguage: '<?= $config['default_language'] ?>',
-                    includedLanguages: 'en,fr,pt,it,de,es',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                    autoDisplay: false
-                }, 'google_translate_element');
 
-                setTimeout(loadSavedLanguage, 1000);
+                document.body.appendChild(toast);
+
+                setTimeout(() => toast.classList.add('show'), 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(toast), 300);
+                }, 4000);
             }
+            // Google Translate
+            function initializeGoogleTranslate() {
+                function googleTranslateElementInit() {
+                    new google.translate.TranslateElement({
+                        pageLanguage: '<?= $config['default_language'] ?>',
+                        includedLanguages: 'en,fr,pt,it,de,es',
+                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                        autoDisplay: false
+                    }, 'google_translate_element');
 
-            function saveLanguage(lang) {
-                sessionStorage.setItem('language', lang);
-                localStorage.setItem('preferredLanguage', lang);
-            }
+                    setTimeout(loadSavedLanguage, 1000);
+                }
 
-            function loadSavedLanguage() {
-                const saved = sessionStorage.getItem('language') || localStorage.getItem('preferredLanguage') || '<?= $config['default_language'] ?>';
-                if (saved && saved !== '<?= $config['default_language'] ?>') {
-                    const select = document.querySelector('.goog-te-combo');
-                    if (select) {
-                        select.value = saved;
-                        select.dispatchEvent(new Event('change'));
+                function saveLanguage(lang) {
+                    sessionStorage.setItem('language', lang);
+                    localStorage.setItem('preferredLanguage', lang);
+                }
+
+                function loadSavedLanguage() {
+                    const saved = sessionStorage.getItem('language') || localStorage.getItem('preferredLanguage') || '<?= $config['default_language'] ?>';
+                    if (saved && saved !== '<?= $config['default_language'] ?>') {
+                        const select = document.querySelector('.goog-te-combo');
+                        if (select) {
+                            select.value = saved;
+                            select.dispatchEvent(new Event('change'));
+                        }
                     }
                 }
+
+                if (!window.googleTranslateElementInit) {
+                    window.googleTranslateElementInit = googleTranslateElementInit;
+                    const script = document.createElement('script');
+                    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+                    document.head.appendChild(script);
+                }
+
+                setTimeout(function () {
+                    const select = document.querySelector('.goog-te-combo');
+                    if (select) {
+                        select.addEventListener('change', function () {
+                            if (this.value) saveLanguage(this.value);
+                        });
+                    }
+                }, 2000);
             }
 
-            if (!window.googleTranslateElementInit) {
-                window.googleTranslateElementInit = googleTranslateElementInit;
-                const script = document.createElement('script');
-                script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-                document.head.appendChild(script);
-            }
-
-            setTimeout(function() {
-                const select = document.querySelector('.goog-te-combo');
-                if (select) {
-                    select.addEventListener('change', function() {
-                        if (this.value) saveLanguage(this.value);
-                    });
-                }
-            }, 2000);
-        }
-
-        // Event listeners responsive
-        document.addEventListener('DOMContentLoaded', function() {
-            window.addEventListener('resize', function() {
-                if (window.innerWidth <= 768 && sidebarOpen) {
-                    document.getElementById('mainContent').classList.remove('sidebar-open');
-                } else if (window.innerWidth > 768 && sidebarOpen) {
-                    document.getElementById('mainContent').classList.add('sidebar-open');
-                }
+            // Event listeners responsive
+            document.addEventListener('DOMContentLoaded', function () {
+                window.addEventListener('resize', function () {
+                    if (window.innerWidth <= 768 && sidebarOpen) {
+                        document.getElementById('mainContent').classList.remove('sidebar-open');
+                    } else if (window.innerWidth > 768 && sidebarOpen) {
+                        document.getElementById('mainContent').classList.add('sidebar-open');
+                    }
+                });
             });
-        });
-    </script>
+
+
+        </script>
 </body>
+
 </html>

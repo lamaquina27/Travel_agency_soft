@@ -340,7 +340,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .page {
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             display: grid;
             grid-template-columns: minmax(360px, 430px) 1fr;
             background:
@@ -349,15 +350,16 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .panel {
-            min-height: 100vh;
-            padding: 44px 44px 38px;
+            height: 100vh;
+            padding: 34px 38px;
             background: var(--surface);
             border-right: 1px solid var(--border-soft);
             box-shadow: var(--shadow-soft);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 36px;
+            gap: 18px;
+            overflow: hidden;
         }
 
         .brand {
@@ -397,7 +399,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
         .content {
             display: grid;
-            gap: 28px;
+            gap: 16px;
         }
 
         .eyebrow {
@@ -411,15 +413,15 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
         .title {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(44px, 5vw, 68px);
-            line-height: 0.96;
-            letter-spacing: -0.055em;
+            font-size: clamp(24px, 4vw, 35px);
+            line-height: 1;
+            letter-spacing: -0.05em;
             color: var(--text-main);
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
 
         .traveler {
-            font-size: 15px;
+            font-size: 25px;
             line-height: 1.5;
             color: var(--text-soft);
             font-weight: 600;
@@ -438,11 +440,12 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .intro {
-            font-size: 17px;
-            line-height: 1.55;
-            color: var(--text-main);
-            font-weight: 700;
-            max-width: 310px;
+            font-size: 14.5px;
+            line-height: 1.5;
+            color: var(--text-soft);
+            font-weight: 600;
+            max-width: 320px;
+            margin: 0;
         }
 
         .facts {
@@ -454,9 +457,9 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 13px 14px;
+            padding: 10px 13px;
             border: 1px solid var(--border-soft);
-            border-radius: 18px;
+            border-radius: 14px;
             background: var(--surface-soft);
         }
 

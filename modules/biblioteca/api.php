@@ -946,6 +946,12 @@ class BibliotecaAPI
                 'condiciones_generales' => $_POST['condiciones_generales'] ?? null,
                 'info_pasaporte' => $_POST['info_pasaporte'] ?? null,
                 'info_seguros' => $_POST['info_seguros'] ?? null,
+                'visados_entrada' => $_POST['visados_entrada'] ?? null,
+                'requisitos_sanitarios' => $_POST['requisitos_sanitarios'] ?? null,
+                'llegada_punto_encuentro' => $_POST['llegada_punto_encuentro'] ?? null,
+                'asistencia_emergencia' => $_POST['asistencia_emergencia'] ?? null,
+                'info_hoteles_servicios' => $_POST['info_hoteles_servicios'] ?? null,
+                'informacion_practica' => $_POST['informacion_practica'] ?? null,
                 'user_id' => $user_id
             ];
 
