@@ -402,7 +402,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
         .title {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(34px, 4vw, 50px);
+            font-size: clamp(24px, 4vw, 35px);
             line-height: 1;
             letter-spacing: -0.05em;
             color: var(--text-main);
@@ -410,7 +410,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .traveler {
-            font-size: 15px;
+            font-size: 25px;
             line-height: 1.5;
             color: var(--text-soft);
             font-weight: 600;

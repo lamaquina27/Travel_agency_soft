@@ -23,11 +23,12 @@ $companyName = ConfigManager::getCompanyName();
 $logo = ConfigManager::getLogo();
 $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
 
-function ts_hex_to_rgb_string($hex) {
-    $hex = trim((string)$hex);
+function ts_hex_to_rgb_string($hex)
+{
+    $hex = trim((string) $hex);
     $hex = ltrim($hex, '#');
     if (strlen($hex) === 3) {
-        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
     }
     if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
         return '59, 130, 246';
@@ -41,25 +42,38 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Programas - <?= htmlspecialchars($companyName) ?></title>
-    
+
     <!-- Incluir estilos de componentes -->
     <?= UIComponents::getComponentStyles() ?>
-    
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary-color: <?= $userColors['primary'] ?>;
-            --secondary-color: <?= $userColors['secondary'] ?>;
-            --primary-color-rgb: <?= $primaryRgb ?>;
-            --secondary-color-rgb: <?= $secondaryRgb ?>;
+            --primary-color:
+                <?= $userColors['primary'] ?>
+            ;
+            --secondary-color:
+                <?= $userColors['secondary'] ?>
+            ;
+            --primary-color-rgb:
+                <?= $primaryRgb ?>
+            ;
+            --secondary-color-rgb:
+                <?= $secondaryRgb ?>
+            ;
             --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -279,12 +293,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         /* Ocultar banner azul */
-        .goog-te-banner-frame.skiptranslate { 
-            display: none !important; 
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
         }
 
-        body { 
-            top: 0px !important; 
+        body {
+            top: 0px !important;
         }
 
         /* Responsive */
@@ -293,27 +307,28 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 top: 10px;
                 right: 10px;
             }
-            
+
             #google_translate_element {
                 padding: 6px 10px;
             }
-            
+
             .VIpgJd-ZVi9od-xl07Ob-lTBxed {
                 font-size: 12px !important;
                 padding: 3px 6px !important;
             }
-            
+
             .goog-te-menu2-item {
                 font-size: 12px !important;
                 padding: 8px 14px !important;
             }
         }
+
         .VIpgJd-ZVi9od-ORHb-OEVmcd {
             left: 0;
             display: none !important;
             top: 0;
         }
-        
+
         .goog-te-gadget img {
             vertical-align: middle;
             border: none;
@@ -595,7 +610,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             overflow: hidden;
         }
 
-       
+
 
 
         .program-image img {
@@ -621,12 +636,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         /* Fallback para imágenes que no cargan */
-        .program-image img[src=""], 
+        .program-image img[src=""],
         .program-image img:not([src]) {
             display: none;
         }
 
-        .program-image img[src=""]:after, 
+        .program-image img[src=""]:after,
         .program-image img:not([src]):after {
             content: '';
             position: absolute;
@@ -735,16 +750,17 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             background: var(--primary-color);
             color: white;
         }
-        .btn-danger-sm {
-    background: #ef4444;
-    color: white;
-}
 
-.btn-danger-sm:hover {
-    background: #dc2626;
-    color: white;
-    transform: translateY(-2px);
-}
+        .btn-danger-sm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger-sm:hover {
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
+        }
 
         .btn-primary-sm:hover {
             background: var(--secondary-color);
@@ -909,7 +925,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             color: #374151;
         }
 
-        .form-input, .form-select {
+        .form-input,
+        .form-select {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e2e8f0;
@@ -918,7 +935,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             transition: all 0.3s ease;
         }
 
-        .form-input:focus, .form-select:focus {
+        .form-input:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -961,7 +979,9 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         /* Estados de carga */
-        .loading-state, .empty-state, .error-state {
+        .loading-state,
+        .empty-state,
+        .error-state {
             text-align: center;
             padding: 60px 20px;
             color: #718096;
@@ -1001,61 +1021,386 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* ── DASHBOARD HEADER ── */
-        .dashboard-header{background:#fff;border-radius:18px;padding:24px 28px;box-shadow:0 2px 10px rgba(0,0,0,.06);border:1px solid #e2e8f0;margin-bottom:24px;}
-        .dash-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
-        .dash-title{font-size:1.75rem;font-weight:700;color:#1e293b;line-height:1.2;}
-        .dash-subtitle{font-size:0.9rem;color:#64748b;margin-top:4px;}
-        .dash-actions{display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap;align-items:center;}
-        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-        .stat-mini{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;transition:all .2s;}
-        .stat-mini:hover{box-shadow:0 4px 12px rgba(0,0,0,.07);transform:translateY(-1px);}
-        .stat-mini-icon{width:38px;height:38px;border-radius:10px;background:rgba(var(--primary-color-rgb),.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-        .stat-mini-icon svg{width:18px;height:18px;stroke:var(--primary-color);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-        .stat-mini-icon.amber{background:rgba(245,158,11,.12);}
-        .stat-mini-icon.amber svg{stroke:#f59e0b;}
-        .stat-mini-icon.slate{background:rgba(100,116,139,.1);}
-        .stat-mini-icon.slate svg{stroke:#64748b;}
-        .stat-mini-num{font-size:1.5rem;font-weight:700;color:#1e293b;line-height:1;}
-        .stat-mini-label{font-size:11px;color:#64748b;margin-top:2px;font-weight:500;}
+        .dashboard-header {
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px 28px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .dash-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 22px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .dash-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .dash-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .dash-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .stat-mini {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all .2s;
+        }
+
+        .stat-mini:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .07);
+            transform: translateY(-1px);
+        }
+
+        .stat-mini-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(var(--primary-color-rgb), .1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-mini-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--primary-color);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .stat-mini-icon.amber {
+            background: rgba(245, 158, 11, .12);
+        }
+
+        .stat-mini-icon.amber svg {
+            stroke: #f59e0b;
+        }
+
+        .stat-mini-icon.slate {
+            background: rgba(100, 116, 139, .1);
+        }
+
+        .stat-mini-icon.slate svg {
+            stroke: #64748b;
+        }
+
+        .stat-mini-num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+        }
+
+        .stat-mini-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
         /* ── TAB SYSTEM ── */
-        .tab-nav{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px;overflow-x:auto;}
-        .tab-btn{display:flex;align-items:center;gap:7px;padding:12px 20px;border:none;background:none;cursor:pointer;font-size:13.5px;font-weight:500;color:#64748b;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;}
-        .tab-btn.active{color:var(--primary-color);border-bottom-color:var(--primary-color);}
-        .tab-btn:hover:not(.active){color:#334155;background:#f8fafc;}
-        .tab-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-        .tab-count{font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:#e2e8f0;color:#475569;transition:all .2s;}
-        .tab-btn.active .tab-count{background:rgba(var(--primary-color-rgb),.12);color:var(--primary-color);}
-        .tab-panel{display:none;}
-        .tab-panel.active{display:block;}
-        .tab-search{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #64748b;
+            border-bottom: 2.5px solid transparent;
+            margin-bottom: -2px;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #334155;
+            background: #f8fafc;
+        }
+
+        .tab-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .tab-count {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            color: #475569;
+            transition: all .2s;
+        }
+
+        .tab-btn.active .tab-count {
+            background: rgba(var(--primary-color-rgb), .12);
+            color: var(--primary-color);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .tab-search {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
         /* ── PLANTILLA CARDS ── */
-        .program-card.es-plantilla::before{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);}
-        .plantilla-pill{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;letter-spacing:.4px;text-transform:uppercase;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.2);}
-        .btn-bookmark{position:absolute;top:10px;left:10px;width:30px;height:30px;border:none;border-radius:8px;background:rgba(255,255,255,.92);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.15);transition:all .2s;backdrop-filter:blur(4px);}
-        .btn-bookmark:hover{background:#fff;transform:scale(1.08);}
-        .btn-bookmark svg{width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:#64748b;}
+        .program-card.es-plantilla::before {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .plantilla-pill {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 6px;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            z-index: 2;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+        }
+
+        .btn-bookmark {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .92);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+            transition: all .2s;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-bookmark:hover {
+            background: #fff;
+            transform: scale(1.08);
+        }
+
+        .btn-bookmark svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke: #64748b;
+        }
+
         /* ── PICKER MODAL ── */
-        .modal.lg{max-width:680px;width:94vw;}
-        .picker-search-wrap{position:relative;margin-bottom:12px;}
-        .picker-search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:#94a3b8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-        .picker-search{width:100%;padding:9px 12px 9px 32px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;outline:none;transition:border-color .2s;}
-        .picker-search:focus{border-color:var(--primary-color);}
-        .picker-tabs{display:flex;gap:6px;margin-bottom:12px;}
-        .picker-tab{padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:12px;font-weight:500;color:#64748b;cursor:pointer;transition:all .15s;}
-        .picker-tab.active{border-color:var(--primary-color);background:rgba(var(--primary-color-rgb),.07);color:var(--primary-color);font-weight:600;}
-        .picker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:240px;overflow-y:auto;padding-right:2px;}
-        .picker-card{padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;transition:all .15s;position:relative;}
-        .picker-card:hover{border-color:rgba(var(--primary-color-rgb),.5);background:rgba(var(--primary-color-rgb),.03);}
-        .picker-card.selected{border-color:var(--primary-color);background:rgba(var(--primary-color-rgb),.07);}
-        .picker-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;color:var(--primary-color);font-weight:700;font-size:12px;}
-        .picker-card-title{font-size:12.5px;font-weight:600;color:#1e293b;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:18px;}
-        .picker-card-meta{font-size:11px;color:#64748b;line-height:1.4;}
-        .picker-empty{text-align:center;padding:24px;color:#94a3b8;font-size:13px;grid-column:1/-1;}
+        .modal.lg {
+            max-width: 680px;
+            width: 94vw;
+        }
+
+        .picker-search-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .picker-search-wrap svg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            stroke: #94a3b8;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .picker-search {
+            width: 100%;
+            padding: 9px 12px 9px 32px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .picker-search:focus {
+            border-color: var(--primary-color);
+        }
+
+        .picker-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .picker-tab {
+            padding: 6px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .picker-tab.active {
+            border-color: var(--primary-color);
+            background: rgba(var(--primary-color-rgb), .07);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .picker-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-height: 240px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .picker-card {
+            padding: 11px 13px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .15s;
+            position: relative;
+        }
+
+        .picker-card:hover {
+            border-color: rgba(var(--primary-color-rgb), .5);
+            background: rgba(var(--primary-color-rgb), .03);
+        }
+
+        .picker-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(var(--primary-color-rgb), .07);
+        }
+
+        .picker-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .picker-card-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 18px;
+        }
+
+        .picker-card-meta {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .picker-empty {
+            text-align: center;
+            padding: 24px;
+            color: #94a3b8;
+            font-size: 13px;
+            grid-column: 1/-1;
+        }
 
         /* Overlay */
         .overlay {
@@ -1157,33 +1502,34 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 padding: 20px;
             }
         }
+
         /* Toast notifications */
-.toast {
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    padding: 20px 25px;
-    border-radius: 15px;
-    color: white;
-    z-index: 20000;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
-    min-width: 300px;
-}
+        .toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            padding: 20px 25px;
+            border-radius: 15px;
+            color: white;
+            z-index: 20000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            min-width: 300px;
+        }
 
-.toast.show {
-    transform: translateX(0);
-}
+        .toast.show {
+            transform: translateX(0);
+        }
 
-.toast.success {
-    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-}
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        }
 
-.toast.error {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
 
         /* ===== Rediseño limpio TravelSoft - Itinerarios ===== */
         body {
@@ -1542,11 +1888,28 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14) !important;
         }
 
-        .toast.success { border-left: 4px solid var(--primary-color) !important; }
-        .toast.error { border-left: 4px solid #ef4444 !important; }
-        .toast-content { display: flex; align-items: center; gap: 12px; }
-        .toast-icon { color: var(--primary-color); font-size: 18px; }
-        .toast.error .toast-icon { color: #ef4444; }
+        .toast.success {
+            border-left: 4px solid var(--primary-color) !important;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444 !important;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .toast.error .toast-icon {
+            color: #ef4444;
+        }
 
         .overlay {
             background: rgba(15, 23, 42, 0.35) !important;
@@ -1554,11 +1917,25 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         @media (max-width: 768px) {
-            .main-content { padding: 20px !important; }
-            .page-header { padding: 24px !important; }
-            .stats-grid { grid-template-columns: 1fr !important; }
-            .programs-section { padding: 20px !important; }
-            .section-header { align-items: stretch !important; }
+            .main-content {
+                padding: 20px !important;
+            }
+
+            .page-header {
+                padding: 24px !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .programs-section {
+                padding: 20px !important;
+            }
+
+            .section-header {
+                align-items: stretch !important;
+            }
         }
 
 
@@ -1629,7 +2006,6 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             font-size: 30px !important;
             opacity: 0.82;
         }
-
     </style>
 </head>
 
@@ -1666,7 +2042,10 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             <div class="stats-row">
                 <div class="stat-mini">
                     <div class="stat-mini-icon">
-                        <svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 21a8 8 0 0 0-16 0" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
                     </div>
                     <div>
                         <div class="stat-mini-num" id="misProgramas">0</div>
@@ -1675,7 +2054,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 </div>
                 <div class="stat-mini">
                     <div class="stat-mini-icon slate">
-                        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
                     </div>
                     <div>
                         <div class="stat-mini-num" id="otrosProgramas">0</div>
@@ -1684,7 +2068,11 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 </div>
                 <div class="stat-mini">
                     <div class="stat-mini-icon amber">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                            <line x1="3" y1="9" x2="21" y2="9" />
+                            <line x1="9" y1="3" x2="9" y2="21" />
+                        </svg>
                     </div>
                     <div>
                         <div class="stat-mini-num" id="totalPlantillas">0</div>
@@ -1693,7 +2081,10 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 </div>
                 <div class="stat-mini">
                     <div class="stat-mini-icon">
-                        <svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5c1-1 1.3-2.5.6-3.2s-2.2-.4-3.2.6L13.4 8.4 5.2 6.6 4 7.8l6.7 3.1-3.2 3.2-2.1-.4-.9.9 3.1 1.7 1.7 3.1.9-.9-.4-2.1 3.2-3.2 3.1 6.7z"/></svg>
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M17.8 19.2 16 11l3.5-3.5c1-1 1.3-2.5.6-3.2s-2.2-.4-3.2.6L13.4 8.4 5.2 6.6 4 7.8l6.7 3.1-3.2 3.2-2.1-.4-.9.9 3.1 1.7 1.7 3.1.9-.9-.4-2.1 3.2-3.2 3.1 6.7z" />
+                        </svg>
                     </div>
                     <div>
                         <div class="stat-mini-num" id="totalProgramas">0</div>
@@ -1707,15 +2098,27 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         <div class="programs-section">
             <div class="tab-nav">
                 <button class="tab-btn active" id="tabBtnMios" onclick="switchTab('mios')">
-                    <svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 21a8 8 0 0 0-16 0" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
                     Mis Programas <span class="tab-count" id="tabCountMios">0</span>
                 </button>
                 <button class="tab-btn" id="tabBtnOtros" onclick="switchTab('otros')">
-                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
                     Otros Programas <span class="tab-count" id="tabCountOtros">0</span>
                 </button>
                 <button class="tab-btn" id="tabBtnPlantillas" onclick="switchTab('plantillas')">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <line x1="3" y1="9" x2="21" y2="9" />
+                        <line x1="9" y1="3" x2="9" y2="21" />
+                    </svg>
                     Plantillas <span class="tab-count" id="tabCountPlantillas">0</span>
                 </button>
             </div>
@@ -1724,13 +2127,15 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             <div class="tab-search" id="tabSearchMios">
                 <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputMios" class="search-input" style="width:100%;" placeholder="Buscar mis programas..." oninput="filtrarProgramas('mios')">
+                    <input type="text" id="searchInputMios" class="search-input" style="width:100%;"
+                        placeholder="Buscar mis programas..." oninput="filtrarProgramas('mios')">
                 </div>
             </div>
             <div class="tab-search" id="tabSearchOtros" style="display:none;">
                 <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputOtros" class="search-input" style="width:100%;" placeholder="Buscar otros programas..." oninput="filtrarProgramas('otros')">
+                    <input type="text" id="searchInputOtros" class="search-input" style="width:100%;"
+                        placeholder="Buscar otros programas..." oninput="filtrarProgramas('otros')">
                 </div>
                 <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
                     <option value="">Todos los estados</option>
@@ -1745,7 +2150,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             <div class="tab-search" id="tabSearchPlantillas" style="display:none;">
                 <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputPlantillas" class="search-input" style="width:100%;" placeholder="Buscar plantillas..." oninput="filtrarProgramas('plantillas')">
+                    <input type="text" id="searchInputPlantillas" class="search-input" style="width:100%;"
+                        placeholder="Buscar plantillas..." oninput="filtrarProgramas('plantillas')">
                 </div>
             </div>
 
@@ -1798,7 +2204,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     </div>
                 </div>
                 <div class="modal-option" onclick="seleccionarOpcion('desde-plantilla')" id="opcion-desde-plantilla">
-                    <div class="option-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-copy"></i></div>
+                    <div class="option-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i
+                            class="fas fa-copy"></i></div>
                     <div class="option-content">
                         <div class="option-title">Crear desde plantilla</div>
                         <div class="option-description">Usa una plantilla guardada como punto de partida</div>
@@ -1816,8 +2223,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             <!-- Picker de plantillas -->
             <div id="modalPickerPlantilla" style="display:none;margin-top:20px;">
                 <div class="picker-search-wrap">
-                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" class="picker-search" id="pickerSearchPlantilla" placeholder="Buscar plantilla..." oninput="renderPickerCards('plantilla')">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input type="text" class="picker-search" id="pickerSearchPlantilla"
+                        placeholder="Buscar plantilla..." oninput="renderPickerCards('plantilla')">
                 </div>
                 <div class="picker-grid" id="pickerGridPlantilla"></div>
             </div>
@@ -1825,19 +2236,26 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             <!-- Picker de programas existentes -->
             <div id="modalPickerExistente" style="display:none;margin-top:20px;">
                 <div class="picker-search-wrap">
-                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" class="picker-search" id="pickerSearchExistente" placeholder="Buscar programa..." oninput="renderPickerCards('existente')">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input type="text" class="picker-search" id="pickerSearchExistente" placeholder="Buscar programa..."
+                        oninput="renderPickerCards('existente')">
                 </div>
                 <div class="picker-tabs">
-                    <button class="picker-tab active" onclick="setPickerTab('mios')" id="pickerTabMios">Mis programas</button>
-                    <button class="picker-tab" onclick="setPickerTab('otros')" id="pickerTabOtros">Otros programas</button>
+                    <button class="picker-tab active" onclick="setPickerTab('mios')" id="pickerTabMios">Mis
+                        programas</button>
+                    <button class="picker-tab" onclick="setPickerTab('otros')" id="pickerTabOtros">Otros
+                        programas</button>
                 </div>
                 <div class="picker-grid" id="pickerGridExistente"></div>
             </div>
 
             <div class="modal-actions">
                 <button class="modal-btn secondary" onclick="cerrarModalCreacion()">Cancelar</button>
-                <button class="modal-btn primary" onclick="procederCreacion()" id="btnProceder" disabled>Proceder</button>
+                <button class="modal-btn primary" onclick="procederCreacion()" id="btnProceder"
+                    disabled>Proceder</button>
             </div>
         </div>
     </div>
@@ -1961,9 +2379,9 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         let pickerTabActiva = 'mios';
 
         window.crearDesdeCeroRapido = crearDesdeCeroRapido;
-        
+
         // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('Iniciando página de itinerarios mejorada...');
             cargarProgramas();
             initializeGoogleTranslate();
@@ -1974,14 +2392,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             const sidebar = document.querySelector('.enhanced-sidebar');
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (!sidebar) {
                 console.error('Sidebar no encontrado con clase .enhanced-sidebar');
                 return;
             }
-            
+
             sidebarOpen = !sidebarOpen;
-            
+
             if (sidebarOpen) {
                 sidebar.classList.add('open');
                 if (overlay) overlay.classList.add('show');
@@ -2000,11 +2418,11 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 toggleSidebar();
             }
         }
-function crearDesdeCeroRapido() {
-    if (event) event.stopPropagation();
-    opcionSeleccionada = 'desde-cero';
-    window.location.href = '<?= APP_URL ?>/programa';
-}
+        function crearDesdeCeroRapido() {
+            if (event) event.stopPropagation();
+            opcionSeleccionada = 'desde-cero';
+            window.location.href = '<?= APP_URL ?>/programa';
+        }
         function toggleUserMenu() {
             if (confirm('¿Desea cerrar sesión?')) {
                 window.location.href = '<?= APP_URL ?>/auth/logout';
@@ -2014,10 +2432,10 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE CARGA DE DATOS
         // ============================================================
-        
+
         async function cargarProgramas() {
             console.log('Cargando programas con imágenes...');
-            
+
             showLoadingState('mios');
             showLoadingState('otros');
             showLoadingState('plantillas');
@@ -2025,17 +2443,17 @@ function crearDesdeCeroRapido() {
             try {
                 // Cargar todos los programas (incluye user_id, full_name del creador E IMÁGENES)
                 const response = await fetch('<?= APP_URL ?>/programa/api?action=list_all');
-                
+
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
-                
+
                 const result = await response.json();
                 console.log('Datos recibidos:', result);
-                
+
                 if (result.success) {
                     allProgramas = result.data || [];
-                    
+
                     // Debug de imágenes
                     allProgramas.forEach(programa => {
                         if (programa.foto_portada) {
@@ -2044,18 +2462,18 @@ function crearDesdeCeroRapido() {
                             console.log(`Programa ${programa.id} sin imagen de portada`);
                         }
                     });
-                    
+
                     // Separar programas por propietario
                     separarProgramas();
                     actualizarEstadisticas();
                     mostrarProgramas();
                     cargarAutoresEnFiltro();
-                    
+
                     console.log(`${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
                 } else {
                     throw new Error(result.error || 'Error al cargar programas');
                 }
-                
+
             } catch (error) {
                 console.error('Error cargando programas:', error);
                 showErrorState('mios', error.message);
@@ -2075,10 +2493,10 @@ function crearDesdeCeroRapido() {
             const autores = [...new Set(otrosProgramasFiltrados.map(p => p.created_by_name))]
                 .filter(name => name)
                 .sort();
-            
+
             const filterAuthor = document.getElementById('filterAuthor');
             filterAuthor.innerHTML = '<option value="">Todos los autores</option>';
-            
+
             autores.forEach(autor => {
                 const option = document.createElement('option');
                 option.value = autor;
@@ -2090,15 +2508,15 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE VISUALIZACIÓN
         // ============================================================
-        
+
         function mostrarProgramas() {
             mostrarProgramasSeccion('mios', misProgramasFiltrados);
             mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
             mostrarProgramasSeccion('plantillas', plantillas);
         }
-        
+
         function mostrarProgramasSeccion(tipo, programas) {
-            const containerMap = {mios:'misProgramasContainer', otros:'otrosProgramasContainer', plantillas:'plantillasContainer'};
+            const containerMap = { mios: 'misProgramasContainer', otros: 'otrosProgramasContainer', plantillas: 'plantillasContainer' };
             const containerId = containerMap[tipo] || 'misProgramasContainer';
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -2121,7 +2539,7 @@ function crearDesdeCeroRapido() {
             container.innerHTML = '';
             container.appendChild(programsGrid);
         }
-        
+
         function crearTarjetaPrograma(programa, esReadonly = false, esPlantilla = false) {
             const card = document.createElement('div');
             card.className = `program-card ${esReadonly ? 'readonly' : ''} ${esPlantilla ? 'es-plantilla' : ''}`;
@@ -2129,6 +2547,11 @@ function crearDesdeCeroRapido() {
             if (!esReadonly && !esPlantilla) {
                 card.onclick = () => editarPrograma(programa.id);
             }
+
+            // Solo el dueño (o un admin) puede modificar/quitar una plantilla.
+            // Un agente que ve una plantilla de otro solo puede usarla.
+            const esPropietario = programa.user_id == CURRENT_USER_ID;
+            const puedeModificarPlantilla = esAdmin || esPropietario;
 
             // Calcular duración
             let duracion = 'N/A';
@@ -2156,7 +2579,7 @@ function crearDesdeCeroRapido() {
 
             console.log(`Programa ${programa.id}: imagen = ${imagenPortada}, válida = ${tieneImagen}`);
 
-            const bookmarkBtn = (!esReadonly && !esPlantilla) ?
+            const bookmarkBtn = (esAdmin && !esReadonly && !esPlantilla) ?
                 `<button class="btn-bookmark" title="Guardar como plantilla" onclick="event.stopPropagation();togglePlantilla(${programa.id})">
                     <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                 </button>` : '';
@@ -2165,9 +2588,9 @@ function crearDesdeCeroRapido() {
             card.innerHTML = `
                 <div class="program-image">
                     ${tieneImagen ?
-                        `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.outerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` :
-                        `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
-                    }
+                    `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.outerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` :
+                    `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
+                }
                     ${bookmarkBtn}
                     ${plantillaPill}
                     ${esReadonly ? `<div class="program-owner">${autorPrograma}</div>` : ''}
@@ -2184,7 +2607,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="program-traveler">
                             <i class="fas fa-user"></i>
-                            ${programa.nombre_viajero} ${programa.apellido_viajero}
+                            ${programa.nombre} ${programa.apellido}
                         </div>
                     </div>
 
@@ -2201,16 +2624,20 @@ function crearDesdeCeroRapido() {
 
                     <div class="program-actions">
                         ${esPlantilla ? `
-                            <!-- PLANTILLAS (usar, editar y quitar) -->
+                            <!-- PLANTILLAS (usar siempre; editar: dueño o admin; quitar: solo admin) -->
                             <button onclick="event.stopPropagation();usarPlantilla(${programa.id})" class="btn-sm btn-primary-sm">
                                 <i class="fas fa-copy"></i> Usar plantilla
                             </button>
-                            <a href="<?= APP_URL ?>/programa?id=${programa.id}" class="btn-sm btn-outline-sm" onclick="event.stopPropagation()">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
-                            <button onclick="event.stopPropagation();togglePlantilla(${programa.id})" class="btn-sm" style="background:#f1f5f9;color:#64748b;border:none;border-radius:20px;padding:8px 12px;font-size:.8rem;cursor:pointer;">
-                                <i class="fas fa-times"></i> Quitar
-                            </button>
+                            ${puedeModificarPlantilla ? `
+                                <a href="<?= APP_URL ?>/programa?id=${programa.id}" class="btn-sm btn-outline-sm" onclick="event.stopPropagation()">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                            ` : ''}
+                            ${esAdmin ? `
+                                <button onclick="event.stopPropagation();togglePlantilla(${programa.id})" class="btn-sm" style="background:#f1f5f9;color:#64748b;border:none;border-radius:20px;padding:8px 12px;font-size:.8rem;cursor:pointer;">
+                                    <i class="fas fa-times"></i> Quitar
+                                </button>
+                            ` : ''}
                         ` : esReadonly ? `
                             <!-- PROGRAMAS DE OTROS USUARIOS (solo ver y copiar) -->
                             <button onclick="event.stopPropagation(); verDetalles(${programa.id})" class="btn-sm btn-outline-sm">
@@ -2255,14 +2682,14 @@ function crearDesdeCeroRapido() {
         // ── TABS ──
         function switchTab(tipo) {
             activeTab = tipo;
-            ['mios','otros','plantillas'].forEach(t => {
+            ['mios', 'otros', 'plantillas'].forEach(t => {
                 const capitalized = t.charAt(0).toUpperCase() + t.slice(1);
                 const btn = document.getElementById('tabBtn' + capitalized);
                 const panel = document.getElementById('tab' + capitalized);
                 const search = document.getElementById('tabSearch' + capitalized);
-                if(btn) btn.classList.toggle('active', t === tipo);
-                if(panel) panel.classList.toggle('active', t === tipo);
-                if(search) search.style.display = t === tipo ? 'flex' : 'none';
+                if (btn) btn.classList.toggle('active', t === tipo);
+                if (panel) panel.classList.toggle('active', t === tipo);
+                if (search) search.style.display = t === tipo ? 'flex' : 'none';
             });
         }
 
@@ -2272,15 +2699,15 @@ function crearDesdeCeroRapido() {
                 const fd = new FormData();
                 fd.append('action', 'toggle_plantilla');
                 fd.append('programa_id', programaId);
-                const r = await fetch(APP_URL + '/programa/api', {method:'POST', body:fd}).then(x=>x.json());
+                const r = await fetch(APP_URL + '/programa/api', { method: 'POST', body: fd }).then(x => x.json());
                 if (r.success) {
                     await cargarProgramas();
                     showNotification(r.plantilla ? 'Guardado como plantilla' : 'Quitado de plantillas', 'success');
-                    if(r.plantilla) switchTab('plantillas');
+                    if (r.plantilla) switchTab('plantillas');
                 } else {
                     showNotification(r.error || 'Error', 'error');
                 }
-            } catch(e) {
+            } catch (e) {
                 showNotification('Error de red', 'error');
             }
         }
@@ -2292,7 +2719,7 @@ function crearDesdeCeroRapido() {
                 fd.append('action', 'duplicate_programa');
                 fd.append('programa_id', programaId);
                 showNotification('Creando programa desde plantilla...', 'info');
-                const r = await fetch(APP_URL + '/programa/api', {method:'POST', body:fd}).then(x=>x.json());
+                const r = await fetch(APP_URL + '/programa/api', { method: 'POST', body: fd }).then(x => x.json());
                 if (r.success) {
                     await cargarProgramas();
                     showNotification('Programa creado. Redirigiendo...', 'success');
@@ -2300,7 +2727,7 @@ function crearDesdeCeroRapido() {
                 } else {
                     showNotification(r.error || 'Error al crear', 'error');
                 }
-            } catch(e) {
+            } catch (e) {
                 showNotification('Error de red', 'error');
             }
         }
@@ -2326,21 +2753,21 @@ function crearDesdeCeroRapido() {
                 const formData = new FormData();
                 formData.append('action', esAdmin ? 'delete_programa_admin' : 'delete_programa'); // CAMBIO
                 formData.append('programa_id', programaId);
-                
+
                 const response = await fetch('<?= APP_URL ?>/programa/api', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showNotification('Programa eliminado exitosamente', 'success');
                     cargarProgramas();
                 } else {
                     showNotification('Error: ' + result.error, 'error');
                 }
-                
+
             } catch (error) {
                 showNotification('Error eliminando programa: ' + error.message, 'error');
             }
@@ -2349,7 +2776,7 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE ESTADÍSTICAS
         // ============================================================
-        
+
         function actualizarEstadisticas() {
             const totalNormales = misProgramasFiltrados.length + otrosProgramasFiltrados.length;
             animateCounter('totalProgramas', totalNormales);
@@ -2360,17 +2787,17 @@ function crearDesdeCeroRapido() {
             const tcm = document.getElementById('tabCountMios');
             const tco = document.getElementById('tabCountOtros');
             const tcp = document.getElementById('tabCountPlantillas');
-            if(tcm) tcm.textContent = misProgramasFiltrados.length;
-            if(tco) tco.textContent = otrosProgramasFiltrados.length;
-            if(tcp) tcp.textContent = plantillas.length;
+            if (tcm) tcm.textContent = misProgramasFiltrados.length;
+            if (tco) tco.textContent = otrosProgramasFiltrados.length;
+            if (tcp) tcp.textContent = plantillas.length;
         }
-        
+
         function animateCounter(elementId, targetValue) {
             const element = document.getElementById(elementId);
             const startValue = 0;
             const duration = 1000;
             const increment = targetValue / (duration / 16);
-            
+
             let currentValue = startValue;
             const timer = setInterval(() => {
                 currentValue += increment;
@@ -2385,84 +2812,148 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE FILTRADO Y BÚSQUEDA
         // ============================================================
-        
+
         function filtrarProgramas(tipo) {
             if (tipo === 'mios') {
                 const searchTerm = document.getElementById('searchInputMios').value.toLowerCase().trim();
-                
+
+
                 const programasBase = allProgramas.filter(p => p.user_id == CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
+
 
                 misProgramasFiltrados = programasBase.filter(programa => {
                     if (!searchTerm) return true;
-                    
+                    const search_term = searchTerm.split(" ").filter(term => term !== '');
+
+
                     const searchFields = [
                         programa.destino,
-                        programa.nombre_viajero,
-                        programa.apellido_viajero,
+                        programa.nombre,
+                        programa.apellido,
+                        programa.numero_documento, // Documento del titular
                         programa.titulo_programa,
                         programa.id_solicitud,
-                        `${programa.nombre_viajero} ${programa.apellido_viajero}`, // Nombre completo
+                        `${programa.nombre} ${programa.apellido}`, // Nombre completo del titular
                         `Viaje a ${programa.destino}` // Título por defecto
                     ];
-                    
-                    return searchFields.some(field => 
-                        field && field.toString().toLowerCase().includes(searchTerm)
+
+
+                    // Cada palabra debe coincidir con algún campo (orden indistinto)
+                    return search_term.every(term =>
+                        searchFields.some(field =>
+                            field && field.toString().toLowerCase().includes(term)
+                        )
                     );
                 });
-                
+
+
                 mostrarProgramasSeccion('mios', misProgramasFiltrados);
                 actualizarPlaceholderBusqueda('mios');
             } else if (tipo === 'otros') {
                 const searchTerm = document.getElementById('searchInputOtros').value.toLowerCase().trim();
                 const authorFilter = document.getElementById('filterAuthor').value;
-                
+
+
                 const programasBase = allProgramas.filter(p => p.user_id != CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
 
+
                 otrosProgramasFiltrados = programasBase.filter(programa => {
+                    const search_term = searchTerm.split(" ").filter(term => term !== '');
                     // Filtro de búsqueda
                     const matchesSearch = !searchTerm || (() => {
                         const searchFields = [
                             programa.destino,
-                            programa.nombre_viajero,
-                            programa.apellido_viajero,
+                            programa.nombre,
+                            programa.apellido,
+                            programa.numero_documento, // Documento del titular
                             programa.titulo_programa,
                             programa.id_solicitud,
                             programa.created_by_name,
-                            `${programa.nombre_viajero} ${programa.apellido_viajero}`,
+                            `${programa.nombre} ${programa.apellido}`,
                             `Viaje a ${programa.destino}`
                         ];
-                        
-                        return searchFields.some(field => 
-                            field && field.toString().toLowerCase().includes(searchTerm)
+
+
+                        return search_term.every(term =>
+                            searchFields.some(field =>
+                                field && field.toString().toLowerCase().includes(term)
+                            )
                         );
                     })();
-                    
+
+
                     // Filtro de autor
                     const matchesAuthor = !authorFilter || programa.created_by_name === authorFilter;
-                    
+
+
                     return matchesSearch && matchesAuthor;
                 });
-                
+
+
                 mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
                 actualizarPlaceholderBusqueda('otros');
-}
-            
+            } else if (tipo === 'plantillas') {
+                const searchTerm = document.getElementById('searchInputPlantillas').value.toLowerCase().trim();
+
+
+                const programasBase = allProgramas.filter(p => p.plantilla == 1);
+
+
+                plantillas = programasBase.filter(programa => {
+                    if (!searchTerm) return true;
+                    const search_term = searchTerm.split(" ").filter(term => term !== '');
+
+
+                    const searchFields = [
+                        programa.destino,
+                        programa.nombre,
+                        programa.apellido,
+                        programa.numero_documento, // Documento del titular
+                        programa.titulo_programa,
+                        programa.id_solicitud,
+                        `${programa.nombre} ${programa.apellido}`, // Nombre completo del titular
+                        `Viaje a ${programa.destino}` // Título por defecto
+                    ];
+
+
+                    // Cada palabra debe coincidir con algún campo (orden indistinto)
+                    return search_term.every(term =>
+                        searchFields.some(field =>
+                            field && field.toString().toLowerCase().includes(term)
+                        )
+                    );
+                });
+
+
+                mostrarProgramasSeccion('plantillas', plantillas);
+            }
+
+
             actualizarEstadisticas();
-            console.log(`Filtrado ${tipo}: ${tipo === 'mios' ? misProgramasFiltrados.length : otrosProgramasFiltrados.length} programas`);
+
+
+            let countLog = 0;
+            if (tipo === 'mios') countLog = misProgramasFiltrados.length;
+            else if (tipo === 'otros') countLog = otrosProgramasFiltrados.length;
+            else if (tipo === 'plantillas') countLog = plantillas.length;
+
+
+            console.log(`Filtrado ${tipo}: ${countLog} programas`);
         }
 
+
         function actualizarPlaceholderBusqueda(tipo) {
-    const inputId = tipo === 'mios' ? 'searchInputMios' : 'searchInputOtros';
-    const input = document.getElementById(inputId);
-    const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
-    const searchTerm = input.value.trim();
-    
-    if (searchTerm) {
-        input.setAttribute('data-results', `${programas.length} resultados`);
-    } else {
-        input.removeAttribute('data-results');
-    }
-}
+            const inputId = tipo === 'mios' ? 'searchInputMios' : 'searchInputOtros';
+            const input = document.getElementById(inputId);
+            const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
+            const searchTerm = input.value.trim();
+
+            if (searchTerm) {
+                input.setAttribute('data-results', `${programas.length} resultados`);
+            } else {
+                input.removeAttribute('data-results');
+            }
+        }
 
         // ============================================================
         // FUNCIONES DEL MODAL DE CREACIÓN
@@ -2473,9 +2964,9 @@ function crearDesdeCeroRapido() {
             opcionSeleccionada = null;
             selectedPickerProgram = null;
             pickerTabActiva = 'mios';
-            ['desde-cero','desde-plantilla','desde-existente'].forEach(o => {
+            ['desde-cero', 'desde-plantilla', 'desde-existente'].forEach(o => {
                 const el = document.getElementById('opcion-' + o);
-                if(el) el.classList.remove('selected');
+                if (el) el.classList.remove('selected');
             });
             document.getElementById('modalPickerPlantilla').style.display = 'none';
             document.getElementById('modalPickerExistente').style.display = 'none';
@@ -2490,12 +2981,12 @@ function crearDesdeCeroRapido() {
         function seleccionarOpcion(opcion) {
             opcionSeleccionada = opcion;
             selectedPickerProgram = null;
-            ['desde-cero','desde-plantilla','desde-existente'].forEach(o => {
+            ['desde-cero', 'desde-plantilla', 'desde-existente'].forEach(o => {
                 const el = document.getElementById('opcion-' + o);
-                if(el) el.classList.remove('selected');
+                if (el) el.classList.remove('selected');
             });
             const selEl = document.getElementById('opcion-' + opcion);
-            if(selEl) selEl.classList.add('selected');
+            if (selEl) selEl.classList.add('selected');
             document.getElementById('modalPickerPlantilla').style.display = 'none';
             document.getElementById('modalPickerExistente').style.display = 'none';
 
@@ -2503,7 +2994,7 @@ function crearDesdeCeroRapido() {
                 document.getElementById('btnProceder').disabled = false;
             } else if (opcion === 'desde-plantilla') {
                 document.getElementById('modalPickerPlantilla').style.display = 'block';
-                if(document.getElementById('pickerSearchPlantilla')) document.getElementById('pickerSearchPlantilla').value = '';
+                if (document.getElementById('pickerSearchPlantilla')) document.getElementById('pickerSearchPlantilla').value = '';
                 renderPickerCards('plantilla');
                 document.getElementById('btnProceder').disabled = true;
             } else if (opcion === 'desde-existente') {
@@ -2511,7 +3002,7 @@ function crearDesdeCeroRapido() {
                 pickerTabActiva = 'mios';
                 document.getElementById('pickerTabMios').classList.add('active');
                 document.getElementById('pickerTabOtros').classList.remove('active');
-                if(document.getElementById('pickerSearchExistente')) document.getElementById('pickerSearchExistente').value = '';
+                if (document.getElementById('pickerSearchExistente')) document.getElementById('pickerSearchExistente').value = '';
                 renderPickerCards('existente');
                 document.getElementById('btnProceder').disabled = true;
             }
@@ -2565,7 +3056,7 @@ function crearDesdeCeroRapido() {
                 const dias = p.total_dias_real ? p.total_dias_real + ' días' : '';
                 const fecha = p.fecha_salida ? formatDate(p.fecha_salida) : '';
                 const meta = [p.destino, dias, fecha].filter(Boolean).join(' · ');
-                return `<div class="picker-card${isSelected?' selected':''}" onclick="selectPickerProgram(${p.id},'${tipo}')">
+                return `<div class="picker-card${isSelected ? ' selected' : ''}" onclick="selectPickerProgram(${p.id},'${tipo}')">
                     <div class="picker-card-title">${titulo}</div>
                     <div class="picker-card-meta">${meta}</div>
                 </div>`;
@@ -2606,7 +3097,7 @@ function crearDesdeCeroRapido() {
                 const fd = new FormData();
                 fd.append('action', 'duplicate_programa');
                 fd.append('programa_id', selectedPickerProgram.id);
-                const r = await fetch(APP_URL + '/programa/api', {method:'POST', body:fd}).then(x=>x.json());
+                const r = await fetch(APP_URL + '/programa/api', { method: 'POST', body: fd }).then(x => x.json());
                 if (r.success) {
                     cerrarModalCreacion();
                     showNotification('Programa creado exitosamente', 'success');
@@ -2615,7 +3106,7 @@ function crearDesdeCeroRapido() {
                 } else {
                     throw new Error(r.error || 'Error al crear');
                 }
-            } catch(e) {
+            } catch (e) {
                 showNotification('Error: ' + e.message, 'error');
                 btn.disabled = false;
                 btn.textContent = 'Proceder';
@@ -2627,54 +3118,54 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE INTERACCIÓN
         // ============================================================
-        
+
         function editarPrograma(id) {
             console.log(`Editando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?id=${id}`;
         }
-        
+
         function verDetalles(id) {
-    console.log(`Viendo detalles del programa ${id}`);
-    
-    // Abrir en nueva ventana la página de itinerario (preview)
-    const url = `<?= APP_URL ?>/itinerary?id=${id}`;
-    
-    // Abrir en nueva pestaña con características específicas
-    const ventana = window.open(
-        url, 
-        `programa_preview_${id}`,
-        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no'
-    );
-    
-    // Verificar si se abrió correctamente
-    if (!ventana) {
-        // Si hay bloqueador de popups, mostrar alternativa
-        showNotification('Por favor, permite ventanas emergentes y vuelve a intentar', 'info');
-        
-        // Como alternativa, redirigir en la misma ventana
-        setTimeout(() => {
-            if (confirm('¿Quieres ver el programa en esta ventana?')) {
-                window.location.href = url;
+            console.log(`Viendo detalles del programa ${id}`);
+
+            // Abrir en nueva ventana la página de itinerario (preview)
+            const url = `<?= APP_URL ?>/itinerary?id=${id}`;
+
+            // Abrir en nueva pestaña con características específicas
+            const ventana = window.open(
+                url,
+                `programa_preview_${id}`,
+                'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no'
+            );
+
+            // Verificar si se abrió correctamente
+            if (!ventana) {
+                // Si hay bloqueador de popups, mostrar alternativa
+                showNotification('Por favor, permite ventanas emergentes y vuelve a intentar', 'info');
+
+                // Como alternativa, redirigir en la misma ventana
+                setTimeout(() => {
+                    if (confirm('¿Quieres ver el programa en esta ventana?')) {
+                        window.location.href = url;
+                    }
+                }, 2000);
+            } else {
+                // Enfocar la nueva ventana
+                ventana.focus();
+
+                // Mostrar mensaje de éxito
+                showNotification('Abriendo vista previa del programa...', 'success');
             }
-        }, 2000);
-    } else {
-        // Enfocar la nueva ventana
-        ventana.focus();
-        
-        // Mostrar mensaje de éxito
-        showNotification('Abriendo vista previa del programa...', 'success');
-    }
-}
+        }
 
-// ============================================================
-// FUNCIÓN ALTERNATIVA PARA MODAL (OPCIONAL)
-// ============================================================
+        // ============================================================
+        // FUNCIÓN ALTERNATIVA PARA MODAL (OPCIONAL)
+        // ============================================================
 
-function verDetallesModal(id) {
-    console.log(`Viendo detalles del programa ${id} en modal`);
-    
-    // Crear modal con iframe para mostrar el itinerario
-    const modalHtml = `
+        function verDetallesModal(id) {
+            console.log(`Viendo detalles del programa ${id} en modal`);
+
+            // Crear modal con iframe para mostrar el itinerario
+            const modalHtml = `
         <div class="modal-overlay" id="modalVistaPrevia" style="display: block; z-index: 2000;">
             <div class="modal" style="max-width: 95vw; width: 1200px; height: 90vh; padding: 0; border-radius: 12px; overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--primary-gradient); color: white;">
@@ -2719,32 +3210,32 @@ function verDetallesModal(id) {
             </div>
         </div>
     `;
-    
-    // Agregar al DOM
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Ocultar loading después de un tiempo
-    setTimeout(() => {
-        const loading = document.getElementById('loadingPreview');
-        if (loading) {
-            loading.style.display = 'none';
+
+            // Agregar al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Ocultar loading después de un tiempo
+            setTimeout(() => {
+                const loading = document.getElementById('loadingPreview');
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }, 2000);
         }
-    }, 2000);
-}
 
-function cerrarModalVistaPrevia() {
-    const modal = document.getElementById('modalVistaPrevia');
-    if (modal) {
-        modal.remove();
-    }
-}
+        function cerrarModalVistaPrevia() {
+            const modal = document.getElementById('modalVistaPrevia');
+            if (modal) {
+                modal.remove();
+            }
+        }
 
-function abrirEnNuevaVentana(id) {
-    const url = `<?= APP_URL ?>/itinerary?id=${id}`;
-    window.open(url, `programa_preview_${id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes');
-    cerrarModalVistaPrevia();
-}
-        
+        function abrirEnNuevaVentana(id) {
+            const url = `<?= APP_URL ?>/itinerary?id=${id}`;
+            window.open(url, `programa_preview_${id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            cerrarModalVistaPrevia();
+        }
+
         function copiarPrograma(id) {
             console.log(`Copiando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?copy_from=${id}`;
@@ -2753,9 +3244,9 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // ESTADOS DE LA INTERFAZ
         // ============================================================
-        
+
         function showLoadingState(tipo) {
-            const containerMap = {mios:'misProgramasContainer', otros:'otrosProgramasContainer', plantillas:'plantillasContainer'};
+            const containerMap = { mios: 'misProgramasContainer', otros: 'otrosProgramasContainer', plantillas: 'plantillasContainer' };
             const el = document.getElementById(containerMap[tipo]);
             if (!el) return;
             const label = tipo === 'mios' ? 'mis programas' : tipo === 'otros' ? 'otros programas' : 'plantillas';
@@ -2763,20 +3254,20 @@ function abrirEnNuevaVentana(id) {
         }
 
         function showEmptyState(tipo) {
-            const containerMap = {mios:'misProgramasContainer', otros:'otrosProgramasContainer', plantillas:'plantillasContainer'};
+            const containerMap = { mios: 'misProgramasContainer', otros: 'otrosProgramasContainer', plantillas: 'plantillasContainer' };
             const el = document.getElementById(containerMap[tipo]);
             if (!el) return;
             const msgs = {
-                mios: {icon:'user', title:'No tienes programas', desc:'¡Comienza creando tu primer programa de viaje!', btn:`<button onclick="mostrarModalCreacion()" class="action-btn"><i class="fas fa-plus"></i> Crear Nuevo Programa</button>`},
-                otros: {icon:'users', title:'No hay otros programas', desc:'Aún no hay programas creados por otros usuarios.', btn:''},
-                plantillas: {icon:'copy', title:'No hay plantillas', desc:'Guarda un programa como plantilla para usarlo como base.', btn:''}
+                mios: { icon: 'user', title: 'No tienes programas', desc: '¡Comienza creando tu primer programa de viaje!', btn: `<button onclick="mostrarModalCreacion()" class="action-btn"><i class="fas fa-plus"></i> Crear Nuevo Programa</button>` },
+                otros: { icon: 'users', title: 'No hay otros programas', desc: 'Aún no hay programas creados por otros usuarios.', btn: '' },
+                plantillas: { icon: 'copy', title: 'No hay plantillas', desc: 'Guarda un programa como plantilla para usarlo como base.', btn: '' }
             };
             const m = msgs[tipo] || msgs.mios;
             el.innerHTML = `<div class="empty-state"><i class="fas fa-${m.icon} state-icon"></i><h3 class="state-title">${m.title}</h3><p class="state-description">${m.desc}</p>${m.btn}</div>`;
         }
 
         function showErrorState(tipo, message) {
-            const containerMap = {mios:'misProgramasContainer', otros:'otrosProgramasContainer', plantillas:'plantillasContainer'};
+            const containerMap = { mios: 'misProgramasContainer', otros: 'otrosProgramasContainer', plantillas: 'plantillasContainer' };
             const el = document.getElementById(containerMap[tipo]);
             if (!el) return;
             el.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle state-icon"></i><h3 class="state-title">Error al cargar</h3><p class="state-description">${message}</p><button onclick="cargarProgramas()" class="action-btn"><i class="fas fa-redo"></i> Reintentar</button></div>`;
@@ -2785,7 +3276,7 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // FUNCIONES AUXILIARES
         // ============================================================
-        
+
         function limpiarFiltros(tipo) {
             if (tipo === 'mios') {
                 document.getElementById('searchInputMios').value = '';
@@ -2798,7 +3289,7 @@ function abrirEnNuevaVentana(id) {
             }
             filtrarProgramas(tipo);
         }
-        
+
         function showNotification(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -2838,10 +3329,10 @@ function abrirEnNuevaVentana(id) {
             }
 
             function loadSavedLanguage() {
-                const saved = sessionStorage.getItem('language') || 
-                             localStorage.getItem('preferredLanguage') || 
-                             DEFAULT_LANGUAGE;
-                
+                const saved = sessionStorage.getItem('language') ||
+                    localStorage.getItem('preferredLanguage') ||
+                    DEFAULT_LANGUAGE;
+
                 if (saved && saved !== DEFAULT_LANGUAGE) {
                     const select = document.querySelector('.goog-te-combo');
                     if (select) {
@@ -2858,10 +3349,10 @@ function abrirEnNuevaVentana(id) {
                 document.head.appendChild(script);
             }
 
-            setTimeout(function() {
+            setTimeout(function () {
                 const select = document.querySelector('.goog-te-combo');
                 if (select) {
-                    select.addEventListener('change', function() {
+                    select.addEventListener('change', function () {
                         if (this.value) saveLanguage(this.value);
                     });
                 }
@@ -2871,15 +3362,15 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // FUNCIONES DE EXPORTACIÓN Y UTILIDADES
         // ============================================================
-        
+
         function exportarProgramas() {
             console.log('Exportando programas...');
-            
+
             if (allProgramas.length === 0) {
                 showNotification('No hay programas para exportar', 'error');
                 return;
             }
-            
+
             const headers = ['ID', 'Título', 'Destino', 'Viajero', 'Fechas', 'Pasajeros', 'Estado', 'Creado por'];
             const csvData = allProgramas.map(programa => [
                 programa.id_solicitud || programa.id,
@@ -2891,11 +3382,11 @@ function abrirEnNuevaVentana(id) {
                 programa.estado || 'borrador',
                 programa.created_by_name || 'N/A'
             ]);
-            
+
             const csvContent = [headers, ...csvData]
                 .map(row => row.map(cell => `"${cell}"`).join(','))
                 .join('\n');
-            
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -2905,13 +3396,13 @@ function abrirEnNuevaVentana(id) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
+
             showNotification('Programas exportados exitosamente', 'success');
         }
 
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
-            
+
             const date = new Date(dateString);
             return date.toLocaleDateString('es-ES', {
                 day: 'numeric',
@@ -2919,23 +3410,23 @@ function abrirEnNuevaVentana(id) {
                 year: 'numeric'
             });
         }
-        
+
         function formatDateRange(startDate, endDate) {
             if (!startDate || !endDate) return 'Fechas no definidas';
-            
+
             const start = formatDate(startDate);
             const end = formatDate(endDate);
-            
+
             return `${start} - ${end}`;
         }
 
         // ============================================================
         // FUNCIONES ADICIONALES PARA LA API
         // ============================================================
-        
+
         // Esta función debe ser agregada al API de programa para obtener todos los programas
         // Incluye información del creador para distinguir entre "mis programas" y "otros programas"
-        
+
         /*
         NOTA PARA EL DESARROLLADOR:
         
@@ -2995,26 +3486,27 @@ function abrirEnNuevaVentana(id) {
         window.setPickerTab = setPickerTab;
         window.renderPickerCards = renderPickerCards;
         window.selectPickerProgram = selectPickerProgram;
-        
+
         // Cerrar modal al hacer clic fuera
-        document.getElementById('modalCreacion').addEventListener('click', function(e) {
+        document.getElementById('modalCreacion').addEventListener('click', function (e) {
             if (e.target === this) {
                 cerrarModalCreacion();
             }
         });
-        
+
         console.log('Script de itinerarios mejorado cargado completamente');
 
 
-    function abrirBonoReserva(programaId) {
-        if (!programaId) {
-            alert('No se encontró el ID del programa.');
-            return;
+        function abrirBonoReserva(programaId) {
+            if (!programaId) {
+                alert('No se encontró el ID del programa.');
+                return;
+            }
+
+            window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
         }
 
-        window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
-    }
-        
     </script>
 </body>
+
 </html>

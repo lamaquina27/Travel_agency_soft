@@ -18,8 +18,10 @@ $gmailAccount = $db->fetch(
     "SELECT id, email, status FROM email_accounts WHERE user_id = ? AND provider = 'gmail' ORDER BY id DESC LIMIT 1",
     [$user['id']]
 );
-$flashSuccess = $_SESSION['flash_success'] ?? null; unset($_SESSION['flash_success']);
-$flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error']);
+$flashSuccess = $_SESSION['flash_success'] ?? null;
+unset($_SESSION['flash_success']);
+$flashError = $_SESSION['flash_error'] ?? null;
+unset($_SESSION['flash_error']);
 
 // Inicializar ConfigManager
 ConfigManager::init();
@@ -241,6 +243,7 @@ if (!function_exists('adminConfigIcon')) {
             flex-direction: column;
             gap: 18px;
         }
+
         .config-shell #configForm {
             display: flex;
             flex-direction: column;
@@ -254,29 +257,77 @@ if (!function_exists('adminConfigIcon')) {
             gap: 14px;
             padding: 4px 2px 2px;
         }
+
         .config-pagehead .cph-icon {
-            width: 46px; height: 46px; border-radius: 14px;
-            background: var(--admin-gradient); color: #fff;
-            display: grid; place-items: center; flex-shrink: 0;
-            box-shadow: 0 6px 18px rgba(0,0,0,.12);
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: var(--admin-gradient);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
         }
-        .config-pagehead .cph-icon svg { width: 24px; height: 24px; stroke: #fff; }
-        .config-pagehead h1 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.02em; margin: 0; }
-        .config-pagehead p { font-size: 13px; color: var(--text-muted); margin: 2px 0 0; }
+
+        .config-pagehead .cph-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: #fff;
+        }
+
+        .config-pagehead h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -.02em;
+            margin: 0;
+        }
+
+        .config-pagehead p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 2px 0 0;
+        }
 
         /* Pestañas */
         .cfg-tabnav {
-            display: flex; gap: 6px; background: #fff; border: 1px solid #e7ecf3;
-            border-radius: 14px; padding: 6px; box-shadow: 0 1px 3px rgba(15,23,42,.05);
+            display: flex;
+            gap: 6px;
+            background: #fff;
+            border: 1px solid #e7ecf3;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
             overflow-x: auto;
         }
+
         .cfg-tabnav button {
-            flex: 1; min-width: 92px; border: none; background: transparent;
-            padding: 11px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
-            color: #64748b; cursor: pointer; white-space: nowrap; transition: all .18s; font-family: inherit;
+            flex: 1;
+            min-width: 92px;
+            border: none;
+            background: transparent;
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .18s;
+            font-family: inherit;
         }
-        .cfg-tabnav button:hover { background: #f1f5f9; color: #0f172a; }
-        .cfg-tabnav button.active { background: var(--admin-gradient); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.14); }
+
+        .cfg-tabnav button:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .cfg-tabnav button.active {
+            background: var(--admin-gradient);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .14);
+        }
 
         .preview-section,
         .config-section {
@@ -284,7 +335,7 @@ if (!function_exists('adminConfigIcon')) {
             border-radius: 16px;
             padding: 24px 26px;
             margin: 0;
-            box-shadow: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 1px 2px rgba(15, 23, 42, .04);
             border: 1px solid #e7ecf3;
             position: relative;
             overflow: hidden;
@@ -739,189 +790,7 @@ if (!function_exists('adminConfigIcon')) {
             }
         }
 
-        /* ===== Pipeline: Estados / Tags ===== */
-        .pl-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 4px 0 20px;
-        }
 
-        .pl-tab {
-            padding: 11px 18px;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            cursor: pointer;
-            transition: all .2s ease;
-            background: #fff;
-            color: var(--text-soft);
-            font-weight: 700;
-            font-size: 13px;
-        }
-
-        .pl-tab:hover {
-            border-color: color-mix(in srgb, var(--admin-primary) 26%, #e5e7eb);
-            color: var(--admin-primary);
-        }
-
-        .pl-tab.active {
-            border-color: color-mix(in srgb, var(--admin-primary) 22%, transparent);
-            background: color-mix(in srgb, var(--admin-primary) 11%, #ffffff);
-            color: var(--admin-primary);
-            box-shadow: 0 12px 24px rgba(15, 23, 42, .06);
-        }
-
-        .pl-panel {
-            display: none;
-        }
-
-        .pl-panel.active {
-            display: block;
-        }
-
-        .pl-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .pl-hint {
-            color: var(--text-muted);
-            font-size: 13px;
-            line-height: 1.45;
-        }
-
-        .pl-add-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: color-mix(in srgb, var(--admin-primary) 10%, #ffffff);
-            color: var(--admin-primary);
-            border: 1px solid color-mix(in srgb, var(--admin-primary) 18%, #e5e7eb);
-            padding: 10px 16px;
-            border-radius: 14px;
-            font-weight: 800;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all .2s ease;
-            white-space: nowrap;
-        }
-
-        .pl-add-btn:hover {
-            transform: translateY(-1px);
-            background: color-mix(in srgb, var(--admin-primary) 16%, #ffffff);
-        }
-
-        .pl-add-btn svg {
-            width: 16px;
-            height: 16px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2.4;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .estado-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .estado-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 13px 16px;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: #fff;
-            transition: box-shadow .2s ease, border-color .2s ease, opacity .2s ease;
-        }
-
-        .estado-row:hover {
-            box-shadow: var(--shadow-card);
-        }
-
-        .estado-row.dragging {
-            opacity: .5;
-            border-style: dashed;
-            border-color: var(--admin-primary);
-        }
-
-        .estado-row.editing {
-            border-color: color-mix(in srgb, var(--admin-primary) 45%, #e5e7eb);
-            box-shadow: 0 0 0 4px color-mix(in srgb, var(--admin-primary) 11%, transparent);
-        }
-
-        .estado-handle {
-            cursor: grab;
-            color: var(--text-muted);
-            font-size: 18px;
-            line-height: 1;
-            display: inline-grid;
-            place-items: center;
-            width: 20px;
-            flex-shrink: 0;
-            user-select: none;
-        }
-
-        .estado-handle:active {
-            cursor: grabbing;
-        }
-
-        .estado-pos {
-            width: 26px;
-            height: 26px;
-            flex-shrink: 0;
-            display: grid;
-            place-items: center;
-            border-radius: 8px;
-            background: var(--surface-muted);
-            color: var(--text-soft);
-            font-weight: 800;
-            font-size: 12px;
-        }
-
-        .estado-name {
-            font-weight: 700;
-            color: var(--text);
-            white-space: nowrap;
-        }
-
-        .estado-desc {
-            color: var(--text-muted);
-            font-size: 13px;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .estado-final {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .02em;
-            padding: 3px 9px;
-            border-radius: 999px;
-            background: color-mix(in srgb, var(--admin-primary) 12%, #fff);
-            color: var(--admin-primary);
-            border: 1px solid color-mix(in srgb, var(--admin-primary) 20%, #e5e7eb);
-            flex-shrink: 0;
-        }
-
-        .estado-final[hidden] {
-            display: none;
-        }
-
-        .estado-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
 
         .icon-btn {
             width: 34px;
@@ -956,135 +825,6 @@ if (!function_exists('adminConfigIcon')) {
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-
-        .estado-form {
-            border: 1px solid color-mix(in srgb, var(--admin-primary) 22%, #e5e7eb);
-            border-radius: 16px;
-            padding: 18px;
-            background: var(--surface-soft);
-            margin-top: 12px;
-        }
-
-        .estado-form[hidden] {
-            display: none;
-        }
-
-        .estado-form h4 {
-            font-size: 14px;
-            font-weight: 800;
-            color: var(--text);
-            margin-bottom: 14px;
-        }
-
-        .estado-form .form-grid {
-            gap: 16px;
-        }
-
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 14px;
-            color: var(--text-soft);
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        .checkbox-row input {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--admin-primary);
-            cursor: pointer;
-        }
-
-        .estado-form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 18px;
-        }
-
-        .btn-ghost,
-        .btn-solid {
-            padding: 11px 18px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all .2s ease;
-            border: 1px solid var(--border);
-        }
-
-        .btn-ghost {
-            background: #fff;
-            color: var(--text-soft);
-        }
-
-        .btn-ghost:hover {
-            color: var(--text);
-            box-shadow: var(--shadow-card);
-        }
-
-        .btn-solid {
-            background: var(--admin-gradient);
-            color: #fff;
-            border: none;
-            box-shadow: 0 12px 24px color-mix(in srgb, var(--admin-primary) 22%, transparent);
-        }
-
-        .btn-solid:hover {
-            transform: translateY(-1px);
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .tag-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            background: #fff;
-            color: var(--text);
-            font-weight: 700;
-            font-size: 13px;
-        }
-
-        .tag-chip button {
-            width: 18px;
-            height: 18px;
-            display: grid;
-            place-items: center;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-radius: 50%;
-            font-size: 16px;
-            line-height: 1;
-            padding: 0;
-        }
-
-        .tag-chip button:hover {
-            color: var(--danger);
-            background: #fef2f2;
-        }
-
-        .tag-empty {
-            color: var(--text-muted);
-            font-size: 13px;
-        }
-
-        .tag-input-wrap {
-            max-width: 380px;
-        }
     </style>
 </head>
 
@@ -1101,1035 +841,648 @@ if (!function_exists('adminConfigIcon')) {
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <div class="config-shell">
-        <div class="config-pagehead">
-            <div class="cph-icon"><?= adminConfigIcon('settings') ?></div>
-            <div>
-                <h1>Configuración de la agencia</h1>
-                <p>Personaliza marca, colores, módulos, Gmail y pipeline.</p>
-            </div>
-        </div>
-
-        <!-- Pestañas de configuración -->
-        <div class="cfg-tabnav">
-            <button type="button" data-tab="marca" class="active" onclick="cfgTab('marca')">Marca</button>
-            <button type="button" data-tab="colores" onclick="cfgTab('colores')">Colores</button>
-            <button type="button" data-tab="modulos" onclick="cfgTab('modulos')">Módulos</button>
-            <button type="button" data-tab="gmail" onclick="cfgTab('gmail')">Gmail</button>
-            <button type="button" data-tab="pipeline" onclick="cfgTab('pipeline')">Pipeline</button>
-        </div>
-        <!-- Preview Section -->
-        <div class="preview-section" data-cfgtab="colores">
-            <h2 class="section-title">
-                <span class="section-icon"><?= adminConfigIcon('eye') ?></span>
-                Vista Previa por Roles
-            </h2>
-
-            <!-- Tabs para diferentes vistas -->
-            <div class="preview-tabs">
-                <div class="preview-tab active" onclick="switchPreview('admin')">Vista Admin</div>
-                <div class="preview-tab" onclick="switchPreview('agent')">Vista Agente</div>
-            </div>
-
-            <!-- Admin Preview -->
-            <div class="preview-header" id="adminPreview"
-                style="background: linear-gradient(135deg, <?= $config['admin_primary_color'] ?> 0%, <?= $config['admin_secondary_color'] ?> 100%);">
-                <div class="preview-company" id="companyPreviewAdmin"><?= htmlspecialchars($config['company_name']) ?>
+            <div class="config-pagehead">
+                <div class="cph-icon"><?= adminConfigIcon('settings') ?></div>
+                <div>
+                    <h1>Configuración de la agencia</h1>
+                    <p>Personaliza marca, colores, módulos, Gmail y pipeline.</p>
                 </div>
-                <div class="preview-tagline">Panel de Administración</div>
             </div>
 
-            <!-- Agent Preview -->
-            <div class="preview-header" id="agentPreview"
-                style="background: linear-gradient(135deg, <?= $config['agent_primary_color'] ?> 0%, <?= $config['agent_secondary_color'] ?> 100%); display: none;">
-                <div class="preview-company" id="companyPreviewAgent"><?= htmlspecialchars($config['company_name']) ?>
-                </div>
-                <div class="preview-tagline">Sistema de Gestión de Viajes</div>
+            <!-- Pestañas de configuración -->
+            <div class="cfg-tabnav">
+                <button type="button" data-tab="marca" class="active" onclick="cfgTab('marca')">Marca</button>
+                <button type="button" data-tab="colores" onclick="cfgTab('colores')">Colores</button>
+                <button type="button" data-tab="modulos" onclick="cfgTab('modulos')">Módulos</button>
+                <button type="button" data-tab="gmail" onclick="cfgTab('gmail')">Gmail</button>
             </div>
-        </div>
-
-        <!-- Messages -->
-        <div id="successMessage" class="message success"></div>
-        <div id="errorMessage" class="message error"></div>
-
-        <!-- Configuration Form -->
-        <form id="configForm">
-            <!-- Basic Settings -->
-            <div class="config-section" data-cfgtab="marca">
+            <!-- Preview Section -->
+            <div class="preview-section" data-cfgtab="colores">
                 <h2 class="section-title">
-                    <span class="section-icon"><?= adminConfigIcon('building') ?></span>
-                    Información de la Empresa
+                    <span class="section-icon"><?= adminConfigIcon('eye') ?></span>
+                    Vista Previa por Roles
                 </h2>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="company_name">Nombre de la Agencia</label>
-                        <input type="text" id="company_name" name="company_name"
-                            value="<?= htmlspecialchars($config['company_name']) ?>" placeholder="Travel Agency"
-                            readonly style="background-color: #f1f5f9; cursor: not-allowed; color: #64748b;">
-                        <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
-                            El nombre de la agencia solo puede ser modificado por el Superadmin desde la gestión de
-                            agencias
-                        </small>
-                    </div>
+                <!-- Tabs para diferentes vistas -->
+                <div class="preview-tabs">
+                    <div class="preview-tab active" onclick="switchPreview('admin')">Vista Admin</div>
+                    <div class="preview-tab" onclick="switchPreview('agent')">Vista Agente</div>
                 </div>
 
-                <div class="form-grid" style="margin-top: 25px;">
-                    <div class="form-group">
-                        <label for="logo_url">Logo de la Empresa</label>
-                        <div class="image-upload" onclick="document.getElementById('logoInput').click()">
-                            <input type="file" id="logoInput" accept="image/*">
-                            <div class="upload-content">
-                                <div class="upload-icon"><?= adminConfigIcon('upload') ?></div>
-                                <div>
-                                    <strong>Subir Logo</strong><br>
-                                    <small>PNG, JPG, SVG o WebP (máx. <?= $config['max_file_size'] ?>MB)</small>
-                                </div>
-                            </div>
-                            <?php if ($config['logo_url']): ?>
-                                <img src="<?= htmlspecialchars($config['logo_url']) ?>" class="image-preview"
-                                    id="logoPreview">
-                            <?php endif; ?>
-                        </div>
-                        <input type="hidden" id="logo_url" name="logo_url"
-                            value="<?= htmlspecialchars($config['logo_url'] ?? '') ?>">
+                <!-- Admin Preview -->
+                <div class="preview-header" id="adminPreview"
+                    style="background: linear-gradient(135deg, <?= $config['admin_primary_color'] ?> 0%, <?= $config['admin_secondary_color'] ?> 100%);">
+                    <div class="preview-company" id="companyPreviewAdmin">
+                        <?= htmlspecialchars($config['company_name']) ?>
                     </div>
+                    <div class="preview-tagline">Panel de Administración</div>
+                </div>
+
+                <!-- Agent Preview -->
+                <div class="preview-header" id="agentPreview"
+                    style="background: linear-gradient(135deg, <?= $config['agent_primary_color'] ?> 0%, <?= $config['agent_secondary_color'] ?> 100%); display: none;">
+                    <div class="preview-company" id="companyPreviewAgent">
+                        <?= htmlspecialchars($config['company_name']) ?>
+                    </div>
+                    <div class="preview-tagline">Sistema de Gestión de Viajes</div>
                 </div>
             </div>
 
-            <!-- Color Settings -->
-            <div class="config-section" data-cfgtab="colores">
-                <h2 class="section-title">
-                    <span class="section-icon"><?= adminConfigIcon('palette') ?></span>
-                    Personalización de Colores por Roles
-                </h2>
+            <!-- Messages -->
+            <div id="successMessage" class="message success"></div>
+            <div id="errorMessage" class="message error"></div>
 
-                <!-- Admin Colors -->
-                <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('shield') ?></span>Colores del
-                    Administrador</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="admin_primary_color">Color Primario Admin</label>
-                        <div class="color-input">
-                            <input type="color" id="admin_primary_color" name="admin_primary_color" class="color-picker"
-                                value="<?= $config['admin_primary_color'] ?>">
-                            <input type="text" class="color-text" value="<?= $config['admin_primary_color'] ?>"
-                                readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="admin_secondary_color">Color Secundario Admin</label>
-                        <div class="color-input">
-                            <input type="color" id="admin_secondary_color" name="admin_secondary_color"
-                                class="color-picker" value="<?= $config['admin_secondary_color'] ?>">
-                            <input type="text" class="color-text" value="<?= $config['admin_secondary_color'] ?>"
-                                readonly>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Agent Colors -->
-                <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('plane') ?></span>Colores del Agente
-                </h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="agent_primary_color">Color Primario Agente</label>
-                        <div class="color-input">
-                            <input type="color" id="agent_primary_color" name="agent_primary_color" class="color-picker"
-                                value="<?= $config['agent_primary_color'] ?>">
-                            <input type="text" class="color-text" value="<?= $config['agent_primary_color'] ?>"
-                                readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="agent_secondary_color">Color Secundario Agente</label>
-                        <div class="color-input">
-                            <input type="color" id="agent_secondary_color" name="agent_secondary_color"
-                                class="color-picker" value="<?= $config['agent_secondary_color'] ?>">
-                            <input type="text" class="color-text" value="<?= $config['agent_secondary_color'] ?>"
-                                readonly>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="config-section" data-cfgtab="modulos">
-                <h2 class="section-title">
-                    <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
-                    Módulos
-                </h2>
-                <label class="checkbox-row" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:6px 0;">
-                    <input type="hidden" name="rooming_agentes_visible" value="0">
-                    <input type="checkbox" name="rooming_agentes_visible" value="1" style="margin-top:3px;"
-                        <?= !empty($config['rooming_agentes_visible']) ? 'checked' : '' ?>>
-                    <span>
-                        <strong style="display:block;color:#1e293b;font-size:14px;">Mostrar “Traslados / Rooming” a los agentes</strong>
-                        <small style="color:#718096;">El administrador siempre ve el módulo. Actívalo para que también lo vean los agentes de esta agencia. Útil en unas agencias; en otras puede ser información confidencial, así que está desactivado por defecto.</small>
-                    </span>
-                </label>
-            </div>
-
-            <div class="advanced-content" id="advancedContent" data-cfgtab="modulos">
-                <div class="config-section">
+            <!-- Configuration Form -->
+            <form id="configForm">
+                <!-- Basic Settings -->
+                <div class="config-section" data-cfgtab="marca">
                     <h2 class="section-title">
-                        <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
-                        Configuraciones Técnicas
+                        <span class="section-icon"><?= adminConfigIcon('building') ?></span>
+                        Información de la Empresa
                     </h2>
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="maintenance_mode"><span
-                                    class="field-icon"><?= adminConfigIcon('lock') ?></span>Modo Mantenimiento</label>
-                            <select id="maintenance_mode" name="maintenance_mode">
-                                <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>Desactivado
-                                </option>
-                                <option value="1" <?= $config['maintenance_mode'] ? 'selected' : '' ?>>Activado</option>
-                            </select>
-                            <small style="color: #718096;">Bloquea el acceso a usuarios no administradores</small>
+                            <label for="company_name">Nombre de la Agencia</label>
+                            <input type="text" id="company_name" name="company_name"
+                                value="<?= htmlspecialchars($config['company_name']) ?>" placeholder="Travel Agency"
+                                readonly style="background-color: #f1f5f9; cursor: not-allowed; color: #64748b;">
+                            <small style="color: #64748b; font-size: 12px; display: block; margin-top: 5px;">
+                                El nombre de la agencia solo puede ser modificado por el Superadmin desde la gestión de
+                                agencias
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-grid" style="margin-top: 25px;">
+                        <div class="form-group">
+                            <label for="logo_url">Logo de la Empresa</label>
+                            <div class="image-upload" onclick="document.getElementById('logoInput').click()">
+                                <input type="file" id="logoInput" accept="image/*">
+                                <div class="upload-content">
+                                    <div class="upload-icon"><?= adminConfigIcon('upload') ?></div>
+                                    <div>
+                                        <strong>Subir Logo</strong><br>
+                                        <small>PNG, JPG, SVG o WebP (máx. <?= $config['max_file_size'] ?>MB)</small>
+                                    </div>
+                                </div>
+                                <?php if ($config['logo_url']): ?>
+                                    <img src="<?= htmlspecialchars($config['logo_url']) ?>" class="image-preview"
+                                        id="logoPreview">
+                                <?php endif; ?>
+                            </div>
+                            <input type="hidden" id="logo_url" name="logo_url"
+                                value="<?= htmlspecialchars($config['logo_url'] ?? '') ?>">
                         </div>
                     </div>
                 </div>
-            </div>
 
-        </form>
+                <!-- Color Settings -->
+                <div class="config-section" data-cfgtab="colores">
+                    <h2 class="section-title">
+                        <span class="section-icon"><?= adminConfigIcon('palette') ?></span>
+                        Personalización de Colores por Roles
+                    </h2>
 
-        <!-- ============================================================ -->
-        <!-- Gmail — Cuenta de correo del administrador                  -->
-        <!-- ============================================================ -->
-        <div class="config-section" data-cfgtab="gmail">
-            <h2 class="section-title">
-                <span class="section-icon"><?= adminConfigIcon('plane') ?></span>
-                Cuenta Gmail
-            </h2>
-            <?php if ($flashSuccess): ?>
-            <div style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
-                <?= htmlspecialchars($flashSuccess) ?>
-            </div>
-            <?php endif; ?>
-            <?php if ($flashError): ?>
-            <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
-                <?= htmlspecialchars($flashError) ?>
-            </div>
-            <?php endif; ?>
-            <p style="font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6;">
-                Conecta tu cuenta de Gmail para que el pipeline capture los correos de leads entrantes y puedas responder desde la plataforma. Esta cuenta es la principal de la agencia.
-            </p>
-            <?php if ($gmailAccount && $gmailAccount['status'] === 'active'): ?>
-            <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">✉️</div>
-                    <div>
-                        <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
-                        <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?></div>
-                    </div>
-                </div>
-                <a href="<?= APP_URL ?>/gmail/oauth?action=disconnect"
-                   onclick="return confirm('¿Desconectar esta cuenta de Gmail?')"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
-                    Desconectar
-                </a>
-            </div>
-            <?php else: ?>
-            <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">✉️</div>
-                    <div>
-                        <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
-                        <div style="font-size:13px;color:#94a3b8;">Conecta Gmail para capturar leads y responder correos</div>
-                    </div>
-                </div>
-                <a href="<?= APP_URL ?>/gmail/oauth?action=connect"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--primary-gradient);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-                    Conectar Gmail
-                </a>
-            </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- Pipeline: Estados y Tags                                     -->
-        <!-- SOLO FRONTEND: el muestreo de datos reales y el guardado     -->
-        <!-- quedan pendientes (ver TODOs en el script).                  -->
-        <!-- ============================================================ -->
-        <div class="config-section" data-cfgtab="pipeline">
-            <h2 class="section-title">
-                <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
-                Configuración del Pipeline
-            </h2>
-
-            <div class="pl-tabs">
-                <div class="pl-tab active" onclick="switchPipelineTab('estados', this)">Estados</div>
-                <div class="pl-tab" onclick="switchPipelineTab('tags', this)">Tags</div>
-            </div>
-
-            <!-- Panel Estados -->
-            <div class="pl-panel active" id="plPanelEstados">
-                <div class="pl-toolbar">
-                    <p class="pl-hint">Define y ordena las columnas del tablero Kanban. Arrastra con &#9135; para
-                        reordenar.</p>
-                    <button type="button" class="pl-add-btn" onclick="openEstadoCreate()">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 5v14"></path>
-                            <path d="M5 12h14"></path>
-                        </svg>
-                        Estado
-                    </button>
-                </div>
-
-                <!-- Las filas se generan en JS desde SAMPLE_ESTADOS (placeholder) -->
-                <div class="estado-list" id="estadoList"></div>
-
-                <!-- Form inline reutilizable (alta/edición) -->
-                <div class="estado-form" id="estadoForm" hidden>
-                    <h4 id="estadoFormTitle">Nuevo estado</h4>
+                    <!-- Admin Colors -->
+                    <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('shield') ?></span>Colores del
+                        Administrador</h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="estadoNombre">Nombre *</label>
-                            <input type="text" id="estadoNombre" placeholder="Ej. Cotizado" maxlength="100">
+                            <label for="admin_primary_color">Color Primario Admin</label>
+                            <div class="color-input">
+                                <input type="color" id="admin_primary_color" name="admin_primary_color"
+                                    class="color-picker" value="<?= $config['admin_primary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['admin_primary_color'] ?>"
+                                    readonly>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label for="estadoDesc">Descripción</label>
-                            <input type="text" id="estadoDesc" placeholder="Texto de ayuda opcional">
+                            <label for="admin_secondary_color">Color Secundario Admin</label>
+                            <div class="color-input">
+                                <input type="color" id="admin_secondary_color" name="admin_secondary_color"
+                                    class="color-picker" value="<?= $config['admin_secondary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['admin_secondary_color'] ?>"
+                                    readonly>
+                            </div>
                         </div>
                     </div>
-                    <label class="checkbox-row">
-                        <input type="checkbox" id="estadoFinal">
-                        Es estado final (cierra el lead)
-                    </label>
-                    <div class="estado-form-actions">
-                        <button type="button" class="btn-ghost" onclick="closeEstadoForm()">Cancelar</button>
-                        <button type="button" class="btn-solid" onclick="saveEstadoForm()">Guardar estado</button>
+
+                    <!-- Agent Colors -->
+                    <h3 class="role-title"><span class="field-icon"><?= adminConfigIcon('plane') ?></span>Colores del
+                        Agente
+                    </h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="agent_primary_color">Color Primario Agente</label>
+                            <div class="color-input">
+                                <input type="color" id="agent_primary_color" name="agent_primary_color"
+                                    class="color-picker" value="<?= $config['agent_primary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['agent_primary_color'] ?>"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent_secondary_color">Color Secundario Agente</label>
+                            <div class="color-input">
+                                <input type="color" id="agent_secondary_color" name="agent_secondary_color"
+                                    class="color-picker" value="<?= $config['agent_secondary_color'] ?>">
+                                <input type="text" class="color-text" value="<?= $config['agent_secondary_color'] ?>"
+                                    readonly>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Panel Tags -->
-            <div class="pl-panel" id="plPanelTags">
-                <p class="pl-hint" style="margin-bottom:16px;">Etiquetas libres para clasificar los leads.</p>
 
-                <!-- Los chips se generan en JS desde SAMPLE_TAGS (placeholder) -->
-                <div class="tag-list" id="tagList"></div>
-
-                <div class="form-group tag-input-wrap">
-                    <input type="text" id="tagInput" placeholder="Escribe un nombre y presiona Enter…" maxlength="80"
-                        onkeydown="handleTagInput(event)">
+                <div class="config-section" data-cfgtab="modulos">
+                    <h2 class="section-title">
+                        <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
+                        Módulos
+                    </h2>
+                    <label class="checkbox-row"
+                        style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:6px 0;">
+                        <input type="hidden" name="rooming_agentes_visible" value="0">
+                        <input type="checkbox" name="rooming_agentes_visible" value="1" style="margin-top:3px;"
+                            <?= !empty($config['rooming_agentes_visible']) ? 'checked' : '' ?>>
+                        <span>
+                            <strong style="display:block;color:#1e293b;font-size:14px;">Mostrar “Traslados / Rooming” a
+                                los agentes</strong>
+                            <small style="color:#718096;">El administrador siempre ve el módulo. Actívalo para que
+                                también lo vean los agentes de esta agencia. Útil en unas agencias; en otras puede ser
+                                información confidencial, así que está desactivado por defecto.</small>
+                        </span>
+                    </label>
                 </div>
+
+                <div class="advanced-content" id="advancedContent" data-cfgtab="modulos">
+                    <div class="config-section">
+                        <h2 class="section-title">
+                            <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
+                            Configuraciones Técnicas
+                        </h2>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="maintenance_mode"><span
+                                        class="field-icon"><?= adminConfigIcon('lock') ?></span>Modo
+                                    Mantenimiento</label>
+                                <select id="maintenance_mode" name="maintenance_mode">
+                                    <option value="0" <?= !$config['maintenance_mode'] ? 'selected' : '' ?>>Desactivado
+                                    </option>
+                                    <option value="1" <?= $config['maintenance_mode'] ? 'selected' : '' ?>>Activado
+                                    </option>
+                                </select>
+                                <small style="color: #718096;">Bloquea el acceso a usuarios no administradores</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- ============================================================ -->
+            <!-- Gmail — Cuenta de correo del administrador                  -->
+            <!-- ============================================================ -->
+            <div class="config-section" data-cfgtab="gmail">
+                <h2 class="section-title">
+                    <span class="section-icon"><?= adminConfigIcon('plane') ?></span>
+                    Cuenta Gmail
+                </h2>
+                <?php if ($flashSuccess): ?>
+                    <div
+                        style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                        <?= htmlspecialchars($flashSuccess) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($flashError): ?>
+                    <div
+                        style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+                        <?= htmlspecialchars($flashError) ?>
+                    </div>
+                <?php endif; ?>
+                <p style="font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6;">
+                    Conecta tu cuenta de Gmail para que el pipeline capture los correos de leads entrantes y puedas
+                    responder desde la plataforma. Esta cuenta es la principal de la agencia.
+                </p>
+                <?php if ($gmailAccount && $gmailAccount['status'] === 'active'): ?>
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div
+                                style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">
+                                ✉️</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
+                                <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="<?= APP_URL ?>/gmail/oauth?action=disconnect"
+                            onclick="return confirm('¿Desconectar esta cuenta de Gmail?')"
+                            style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+                            Desconectar
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div
+                                style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">
+                                ✉️</div>
+                            <div>
+                                <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
+                                <div style="font-size:13px;color:#94a3b8;">Conecta Gmail para capturar leads y responder
+                                    correos</div>
+                            </div>
+                        </div>
+                        <a href="<?= APP_URL ?>/gmail/oauth?action=connect"
+                            style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--primary-gradient);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+                            Conectar Gmail
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
+
+
         </div>
 
-        <!-- Save Section (queda al final; envía #configForm vía atributo form=) -->
-        <div class="save-section">
-            <button type="submit" form="configForm" class="save-btn" id="saveBtn">
-                <?= adminConfigIcon('save') ?>
-                Guardar Configuración
-                <div class="loading-spinner" id="loadingSpinner"></div>
-            </button>
-        </div>
-        </div><!-- /config-shell -->
-    </div>
+        <!-- Scripts -->
+        <script>
+            const APP_URL = '<?= APP_URL ?>';
+            let isLoading = false;
+            let currentPreview = 'admin';
+            let sidebarOpen = false;
 
-    <!-- Scripts -->
-    <script>
-        const APP_URL = '<?= APP_URL ?>';
-        let isLoading = false;
-        let currentPreview = 'admin';
-        let sidebarOpen = false;
-
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', function () {
-            initializeColorPickers();
-            initializeImageUploads();
-            initializeFormHandlers();
-            initializeGoogleTranslate();
-            applyDefaultLanguage();
-            cfgTab('marca');
-        });
-
-        // Pestañas de configuración
-        function cfgTab(name) {
-            document.querySelectorAll('[data-cfgtab]').forEach(function (el) {
-                el.style.display = (el.dataset.cfgtab === name) ? 'block' : 'none';
+            // Inicialización
+            document.addEventListener('DOMContentLoaded', function () {
+                initializeColorPickers();
+                initializeImageUploads();
+                initializeFormHandlers();
+                initializeGoogleTranslate();
+                applyDefaultLanguage();
+                cfgTab('marca');
             });
-            document.querySelectorAll('.cfg-tabnav button').forEach(function (b) {
-                b.classList.toggle('active', b.dataset.tab === name);
-            });
-            var save = document.querySelector('.save-section');
-            if (save) save.style.display = (name === 'gmail' || name === 'pipeline') ? 'none' : '';
-        }
 
-        // Funciones de sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            const mainContent = document.getElementById('mainContent');
-
-            sidebarOpen = !sidebarOpen;
-
-            if (sidebarOpen) {
-                sidebar.classList.add('open');
-                overlay.classList.add('show');
-                if (window.innerWidth > 768) {
-                    mainContent.classList.add('sidebar-open');
-                }
-            } else {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-                mainContent.classList.remove('sidebar-open');
+            // Pestañas de configuración
+            function cfgTab(name) {
+                document.querySelectorAll('[data-cfgtab]').forEach(function (el) {
+                    el.style.display = (el.dataset.cfgtab === name) ? 'block' : 'none';
+                });
+                document.querySelectorAll('.cfg-tabnav button').forEach(function (b) {
+                    b.classList.toggle('active', b.dataset.tab === name);
+                });
+                var save = document.querySelector('.save-section');
+                if (save) save.style.display = (name === 'gmail' || name === 'pipeline') ? 'none' : '';
             }
-        }
 
-        function closeSidebar() {
-            if (sidebarOpen) {
-                toggleSidebar();
-            }
-        }
+            // Funciones de sidebar
+            function toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('overlay');
+                const mainContent = document.getElementById('mainContent');
 
-        function toggleUserMenu() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                window.location.href = '<?= APP_URL ?>/auth/logout';
-            }
-        }
+                sidebarOpen = !sidebarOpen;
 
-        // Aplicar idioma por defecto del sistema
-        function applyDefaultLanguage() {
-            const defaultLang = '<?= $config['default_language'] ?>';
-            if (defaultLang && defaultLang !== 'es') {
-                setTimeout(() => {
-                    const select = document.querySelector('.goog-te-combo');
-                    if (select) {
-                        select.value = defaultLang;
-                        select.dispatchEvent(new Event('change'));
+                if (sidebarOpen) {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('show');
+                    if (window.innerWidth > 768) {
+                        mainContent.classList.add('sidebar-open');
                     }
-                }, 2000);
+                } else {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('show');
+                    mainContent.classList.remove('sidebar-open');
+                }
             }
-        }
 
-        // Configurar color pickers
-        function initializeColorPickers() {
-            const colorInputs = [
-                'admin_primary_color', 'admin_secondary_color',
-                'agent_primary_color', 'agent_secondary_color'
-            ];
-
-            colorInputs.forEach(inputId => {
-                const colorPicker = document.getElementById(inputId);
-                if (colorPicker) {
-                    colorPicker.addEventListener('change', function () {
-                        this.nextElementSibling.value = this.value;
-                        updatePreview();
-                    });
+            function closeSidebar() {
+                if (sidebarOpen) {
+                    toggleSidebar();
                 }
-            });
+            }
 
-            // Actualizar preview cuando cambie el nombre
-            document.getElementById('company_name').addEventListener('input', updatePreview);
-        }
+            function toggleUserMenu() {
+                if (confirm('¿Desea cerrar sesión?')) {
+                    window.location.href = '<?= APP_URL ?>/auth/logout';
+                }
+            }
 
-        // Cambiar vista previa
-        function switchPreview(type) {
-            currentPreview = type;
+            // Aplicar idioma por defecto del sistema
+            function applyDefaultLanguage() {
+                const defaultLang = '<?= $config['default_language'] ?>';
+                if (defaultLang && defaultLang !== 'es') {
+                    setTimeout(() => {
+                        const select = document.querySelector('.goog-te-combo');
+                        if (select) {
+                            select.value = defaultLang;
+                            select.dispatchEvent(new Event('change'));
+                        }
+                    }, 2000);
+                }
+            }
 
-            // Actualizar tabs
-            document.querySelectorAll('.preview-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
+            // Configurar color pickers
+            function initializeColorPickers() {
+                const colorInputs = [
+                    'admin_primary_color', 'admin_secondary_color',
+                    'agent_primary_color', 'agent_secondary_color'
+                ];
 
-            // Mostrar/ocultar previews
-            document.getElementById('adminPreview').style.display = type === 'admin' ? 'block' : 'none';
-            document.getElementById('agentPreview').style.display = type === 'agent' ? 'block' : 'none';
-        }
-
-        // Actualizar vista previa
-        function updatePreview() {
-            const companyName = document.getElementById('company_name').value || 'Travel Agency';
-
-            // Obtener colores
-            const adminPrimary = document.getElementById('admin_primary_color').value;
-            const adminSecondary = document.getElementById('admin_secondary_color').value;
-            const agentPrimary = document.getElementById('agent_primary_color').value;
-            const agentSecondary = document.getElementById('agent_secondary_color').value;
-
-            // Actualizar nombres
-            document.getElementById('companyPreviewAdmin').textContent = companyName;
-            document.getElementById('companyPreviewAgent').textContent = companyName;
-
-            // Actualizar fondos
-            document.getElementById('adminPreview').style.background =
-                `linear-gradient(135deg, ${adminPrimary} 0%, ${adminSecondary} 100%)`;
-            document.getElementById('agentPreview').style.background =
-                `linear-gradient(135deg, ${agentPrimary} 0%, ${agentSecondary} 100%)`;
-        }
-
-        // Configurar subida de imágenes
-        function initializeImageUploads() {
-            setupImageUpload('logoInput', 'logo_url', 'logoPreview');
-        }
-
-        function setupImageUpload(inputId, hiddenId, previewId) {
-            const input = document.getElementById(inputId);
-            const hiddenField = document.getElementById(hiddenId);
-
-            input.addEventListener('change', function (e) {
-                const file = e.target.files[0];
-                if (file) {
-                    // Validar archivo
-                    const maxSize = <?= $config['max_file_size'] ?> * 1024 * 1024; // MB to bytes
-                    if (file.size > maxSize) {
-                        showMessage(`El archivo es demasiado grande (máximo <?= $config['max_file_size'] ?>MB)`, 'error');
-                        return;
+                colorInputs.forEach(inputId => {
+                    const colorPicker = document.getElementById(inputId);
+                    if (colorPicker) {
+                        colorPicker.addEventListener('change', function () {
+                            this.nextElementSibling.value = this.value;
+                            updatePreview();
+                        });
                     }
-
-                    if (!file.type.startsWith('image/')) {
-                        showMessage('Solo se permiten archivos de imagen', 'error');
-                        return;
-                    }
-
-                    // Subir archivo
-                    uploadImage(file, hiddenId, previewId);
-                }
-            });
-
-            // Drag and drop
-            const uploadDiv = input.parentElement;
-
-            uploadDiv.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
-
-            uploadDiv.addEventListener('dragleave', function (e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-            });
-
-            uploadDiv.addEventListener('drop', function (e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    input.files = files;
-                    input.dispatchEvent(new Event('change'));
-                }
-            });
-        }
-
-        // Subir imagen al servidor
-        async function uploadImage(file, hiddenFieldId, previewId) {
-            try {
-                const formData = new FormData();
-                formData.append('action', 'upload_config_image');
-                formData.append('image', file);
-                formData.append('type', hiddenFieldId.includes('logo') ? 'logo' : 'background');
-
-                const response = await fetch(`${APP_URL}/admin/api`, {
-                    method: 'POST',
-                    body: formData
                 });
 
-                const data = await response.json();
-
-                if (!data.success) {
-                    throw new Error(data.error || 'Error al subir imagen');
-                }
-
-                // Actualizar campo oculto
-                document.getElementById(hiddenFieldId).value = data.url;
-
-                // Mostrar preview
-                let preview = document.getElementById(previewId);
-                if (!preview) {
-                    preview = document.createElement('img');
-                    preview.id = previewId;
-                    preview.className = 'image-preview';
-                    document.getElementById(hiddenFieldId).parentElement.appendChild(preview);
-                }
-                preview.src = data.url;
-
-                showMessage('Imagen subida correctamente', 'success');
-
-            } catch (error) {
-                console.error('Error al subir imagen:', error);
-                showMessage(`Error al subir imagen: ${error.message}`, 'error');
+                // Actualizar preview cuando cambie el nombre
+                document.getElementById('company_name').addEventListener('input', updatePreview);
             }
-        }
 
-        // Configurar manejadores de formulario
-        function initializeFormHandlers() {
-            document.getElementById('configForm').addEventListener('submit', saveConfiguration);
-        }
+            // Cambiar vista previa
+            function switchPreview(type) {
+                currentPreview = type;
 
-        // Guardar configuración
-        async function saveConfiguration(e) {
-            e.preventDefault();
+                // Actualizar tabs
+                document.querySelectorAll('.preview-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                event.target.classList.add('active');
 
-            if (isLoading) return;
+                // Mostrar/ocultar previews
+                document.getElementById('adminPreview').style.display = type === 'admin' ? 'block' : 'none';
+                document.getElementById('agentPreview').style.display = type === 'agent' ? 'block' : 'none';
+            }
 
-            try {
-                isLoading = true;
-                const saveBtn = document.getElementById('saveBtn');
-                const spinner = document.getElementById('loadingSpinner');
+            // Actualizar vista previa
+            function updatePreview() {
+                const companyName = document.getElementById('company_name').value || 'Travel Agency';
 
-                saveBtn.disabled = true;
-                spinner.style.display = 'inline-block';
+                // Obtener colores
+                const adminPrimary = document.getElementById('admin_primary_color').value;
+                const adminSecondary = document.getElementById('admin_secondary_color').value;
+                const agentPrimary = document.getElementById('agent_primary_color').value;
+                const agentSecondary = document.getElementById('agent_secondary_color').value;
 
-                const formData = new FormData(e.target);
-                formData.append('action', 'save_config');
+                // Actualizar nombres
+                document.getElementById('companyPreviewAdmin').textContent = companyName;
+                document.getElementById('companyPreviewAgent').textContent = companyName;
 
-                const response = await fetch(`${APP_URL}/admin/api`, {
-                    method: 'POST',
-                    body: formData
+                // Actualizar fondos
+                document.getElementById('adminPreview').style.background =
+                    `linear-gradient(135deg, ${adminPrimary} 0%, ${adminSecondary} 100%)`;
+                document.getElementById('agentPreview').style.background =
+                    `linear-gradient(135deg, ${agentPrimary} 0%, ${agentSecondary} 100%)`;
+            }
+
+            // Configurar subida de imágenes
+            function initializeImageUploads() {
+                setupImageUpload('logoInput', 'logo_url', 'logoPreview');
+            }
+
+            function setupImageUpload(inputId, hiddenId, previewId) {
+                const input = document.getElementById(inputId);
+                const hiddenField = document.getElementById(hiddenId);
+
+                input.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validar archivo
+                        const maxSize = <?= $config['max_file_size'] ?> * 1024 * 1024; // MB to bytes
+                        if (file.size > maxSize) {
+                            showMessage(`El archivo es demasiado grande (máximo <?= $config['max_file_size'] ?>MB)`, 'error');
+                            return;
+                        }
+
+                        if (!file.type.startsWith('image/')) {
+                            showMessage('Solo se permiten archivos de imagen', 'error');
+                            return;
+                        }
+
+                        // Subir archivo
+                        uploadImage(file, hiddenId, previewId);
+                    }
                 });
 
-                const data = await response.json();
+                // Drag and drop
+                const uploadDiv = input.parentElement;
 
-                if (!data.success) {
-                    throw new Error(data.error || 'Error al guardar configuración');
-                }
+                uploadDiv.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
 
-                showMessage('Configuración guardada correctamente. Los cambios se aplicarán en el próximo inicio de sesión.', 'success');
+                uploadDiv.addEventListener('dragleave', function (e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
 
-                // Actualizar el título de la página si cambió el nombre
-                const newTitle = document.getElementById('company_name').value;
-                document.title = `Configuración - ${newTitle}`;
+                uploadDiv.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
 
-                // Preguntar si desea recargar la página para aplicar cambios
-                setTimeout(async () => {
-                    const confirmed = await showConfirmModal({
-                        title: '¡Configuración guardada!',
-                        message: '¿Desea recargar la página para ver los cambios aplicados?',
-                        details: 'Los cambios se aplicarán completamente al recargar la página.',
-                        icon: '',
-                        confirmText: 'Recargar página',
-                        cancelText: 'Continuar sin recargar'
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        input.files = files;
+                        input.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            // Subir imagen al servidor
+            async function uploadImage(file, hiddenFieldId, previewId) {
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'upload_config_image');
+                    formData.append('image', file);
+                    formData.append('type', hiddenFieldId.includes('logo') ? 'logo' : 'background');
+
+                    const response = await fetch(`${APP_URL}/admin/api`, {
+                        method: 'POST',
+                        body: formData
                     });
 
-                    if (confirmed) {
-                        window.location.reload();
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Error al subir imagen');
                     }
-                }, 2000);
 
-            } catch (error) {
-                console.error('Error al guardar configuración:', error);
-                showMessage(`Error: ${error.message}`, 'error');
-            } finally {
-                isLoading = false;
-                document.getElementById('saveBtn').disabled = false;
-                document.getElementById('loadingSpinner').style.display = 'none';
+                    // Actualizar campo oculto
+                    document.getElementById(hiddenFieldId).value = data.url;
+
+                    // Mostrar preview
+                    let preview = document.getElementById(previewId);
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = previewId;
+                        preview.className = 'image-preview';
+                        document.getElementById(hiddenFieldId).parentElement.appendChild(preview);
+                    }
+                    preview.src = data.url;
+
+                    showMessage('Imagen subida correctamente', 'success');
+
+                } catch (error) {
+                    console.error('Error al subir imagen:', error);
+                    showMessage(`Error al subir imagen: ${error.message}`, 'error');
+                }
             }
-        }
 
-        // Usar el sistema de notificaciones de UIComponents (igual que admin.php)
-        function showMessage(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
+            // Configurar manejadores de formulario
+            function initializeFormHandlers() {
+                document.getElementById('configForm').addEventListener('submit', saveConfiguration);
+            }
 
-            const indicatorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
-            toast.innerHTML = `
+            // Guardar configuración
+            async function saveConfiguration(e) {
+                e.preventDefault();
+
+                if (isLoading) return;
+
+                try {
+                    isLoading = true;
+                    const saveBtn = document.getElementById('saveBtn');
+                    const spinner = document.getElementById('loadingSpinner');
+
+                    saveBtn.disabled = true;
+                    spinner.style.display = 'inline-block';
+
+                    const formData = new FormData(e.target);
+                    formData.append('action', 'save_config');
+
+                    const response = await fetch(`${APP_URL}/admin/api`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || 'Error al guardar configuración');
+                    }
+
+                    showMessage('Configuración guardada correctamente. Los cambios se aplicarán en el próximo inicio de sesión.', 'success');
+
+                    // Actualizar el título de la página si cambió el nombre
+                    const newTitle = document.getElementById('company_name').value;
+                    document.title = `Configuración - ${newTitle}`;
+
+                    // Preguntar si desea recargar la página para aplicar cambios
+                    setTimeout(async () => {
+                        const confirmed = await showConfirmModal({
+                            title: '¡Configuración guardada!',
+                            message: '¿Desea recargar la página para ver los cambios aplicados?',
+                            details: 'Los cambios se aplicarán completamente al recargar la página.',
+                            icon: '',
+                            confirmText: 'Recargar página',
+                            cancelText: 'Continuar sin recargar'
+                        });
+
+                        if (confirmed) {
+                            window.location.reload();
+                        }
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error al guardar configuración:', error);
+                    showMessage(`Error: ${error.message}`, 'error');
+                } finally {
+                    isLoading = false;
+                    document.getElementById('saveBtn').disabled = false;
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                }
+            }
+
+            // Usar el sistema de notificaciones de UIComponents (igual que admin.php)
+            function showMessage(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+
+                const indicatorClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+                toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
             <span class="toast-dot"></span>
             <span>${message}</span>
         </div>
     `;
 
-            document.body.appendChild(toast);
+                document.body.appendChild(toast);
 
-            setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => toast.classList.add('show'), 100);
 
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 4000);
-        }
-        // Google Translate
-        function initializeGoogleTranslate() {
-            function googleTranslateElementInit() {
-                new google.translate.TranslateElement({
-                    pageLanguage: '<?= $config['default_language'] ?>',
-                    includedLanguages: 'en,fr,pt,it,de,es',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                    autoDisplay: false
-                }, 'google_translate_element');
-
-                setTimeout(loadSavedLanguage, 1000);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(toast), 300);
+                }, 4000);
             }
+            // Google Translate
+            function initializeGoogleTranslate() {
+                function googleTranslateElementInit() {
+                    new google.translate.TranslateElement({
+                        pageLanguage: '<?= $config['default_language'] ?>',
+                        includedLanguages: 'en,fr,pt,it,de,es',
+                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                        autoDisplay: false
+                    }, 'google_translate_element');
 
-            function saveLanguage(lang) {
-                sessionStorage.setItem('language', lang);
-                localStorage.setItem('preferredLanguage', lang);
-            }
+                    setTimeout(loadSavedLanguage, 1000);
+                }
 
-            function loadSavedLanguage() {
-                const saved = sessionStorage.getItem('language') || localStorage.getItem('preferredLanguage') || '<?= $config['default_language'] ?>';
-                if (saved && saved !== '<?= $config['default_language'] ?>') {
-                    const select = document.querySelector('.goog-te-combo');
-                    if (select) {
-                        select.value = saved;
-                        select.dispatchEvent(new Event('change'));
+                function saveLanguage(lang) {
+                    sessionStorage.setItem('language', lang);
+                    localStorage.setItem('preferredLanguage', lang);
+                }
+
+                function loadSavedLanguage() {
+                    const saved = sessionStorage.getItem('language') || localStorage.getItem('preferredLanguage') || '<?= $config['default_language'] ?>';
+                    if (saved && saved !== '<?= $config['default_language'] ?>') {
+                        const select = document.querySelector('.goog-te-combo');
+                        if (select) {
+                            select.value = saved;
+                            select.dispatchEvent(new Event('change'));
+                        }
                     }
                 }
-            }
 
-            if (!window.googleTranslateElementInit) {
-                window.googleTranslateElementInit = googleTranslateElementInit;
-                const script = document.createElement('script');
-                script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-                document.head.appendChild(script);
-            }
-
-            setTimeout(function () {
-                const select = document.querySelector('.goog-te-combo');
-                if (select) {
-                    select.addEventListener('change', function () {
-                        if (this.value) saveLanguage(this.value);
-                    });
+                if (!window.googleTranslateElementInit) {
+                    window.googleTranslateElementInit = googleTranslateElementInit;
+                    const script = document.createElement('script');
+                    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+                    document.head.appendChild(script);
                 }
-            }, 2000);
-        }
 
-        // Event listeners responsive
-        document.addEventListener('DOMContentLoaded', function () {
-            window.addEventListener('resize', function () {
-                if (window.innerWidth <= 768 && sidebarOpen) {
-                    document.getElementById('mainContent').classList.remove('sidebar-open');
-                } else if (window.innerWidth > 768 && sidebarOpen) {
-                    document.getElementById('mainContent').classList.add('sidebar-open');
-                }
-            });
-        });
-
-        // ============================================================
-        // PIPELINE: Estados / Tags 
-        // ============================================================
-
-        let editingEstadoRow = null;
-
-        document.addEventListener('DOMContentLoaded', function () {
-            initEstadoDnd();
-            getEstados();
-            getTags();
-        });
-
-        // ---- Tabs ----
-        function switchPipelineTab(tab, el) {
-            document.querySelectorAll('.pl-tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('plPanelEstados').classList.toggle('active', tab === 'estados');
-            document.getElementById('plPanelTags').classList.toggle('active', tab === 'tags');
-            closeEstadoForm();
-        }
-
-        // ---- Estados: render ----
-        async function getEstados() {
-
-            const response = await fetch(`${APP_URL}/pipeline/api?action=get_estados`, {
-                method: 'GET'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                setTimeout(function () {
+                    const select = document.querySelector('.goog-te-combo');
+                    if (select) {
+                        select.addEventListener('change', function () {
+                            if (this.value) saveLanguage(this.value);
+                        });
+                    }
+                }, 2000);
             }
-            const result = await response.json();
-            const data = result.data;
-            const list = document.getElementById('estadoList');
-            list.innerHTML = '';
-            data.forEach(e => list.appendChild(buildEstadoRow(e)));
-            renumberEstados();
 
-
-        }
-
-        function buildEstadoRow({ id, nombre, descripcion, es_final }) {
-            const row = document.createElement('div');
-            row.className = 'estado-row';
-            row.draggable = true;
-            if (id != null) row.dataset.id = id;
-            row.dataset.final = es_final ? '1' : '0';
-            row.innerHTML =
-                '<span class="estado-handle" title="Arrastrar para reordenar">&#9135;</span>' +
-                '<span class="estado-pos">1</span>' +
-                '<span class="estado-name"></span>' +
-                '<span class="estado-desc"></span>' +
-                '<span class="estado-final"' + (es_final ? '' : ' hidden') + '>FINAL</span>' +
-                '<span class="estado-actions">' +
-                '<button type="button" class="icon-btn" title="Editar" onclick="openEstadoEdit(this)">' +
-                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>' +
-                '</button>' +
-                '<button type="button" class="icon-btn danger" title="Eliminar" onclick="deleteEstado(this)">' +
-                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>' +
-                '</button>' +
-                '</span>';
-            // textContent evita inyección de HTML en nombre/descripción
-            row.querySelector('.estado-name').textContent = nombre;
-            row.querySelector('.estado-desc').textContent = descripcion || '';
-            attachDragHandlers(row);
-            return row;
-        }
-
-        function renumberEstados() {
-            document.querySelectorAll('#estadoList .estado-row').forEach((row, i) => {
-                row.querySelector('.estado-pos').textContent = i + 1;
-            });
-        }
-
-        // ---- Estados: drag & drop para reordenar ----
-        function initEstadoDnd() {
-            const list = document.getElementById('estadoList');
-            list.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                const dragging = list.querySelector('.dragging');
-                if (!dragging) return;
-                const after = getDragAfterElement(list, e.clientY);
-                if (after == null) list.appendChild(dragging);
-                else list.insertBefore(dragging, after);
-            });
-        }
-
-        function attachDragHandlers(row) {
-            row.addEventListener('dragstart', function () {
-                closeEstadoForm();
-                row.classList.add('dragging');
-            });
-            row.addEventListener('dragend', function () {
-                row.classList.remove('dragging');
-                renumberEstados();
-                persistEstadoOrder();
-            });
-        }
-
-        async function persistEstadoOrder() {
-            const ids = [...document.querySelectorAll('#estadoList .estado-row')]
-                .map(r => r.dataset.id)
-                .filter(v => v != null && v !== '')
-                .map(Number);
-            if (ids.length === 0) return; // filas sin id real (placeholder): no persiste
-
-            try {
-                const res = await fetch(`${APP_URL}/pipeline/api?action=reordenar_estados`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orden: ids })
+            // Event listeners responsive
+            document.addEventListener('DOMContentLoaded', function () {
+                window.addEventListener('resize', function () {
+                    if (window.innerWidth <= 768 && sidebarOpen) {
+                        document.getElementById('mainContent').classList.remove('sidebar-open');
+                    } else if (window.innerWidth > 768 && sidebarOpen) {
+                        document.getElementById('mainContent').classList.add('sidebar-open');
+                    }
                 });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.message || 'No se pudo guardar el orden');
-                showMessage('Orden actualizado', 'success');
-            } catch (e) {
-                showMessage('Error al guardar el orden: ' + e.message, 'error');
-            }
-        }
-
-        function getDragAfterElement(list, y) {
-            const els = [...list.querySelectorAll('.estado-row:not(.dragging)')];
-            return els.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) return { offset, element: child };
-                return closest;
-            }, { offset: Number.NEGATIVE_INFINITY }).element || null;
-        }
-
-        function openEstadoCreate() {
-            editingEstadoRow = null;
-            document.querySelectorAll('.estado-row.editing').forEach(r => r.classList.remove('editing'));
-            const form = document.getElementById('estadoForm');
-            document.getElementById('estadoFormTitle').textContent = 'Nuevo estado';
-            document.getElementById('estadoNombre').value = '';
-            document.getElementById('estadoDesc').value = '';
-            document.getElementById('estadoFinal').checked = false;
-            document.getElementById('estadoList').after(form); // posición base: bajo la lista
-            form.hidden = false;
-            document.getElementById('estadoNombre').focus();
-            form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function openEstadoEdit(btn) {
-            const row = btn.closest('.estado-row');
-            editingEstadoRow = row;
-            const form = document.getElementById('estadoForm');
-            document.getElementById('estadoFormTitle').textContent = 'Editar estado';
-            document.getElementById('estadoNombre').value = row.querySelector('.estado-name').textContent;
-            document.getElementById('estadoDesc').value = row.querySelector('.estado-desc').textContent;
-            document.getElementById('estadoFinal').checked = row.dataset.final === '1';
-            document.querySelectorAll('.estado-row.editing').forEach(r => r.classList.remove('editing'));
-            row.classList.add('editing');
-            row.after(form); // se expande inline, justo debajo de la fila
-            form.hidden = false;
-            document.getElementById('estadoNombre').focus();
-        }
-
-        function closeEstadoForm() {
-            const form = document.getElementById('estadoForm');
-            if (!form) return;
-            form.hidden = true;
-            if (editingEstadoRow) editingEstadoRow.classList.remove('editing');
-            editingEstadoRow = null;
-            document.getElementById('estadoList').after(form); // devolver a posición base
-        }
-
-        async function saveEstadoForm() {
-            const nombre = document.getElementById('estadoNombre').value.trim();
-            if (!nombre) { showMessage('El nombre del estado es obligatorio', 'error'); return; }
-            const descripcion = document.getElementById('estadoDesc').value.trim();
-            const esFinal = document.getElementById('estadoFinal').checked;
-            const data = {
-                id: editingEstadoRow ? Number(editingEstadoRow.dataset.id) : null,
-                nombre: nombre,
-                descripcion: descripcion,
-                es_final: esFinal
-            }
-            if (editingEstadoRow) {
-                const response = await fetch(`${APP_URL}/pipeline/api?action=update_estados`, {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
-                })
-                const result = await response.json();
-
-                if (result.success) {
-                    editingEstadoRow.querySelector('.estado-name').textContent = nombre;
-                    editingEstadoRow.querySelector('.estado-desc').textContent = descripcion;
-                    editingEstadoRow.dataset.final = esFinal ? '1' : '0';
-                    editingEstadoRow.querySelector('.estado-final').hidden = !esFinal;
-
-                } else {
-                    alert("Error al crear estado");
-                }
-
-
-            } else {
-                const response = await fetch(`${APP_URL}/pipeline/api?action=save_estados`, {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                })
-                const result = await response.json();
-                if (result.success) {
-                    const row = buildEstadoRow({ id: result.id, nombre, descripcion, es_final: esFinal });
-                    document.getElementById('estadoList').appendChild(row);
-
-                }
-
-            }
-            closeEstadoForm();
-            renumberEstados();
-        }
-
-        async function deleteEstado(btn) {
-            const row = btn.closest('.estado-row');
-            const nombre = row.querySelector('.estado-name').textContent;
-            const data = {
-                id: Number(row.dataset.id)
-            }
-            if (!confirm('¿Eliminar el estado "' + nombre + '"?')) return;
-            const response = await fetch(`${APP_URL}/pipeline/api?action=delete_estados`, {
-                method: "POST",
-                body: JSON.stringify(data)
             });
-            const result = await response.json();
-
-            if (result.success) {
 
 
-                row.remove();
-                renumberEstados();
-            } else {
-                showMessage(result.message || "no se pudo eliminar");
-            }
-        }
-
-        // ---- Tags ----
-        async function getTags() {
-            const response = await fetch(`${APP_URL}/pipeline/api?action=get_tags`, {
-                method: 'GET'
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const result = await response.json();
-
-            const data = result.data;
-            console.log(data);
-            const list = document.getElementById('tagList');
-            list.innerHTML = '';
-            data.forEach(e => list.appendChild(buildTagChip(e["nombre"], e['id'])));
-
-
-        }
-
-        function buildTagChip(nombre, id) {
-            const chip = document.createElement('span');
-            chip.className = 'tag-chip';
-            chip.id = id;
-            const label = document.createElement('span');
-            label.textContent = nombre;
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.title = 'Eliminar';
-            btn.textContent = '×';
-            btn.onclick = async function () {
-                const data = { id: chip.id }
-                const response = await fetch(`${APP_URL}/pipeline/api?action=delete_tags`, {
-                    method: "POST",
-                    body: JSON.stringify(data)
-                })
-                const result = await response.json();
-
-                if (result.success) {
-                    chip.remove();
-                    refreshTagEmpty();
-
-                } else {
-                    showMessage(result.message || "error al eliminar");
-                }
-
-
-            };
-            chip.append(label, btn);
-            return chip;
-        }
-
-        async function handleTagInput(e) {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-            const input = e.target;
-            const nombre = input.value.trim();
-            if (!nombre) return;
-            const exists = [...document.querySelectorAll('#tagList .tag-chip > span:first-child')]
-                .some(s => s.textContent.toLowerCase() === nombre.toLowerCase());
-            if (exists) { showMessage('Esa etiqueta ya existe', 'error'); return; }
-            const data = {
-                nombre: nombre
-            }
-            const response = await fetch(`${APP_URL}/pipeline/api?action=save_tags`, {
-                method: "POST",
-                body: JSON.stringify(data)
-            })
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('tagList').appendChild(buildTagChip(nombre));
-                input.value = '';
-                refreshTagEmpty();
-            }
-
-
-        }
-
-        function refreshTagEmpty() {
-            const list = document.getElementById('tagList');
-            const hasChips = list.querySelector('.tag-chip');
-            let empty = list.querySelector('.tag-empty');
-            if (!hasChips && !empty) {
-                empty = document.createElement('span');
-                empty.className = 'tag-empty';
-                empty.textContent = 'No hay etiquetas todavía.';
-                list.appendChild(empty);
-            } else if (hasChips && empty) {
-                empty.remove();
-            }
-        }
-    </script>
+        </script>
 </body>
 
 </html>

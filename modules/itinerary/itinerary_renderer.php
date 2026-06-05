@@ -56,7 +56,7 @@ class ItineraryRenderer
 
                 @page { margin: 12mm 12mm 14mm 12mm; }
                 * { box-sizing: border-box; }
-                body { margin:0; font-family: TravelPdf, DejaVu Sans, Arial, sans-serif; color:#2f3747; font-size:9.5px; line-height:1.42; background:#fff; }
+                body { margin:0; font-family: TravelPdf, DejaVu Sans, Arial, sans-serif; color:#2f3747; font-size:12px; line-height:1.45; background:#fff; }
                 img { display:block; }
 
                 .cover {
@@ -82,7 +82,7 @@ class ItineraryRenderer
                 .agency {
                     text-align:right;
                     color:<?= $primary ?>;
-                    font-size:10px;
+                    font-size:12px;
                     font-weight:700;
                     letter-spacing:2px;
                     text-transform:uppercase;
@@ -109,14 +109,14 @@ class ItineraryRenderer
 
                 .hero-kicker {
                     color:#cbd5e1;
-                    font-size:8px;
+                    font-size:10px;
                     text-transform:uppercase;
                     letter-spacing:3px;
                     margin-bottom:10mm;
                 }
 
                 .hero-title {
-                    font-size:27px;
+                    font-size:30px;
                     line-height:1.18;
                     font-weight:700;
                     color:#fff;
@@ -125,7 +125,7 @@ class ItineraryRenderer
 
                 .hero-subtitle {
                     color:#d1d5db;
-                    font-size:10px;
+                    font-size:12px;
                     line-height:1.5;
                 }
 
@@ -154,7 +154,7 @@ class ItineraryRenderer
                 }
 
                 .stat-label {
-                    font-size:7px;
+                    font-size:9px;
                     letter-spacing:1.5px;
                     text-transform:uppercase;
                     color:#94a3b8;
@@ -163,53 +163,53 @@ class ItineraryRenderer
                 }
 
                 .stat-value {
-                    font-size:11px;
+                    font-size:13px;
                     color:#111827;
                     font-weight:700;
                 }
 
                 .summary-page { page-break-after: always; }
-                .summary-title { font-size:24px; color:<?= $primary ?>; font-weight:700; margin-bottom:18px; }
+                .summary-title { font-size:27px; color:<?= $primary ?>; font-weight:700; margin-bottom:18px; }
                 .summary-grid { width:100%; border-collapse:collapse; margin-bottom:18px; }
                 .summary-grid td { width:25%; padding:11px 12px; border:1px solid #e5e7eb; vertical-align:top; }
-                .summary-label { color:#7b8494; font-size:7.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; }
-                .summary-value { font-size:10.5px; color:#111827; font-weight:700; }
-                .stage-title { color:#111827; font-size:14px; font-weight:700; margin:14px 0 9px; }
-                .stage-row { font-size:10px; padding:4px 0; border-bottom:1px solid #eef0f4; }
+                .summary-label { color:#7b8494; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; }
+                .summary-value { font-size:13px; color:#111827; font-weight:700; }
+                .stage-title { color:#111827; font-size:17px; font-weight:700; margin:14px 0 9px; }
+                .stage-row { font-size:12px; padding:5px 0; border-bottom:1px solid #eef0f4; }
                 .stage-day { color:<?= $primary ?>; font-weight:700; display:inline-block; width:48px; }
 
                 .day { margin-bottom:20px; page-break-inside:auto; }
                 .day-head { margin-bottom:8px; }
-                .day-number { color:<?= $primary ?>; font-size:19px; font-weight:700; display:inline; }
-                .day-date { color:#9aa3b2; font-size:9px; margin-left:6px; }
-                .day-title { color:#293241; font-size:20px; line-height:1.22; font-weight:700; margin:3px 0 6px; }
+                .day-number { color:<?= $primary ?>; font-size:22px; font-weight:700; display:inline; }
+                .day-date { color:#9aa3b2; font-size:11px; margin-left:6px; }
+                .day-title { color:#293241; font-size:23px; line-height:1.22; font-weight:700; margin:3px 0 6px; }
                 .chips { margin:4px 0 10px; }
-                .chip { display:inline-block; border:1px solid #ccd3dd; border-radius:4px; color:#8b95a5; padding:3px 7px; font-size:8px; margin-right:4px; margin-bottom:4px; }
+                .chip { display:inline-block; border:1px solid #ccd3dd; border-radius:4px; color:#8b95a5; padding:3px 7px; font-size:10px; margin-right:4px; margin-bottom:4px; }
                 .photo-grid { width:100%; border-collapse:collapse; margin:8px 0 9px; }
                 .photo-grid td { width:33.33%; padding-right:7px; vertical-align:top; }
                 .photo-grid td:last-child { padding-right:0; }
                 .photo-grid img { width:100%; height:35mm; }
-                .day-desc { font-size:9.7px; line-height:1.42; color:#3f4755; margin:8px 0 12px; }
-                .contains { font-size:11px; color:#293241; font-weight:700; margin:11px 0 7px; }
-                .meals { font-size:9px; color:<?= $primary ?>; font-weight:700; margin-bottom:9px; }
+                .day-desc { font-size:12px; line-height:1.45; color:#3f4755; margin:8px 0 12px; }
+                .contains { font-size:13px; color:#293241; font-weight:700; margin:11px 0 7px; }
+                .meals { font-size:11px; color:<?= $primary ?>; font-weight:700; margin-bottom:9px; }
                 .empty-meals { color:#9aa3b2; }
 
                 .hotel { width:100%; border-collapse:collapse; margin:10px 0 12px; page-break-inside:avoid; }
                 .hotel-marker { width:28px; vertical-align:top; }
                 .dot { width:8px; height:8px; border:1px solid #9ca3af; border-radius:50%; margin-top:4px; }
                 .hotel-line { border-left:1px dotted #aeb6c2; padding-left:13px; }
-                .hotel-kind { color:<?= $primary ?>; font-size:10px; font-weight:700; margin-bottom:4px; }
+                .hotel-kind { color:<?= $primary ?>; font-size:12px; font-weight:700; margin-bottom:4px; }
                 .hotel-box { width:100%; border-collapse:collapse; }
                 .hotel-box td { vertical-align:top; }
                 .hotel-photo { width:74px; height:54px; }
-                .hotel-name { font-size:12px; color:#293241; font-weight:700; margin-bottom:4px; }
-                .hotel-info { color:#6b7280; font-size:8.5px; line-height:1.35; }
-                .room { color:#6b7280; font-size:8.4px; margin-top:4px; }
+                .hotel-name { font-size:14px; color:#293241; font-weight:700; margin-bottom:4px; }
+                .hotel-info { color:#6b7280; font-size:10.5px; line-height:1.38; }
+                .room { color:#6b7280; font-size:10.5px; margin-top:4px; }
 
                 .activity { margin:8px 0 10px; page-break-inside:auto; }
-                .service-kind { color:<?= $primary ?>; font-size:9px; font-weight:700; margin-bottom:3px; }
-                .activity-title { font-size:12px; font-weight:700; color:#293241; margin-bottom:4px; }
-                .activity-desc { font-size:9px; line-height:1.38; color:#3f4755; }
+                .service-kind { color:<?= $primary ?>; font-size:11px; font-weight:700; margin-bottom:3px; }
+                .activity-title { font-size:14px; font-weight:700; color:#293241; margin-bottom:4px; }
+                .activity-desc { font-size:11px; line-height:1.42; color:#3f4755; }
 
                 .flight {
                     border-left:3px solid <?= $primary ?>;
@@ -219,7 +219,7 @@ class ItineraryRenderer
                     page-break-inside:avoid;
                 }
                 .flight-title {
-                    font-size:8.5px;
+                    font-size:10.5px;
                     font-weight:700;
                     color:#293241;
                     margin-bottom:4px;
@@ -227,21 +227,21 @@ class ItineraryRenderer
                 .flight-table { width:100%; border-collapse:collapse; }
                 .flight-table td { vertical-align:middle; }
                 .airport-code {
-                    font-size:13px;
+                    font-size:15px;
                     font-weight:700;
                     color:#111827;
                 }
-                .airport-city { font-size:6.5px; color:#7b8494; }
-                .flight-time { color:<?= $primary ?>; font-weight:700; font-size:7px; }
-                .flight-mid { text-align:center; font-size:6.5px; color:<?= $primary ?>; font-weight:700; }
+                .airport-city { font-size:8px; color:#7b8494; }
+                .flight-time { color:<?= $primary ?>; font-weight:700; font-size:9px; }
+                .flight-mid { text-align:center; font-size:8px; color:<?= $primary ?>; font-weight:700; }
 
                 .price-section { page-break-before:always; }
-                .section-title { font-size:20px; color:<?= $primary ?>; font-weight:700; margin:0 0 14px; }
+                .section-title { font-size:23px; color:<?= $primary ?>; font-weight:700; margin:0 0 14px; }
                 .pricing-table { width:100%; border-collapse:collapse; }
-                .pricing-table td { border:1px solid #e5e7eb; padding:9px 10px; vertical-align:top; font-size:9px; line-height:1.42; }
+                .pricing-table td { border:1px solid #e5e7eb; padding:9px 10px; vertical-align:top; font-size:11px; line-height:1.45; }
                 .price-label { width:30%; background:#f8fafc; color:#111827; font-weight:700; }
-                .price-main { color:<?= $primary ?>; font-size:17px; font-weight:700; }
-                .footer { color:#7b8494; font-size:8px; text-align:right; margin-top:16px; border-top:1px solid #e5e7eb; padding-top:8px; }
+                .price-main { color:<?= $primary ?>; font-size:19px; font-weight:700; }
+                .footer { color:#7b8494; font-size:10px; text-align:right; margin-top:16px; border-top:1px solid #e5e7eb; padding-top:8px; }
             </style>
         </head>
         <body>
@@ -518,6 +518,14 @@ class ItineraryRenderer
 
         $binary = $this->readImageBinary($path);
         if (!$binary) { return ''; }
+
+        // Si GD no está disponible, devolver la imagen original sin redimensionar
+        if (!function_exists('imagecreatefromstring')) {
+            $info = @getimagesizefromstring($binary);
+            if (!$info || empty($info['mime'])) { return ''; }
+            return 'data:' . $info['mime'] . ';base64,' . base64_encode($binary);
+        }
+
         $src = @imagecreatefromstring($binary);
         if (!$src) { return ''; }
         $w = imagesx($src); $h = imagesy($src);

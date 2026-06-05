@@ -176,9 +176,17 @@ if ($method === 'POST' && $action === 'send') {
         exit;
     }
 
-    $result = $chatService->sendMessage($pipelineId, $emailAccountId, $messageBody, $attachments);
+    try {
+        $result = $chatService->sendMessage($pipelineId, $emailAccountId, $messageBody, $attachments);
+    } catch (\Throwable $e) {
+        error_log('chat_api send EXCEPTION: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+        http_response_code(500);
+        echo json_encode(['error' => 'Error interno al enviar: ' . $e->getMessage()]);
+        exit;
+    }
 
     if (!$result['success']) {
+        error_log('chat_api send FAILED: ' . ($result['error'] ?? 'desconocido'));
         http_response_code(500);
         echo json_encode(['error' => $result['error']]);
         exit;

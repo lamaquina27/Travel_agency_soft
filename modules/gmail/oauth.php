@@ -4,7 +4,8 @@ require_once __DIR__ . '/gmail_client.php';
 
 App::requireLogin();
 
-function redirectAfterOauth() {
+function redirectAfterOauth()
+{
     $user = App::getUser();
     if ($user['role'] === 'admin') {
         header('Location: ' . APP_URL . '/administrador/configuracion');
@@ -19,10 +20,12 @@ $action = $_GET['action'] ?? '';
 if ($action === 'disconnect') {
     $db = Database::getInstance();
     $user = App::getUser();
-    $db->execute(
-        "DELETE FROM email_accounts WHERE user_id = ? AND provider = 'gmail'",
+    $db->delete(
+        'email_accounts',
+        "user_id = ? AND provider = 'gmail'",
         [$user['id']]
     );
+
     $_SESSION['flash_success'] = 'Cuenta Gmail desconectada correctamente.';
     redirectAfterOauth();
 }
@@ -35,7 +38,7 @@ if ($action === 'connect') {
 }
 
 if ($action === 'callback') {
-    $code  = $_GET['code']  ?? '';
+    $code = $_GET['code'] ?? '';
     $error = $_GET['error'] ?? '';
 
     if ($error) {
@@ -50,9 +53,9 @@ if ($action === 'callback') {
 
     try {
         $gmailClient = new GmailClient();
-        $token       = $gmailClient->handleCallback($code);
+        $token = $gmailClient->handleCallback($code);
 
-        $userInfo    = $gmailClient->getUserInfo();
+        $userInfo = $gmailClient->getUserInfo();
         $gmailClient->saveToken($_SESSION['user_id'], $userInfo['email'], $token);
 
         $_SESSION['flash_success'] = 'Cuenta Gmail conectada: ' . $userInfo['email'];

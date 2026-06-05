@@ -307,6 +307,13 @@ function uploadAgenciaImageBiblioteca($file, $agencia_id, $tipo, $resourceId, $f
  * Reduce tamaño de archivo pero mantiene alta calidad
  */
 function optimizeImageWithoutQualityLoss($filePath, $extension) {
+    // Si la extensión GD no está disponible, no se puede optimizar.
+    // Se conserva la imagen original (ya fue movida) en lugar de provocar un
+    // error fatal por llamar a una función inexistente (imagecreatefrom*).
+    if (!function_exists('imagecreatefromjpeg')) {
+        error_log("GD no disponible: se omite la optimización de imagen y se conserva el original");
+        return;
+    }
     try {
         // Leer imagen según tipo
         switch(strtolower($extension)) {
@@ -338,8 +345,8 @@ function optimizeImageWithoutQualityLoss($filePath, $extension) {
                 }
                 break;
         }
-    } catch (Exception $e) {
-        // Si falla la optimización, mantener original
+    } catch (\Throwable $e) {
+        // Si falla la optimización (incl. errores de GD), mantener el original.
         error_log("No se pudo optimizar imagen: " . $e->getMessage());
     }
 }

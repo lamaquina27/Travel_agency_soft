@@ -26,20 +26,16 @@ class ProgramaAPI
         }
 
         $agencia_id = $_SESSION['agencia_id'] ?? null;
-        $user_id = $_SESSION['user_id'];
         $user_role = $_SESSION['user_role'] ?? 'agent';
 
-        // Solo el dueño o un admin pueden cambiar el flag
-        $where = $user_role === 'admin'
-            ? "id = ? AND agencia_id = ?"
-            : "id = ? AND user_id = ? AND agencia_id = ?";
-        $params = $user_role === 'admin'
-            ? [$programa_id, $agencia_id]
-            : [$programa_id, $user_id, $agencia_id];
+        // Solo los administradores pueden guardar/quitar plantillas
+        if ($user_role !== 'admin') {
+            throw new Exception('Solo los administradores pueden guardar plantillas');
+        }
 
         $programa = $this->db->fetch(
-            "SELECT id, plantilla FROM programa_solicitudes WHERE $where",
-            $params
+            "SELECT id, plantilla FROM programa_solicitudes WHERE id = ? AND agencia_id = ?",
+            [$programa_id, $agencia_id]
         );
 
         if (!$programa) {

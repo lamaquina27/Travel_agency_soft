@@ -581,6 +581,83 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             border-color: color-mix(in srgb, var(--admin-primary) 18%, #e5e7eb);
         }
 
+        .label-with-help {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-help-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            border-radius: 50%;
+            border: 1px solid color-mix(in srgb, var(--admin-primary) 28%, #e5e7eb);
+            background: color-mix(in srgb, var(--admin-primary) 10%, #ffffff);
+            color: var(--admin-primary);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .role-help-btn:hover {
+            background: var(--admin-gradient);
+            color: #ffffff;
+            border-color: transparent;
+            transform: scale(1.08);
+        }
+
+        .role-help-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .role-help-card {
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 18px;
+            padding: 18px 20px;
+            background: #ffffff;
+        }
+
+        .role-help-card-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .role-help-card-head .role-badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .role-help-card p {
+            margin: 0 0 8px;
+            color: var(--text-muted, #64748b);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .role-help-card ul {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--text, #1f2937);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .role-help-card li {
+            margin-bottom: 3px;
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -975,7 +1052,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         <tr>
                             <th>Usuario</th>
                             <th>Email</th>
-                            <th>Rol</th>
+                            <th>
+                                <span class="label-with-help" style="display:inline-flex;">
+                                    Rol
+                                    <button type="button" class="role-help-btn" onclick="openRoleHelp()"
+                                        title="¿Qué puede hacer cada rol?" aria-label="Ayuda sobre los roles">?</button>
+                                </span>
+                            </th>
                             <th>Estado</th>
                             <th>Fecha creación</th>
                             <th>Último acceso</th>
@@ -1029,7 +1112,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </div>
 
                     <div class="form-group">
-                        <label for="role">Rol del Usuario *</label>
+                        <label for="role" class="label-with-help">
+                            Rol del Usuario *
+                            <button type="button" class="role-help-btn" onclick="openRoleHelp()"
+                                title="¿Qué puede hacer cada rol?" aria-label="Ayuda sobre los roles">?</button>
+                        </label>
                         <select id="role" name="role" required>
                             <option value="">Seleccionar rol</option>
                             <option value="agent">Agente de viajes</option>
@@ -1079,6 +1166,64 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de ayuda: ¿Qué puede hacer cada rol? -->
+    <div class="modal" id="roleHelpModal">
+        <div class="modal-content" style="max-width:640px;">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span class="modal-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg></span>
+                    Permisos de cada rol
+                </h2>
+                <button class="close-btn" onclick="closeRoleHelp()">&times;</button>
+            </div>
+
+            <div class="role-help-list">
+                <div class="role-help-card">
+                    <div class="role-help-card-head">
+                        <span class="role-badge role-admin">Administrador</span>
+                    </div>
+                    <p>Acceso total al sistema de la agencia.</p>
+                    <ul>
+                        <li>Gestiona usuarios: crear, editar y desactivar.</li>
+                        <li>Configura la agencia: colores, datos y ajustes globales.</li>
+                        <li>Supervisa <strong>todos</strong> los pipelines, itinerarios y la biblioteca.</li>
+                        <li>Gestiona traslados / rooming.</li>
+                    </ul>
+                </div>
+
+                <div class="role-help-card">
+                    <div class="role-help-card-head">
+                        <span class="role-badge role-agent">Agente de viajes</span>
+                    </div>
+                    <p>Rol comercial enfocado en vender y atender clientes.</p>
+                    <ul>
+                        <li>Gestiona <strong>su</strong> pipeline (sus leads asignados).</li>
+                        <li>Crea y edita sus itinerarios / programas y chatea con clientes.</li>
+                        <li>Usa su biblioteca de recursos.</li>
+                        <li>Accede a traslados / rooming solo si la agencia lo habilita.</li>
+                        <li>No administra usuarios ni la configuración global.</li>
+                    </ul>
+                </div>
+
+                <div class="role-help-card">
+                    <div class="role-help-card-head">
+                        <span class="role-badge role-operador">Operador</span>
+                    </div>
+                    <p>Acceso restringido a logística de traslados.</p>
+                    <ul>
+                        <li>Ve únicamente los traslados (rooming) asignados a él.</li>
+                        <li>Edita su propio perfil.</li>
+                        <li>No tiene acceso a dashboard, pipeline, itinerarios ni configuración.</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1406,6 +1551,22 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         function closeUserModal() {
             document.getElementById('userModal').classList.remove('show');
         }
+
+        function openRoleHelp() {
+            document.getElementById('roleHelpModal').classList.add('show');
+        }
+
+        function closeRoleHelp() {
+            document.getElementById('roleHelpModal').classList.remove('show');
+        }
+
+        // Cerrar el popup de ayuda al hacer clic fuera o con Escape
+        document.getElementById('roleHelpModal').addEventListener('click', function (e) {
+            if (e.target === this) closeRoleHelp();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeRoleHelp();
+        });
 
         function loadUserData(id) {
             const user = users.find(u => u.id == id);

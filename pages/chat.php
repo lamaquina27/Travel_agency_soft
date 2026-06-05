@@ -1475,6 +1475,18 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
                         </svg>
                     </button>
 
+                    <?php if ($sol_id): ?>
+                        <!-- Insertar link de vista previa del itinerario vinculado -->
+                        <button class="action-btn" id="btn-preview-link"
+                            title="Insertar link de vista previa del itinerario" onclick="insertarLinkVistaPrevia()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    <?php endif; ?>
+
                     <div class="action-bar-divider"></div>
 
 
@@ -1979,6 +1991,37 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         document.getElementById('message-input').innerHTML = '';
         attachedFiles = [];
         renderAttachments();
+    }
+
+    // ============================================================
+    // INSERTAR LINK DE VISTA PREVIA DEL ITINERARIO VINCULADO
+    // ============================================================
+    function insertarLinkVistaPrevia() {
+        const solId = <?= json_encode($sol_id) ?>;
+        if (!solId) {
+            alert('Este lead no tiene un itinerario vinculado.');
+            return;
+        }
+        const url = `${APP_URL}/itinerary?id=${solId}&public=1`;
+        const editor = document.getElementById('message-input');
+        if (!editor) return;
+
+        editor.focus();
+        // Insertar el URL como TEXTO PLANO (sin etiquetas <a>); Gmail lo convierte
+        // en enlace clicable al mostrar el correo.
+        const actual = editor.innerHTML.trim();
+        if (actual && !actual.endsWith('<br>')) {
+            editor.appendChild(document.createElement('br'));
+        }
+        editor.appendChild(document.createTextNode(url + ' '));
+
+        // Colocar el cursor al final del editor.
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
     }
 
     // ============================================================

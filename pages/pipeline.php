@@ -644,7 +644,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293
             <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             Vincular itinerario
           </button>
-          <div class="lm-vinc-badge" id="lmVincBadge"></div>
+          <div class="lm-vinc-badge-row" id="lmVincBadgeRow" style="display:none; align-items:center; gap:8px; margin-top:8px;">
+            <div class="lm-vinc-badge" id="lmVincBadge" style="display:block; margin:0; flex:1;"></div>
+            <button class="lm-vinc-preview-btn" id="lmPreviewLinkBtn"
+              title="Insertar link de vista previa en el chat" onclick="lmInsertarLinkVistaPrevia()"
+              style="flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border:1px solid #a7f3d0; background:#ecfdf5; color:#059669; border-radius:8px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Formulario de edición (modo edición) -->
@@ -1231,6 +1241,7 @@ async function openLeadModal(id){
     const lt2=document.getElementById('lmTagId2');  if(lt2) lt2.value=lead.tag_id2||'';
     renderModalTagChips();
     renderModalInfo(lead);
+    _renderVincBadge(lead);
     document.getElementById('leadModal').classList.add('open');
     _lmLastCount = -1;
     lmLoadChat(id);
@@ -1860,7 +1871,7 @@ function vincBack(){ vincShowView('main'); }
 async function vincSelectOption(opt){
     if(opt==='scratch'){
         closeVincModal();
-        window.location.href=APP_URL+'/programa';
+        window.location.href=APP_URL+'/programa?pipeline_id='+S.currentLeadId;
         return;
     }
     vincShowView(opt);
@@ -1980,12 +1991,38 @@ async function _confirmarClone(programaId, rowEl){
     }catch(e){ showToast('Error de red','err'); rowEl.style.opacity=''; rowEl.style.pointerEvents=''; }
 }
 
+function _renderVincBadge(lead){
+    const tieneItinerario = !!(lead && lead.solicitud_id);
+    const badge=document.getElementById('lmVincBadge');
+    if(badge && tieneItinerario){
+        badge.textContent='✓ '+(lead.itinerario_titulo||'Programa vinculado');
+    }
+    // La fila (badge verde + botón de vista previa) solo se muestra si hay itinerario vinculado.
+    const row=document.getElementById('lmVincBadgeRow');
+    if(row) row.style.display = tieneItinerario ? 'flex' : 'none';
+}
+
+// Inserta el link de vista previa del itinerario vinculado en el editor del chat.
+function lmInsertarLinkVistaPrevia(){
+    const lead=S.leads.find(l=>l.id==S.currentLeadId);
+    if(!lead||!lead.solicitud_id){ showToast('Este lead no tiene un itinerario vinculado','err'); return; }
+    const url=APP_URL+'/itinerary?id='+lead.solicitud_id+'&public=1';
+    const editor=document.getElementById('lmEditor');
+    if(!editor) return;
+    editor.focus();
+    // Insertar el URL como TEXTO PLANO (sin etiquetas <a>); Gmail lo vuelve enlace al mostrarlo.
+    const actual=editor.innerHTML.trim();
+    if(actual && !actual.endsWith('<br>')) editor.appendChild(document.createElement('br'));
+    editor.appendChild(document.createTextNode(url + ' '));
+    const range=document.createRange(); range.selectNodeContents(editor); range.collapse(false);
+    const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+}
+
 function _afterVincular(solicitud_id, label){
     closeVincModal();
     const lead=S.leads.find(l=>l.id==S.currentLeadId);
-    if(lead) lead.solicitud_id=solicitud_id;
-    const badge=document.getElementById('lmVincBadge');
-    if(badge){ badge.textContent='✓ '+label; badge.style.display='block'; }
+    if(lead){ lead.solicitud_id=solicitud_id; lead.itinerario_titulo=label; }
+    _renderVincBadge(lead);
 }
 
 async function confirmarVincular(){
