@@ -568,7 +568,12 @@ private function saveConfiguration() {
         if (isset($_POST['agent_secondary_color'])) {
             $data['agent_secondary_color'] = $_POST['agent_secondary_color'];
         }
-        
+
+        // Visibilidad del módulo Rooming para agentes (checkbox: hidden 0 + checkbox 1)
+        if (isset($_POST['rooming_agentes_visible'])) {
+            $data['rooming_agentes_visible'] = ((string) $_POST['rooming_agentes_visible'] === '1') ? 1 : 0;
+        }
+
         if (empty($data)) {
             throw new Exception('No hay datos para actualizar');
         }

@@ -35,7 +35,8 @@ class ItineraryRenderer
         $duracionDias = (int)($data['duracion_dias'] ?? count($dias));
         $viajeros = (int)($programa['viajeros_count'] ?: ($programa['numero_pasajeros'] ?? 0));
         $logo = $this->imageToDataUri($agencia['logo_url'] ?? '');
-        $cover = $this->thumbToDataUri($programa['foto_portada'] ?? '', 720, 420);
+        // Portada: thumb con la proporción de la caja vertical (≈108x145mm) para que NO se deforme
+        $cover = $this->thumbToDataUri($programa['foto_portada'] ?? '', 600, 800);
         $fontRegular = $this->fontFileUri('NotoSansThai-Regular.ttf');
         $fontBold = $this->fontFileUri('NotoSansThai-Bold.ttf');
 
@@ -313,10 +314,10 @@ class ItineraryRenderer
                         </tr></table>
                     <?php endif; ?>
 
-                    <?php if (!empty($dia['descripcion'])): ?><div class="day-desc"><?= nl2br(htmlspecialchars($this->shortText($dia['descripcion'], 1250))) ?></div><?php endif; ?>
+                    <?php if (!empty($dia['descripcion'])): ?><div class="day-desc"><?= nl2br(htmlspecialchars($this->shortText($dia['descripcion'], 12000))) ?></div><?php endif; ?>
 
-                    <div class="contains">Este día contiene:</div>
                     <?php $meals = $this->getMealsSummary($dia['servicios'] ?? [], $dia['descripcion'] ?? ''); ?>
+                    <div class="contains">Comidas</div>
                     <div class="meals <?= str_contains($meals, 'no están') ? 'empty-meals' : '' ?>"><?= htmlspecialchars($meals) ?></div>
 
                     <?php foreach (($dia['vuelos'] ?? []) as $vuelo): ?>
@@ -347,7 +348,7 @@ class ItineraryRenderer
                                 </td>
                             </tr></table>
                         <?php elseif ($tipo !== 'comida'): ?>
-                            <div class="activity"><div class="service-kind"><?= htmlspecialchars($this->formatServiceType($tipo)) ?></div><div class="activity-title"><?= htmlspecialchars($servicio['nombre'] ?? 'Service') ?></div><?php if (!empty($servicio['descripcion'])): ?><div class="activity-desc"><?= nl2br(htmlspecialchars($this->shortText($servicio['descripcion'], 650))) ?></div><?php endif; ?></div>
+                            <div class="activity"><div class="service-kind"><?= htmlspecialchars($this->formatServiceType($tipo)) ?></div><div class="activity-title"><?= htmlspecialchars($servicio['nombre'] ?? 'Service') ?></div><?php if (!empty($servicio['descripcion'])): ?><div class="activity-desc"><?= nl2br(htmlspecialchars($this->shortText($servicio['descripcion'], 5000))) ?></div><?php endif; ?></div>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
@@ -358,7 +359,7 @@ class ItineraryRenderer
                     <h2 class="section-title">Precio y condiciones</h2>
                     <table class="pricing-table">
                         <?php if (!empty($precios['precio_total'])): ?><tr><td class="price-label">Precio total</td><td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></span></td></tr><?php endif; ?>
-                        <?php foreach ([['incluye','Incluye'],['no_incluye','No incluye'],['condiciones_generales','Condiciones generales'],['info_pasaporte','Pasaporte y visados'],['info_seguros','Seguros']] as $row): ?>
+                        <?php foreach ([['precio_incluye','Incluye'],['precio_no_incluye','No incluye'],['condiciones_generales','Condiciones generales'],['info_pasaporte','Pasaporte y visados'],['info_seguros','Seguros'],['visados_entrada','Visados y requisitos de entrada'],['requisitos_sanitarios','Requisitos sanitarios'],['llegada_punto_encuentro','Llegada y punto de encuentro'],['asistencia_emergencia','Asistencia y emergencias'],['info_hoteles_servicios','Información de hoteles y servicios'],['informacion_practica','Información práctica']] as $row): ?>
                             <?php if (!empty($precios[$row[0]])): ?><tr><td class="price-label"><?= $row[1] ?></td><td><?= nl2br(htmlspecialchars($precios[$row[0]])) ?></td></tr><?php endif; ?>
                         <?php endforeach; ?>
                     </table>
@@ -492,7 +493,7 @@ class ItineraryRenderer
                 if ($key && isset($hotelsSeen[$key])) { continue; }
                 $hotelsSeen[$key] = true;
                 $hotelCount++;
-                if ($hotelCount > 2) { continue; }
+                if ($hotelCount > 1) { continue; } // solo el alojamiento principal del día
             }
             $visible[] = $s;
         }
@@ -501,6 +502,20 @@ class ItineraryRenderer
 
     private function thumbToDataUri(?string $path, int $targetW, int $targetH): string
     {
+        $path = trim((string)$path);
+        if ($path === '') { return ''; }
+
+        // Caché en disco: evita re-descargar/re-procesar la misma imagen en cada PDF (clave: ruta+tamaño)
+        $cacheDir = $this->rootPath . '/tmp/pdf-thumbs';
+        if (!is_dir($cacheDir)) { @mkdir($cacheDir, 0775, true); }
+        $cacheFile = $cacheDir . '/' . md5($path . '|' . $targetW . 'x' . $targetH) . '.jpg';
+        if (is_file($cacheFile)) {
+            $cached = @file_get_contents($cacheFile);
+            if ($cached !== false && $cached !== '') {
+                return 'data:image/jpeg;base64,' . base64_encode($cached);
+            }
+        }
+
         $binary = $this->readImageBinary($path);
         if (!$binary) { return ''; }
         $src = @imagecreatefromstring($binary);
@@ -512,8 +527,9 @@ class ItineraryRenderer
         else { $newW = $w; $newH = (int)round($w / $dstRatio); $srcX = 0; $srcY = (int)(($h - $newH) / 2); }
         $dst = imagecreatetruecolor($targetW, $targetH);
         imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, $targetW, $targetH, $newW, $newH);
-        ob_start(); imagejpeg($dst, null, 72); $jpg = ob_get_clean();
+        ob_start(); imagejpeg($dst, null, 78); $jpg = ob_get_clean();
         imagedestroy($src); imagedestroy($dst);
+        @file_put_contents($cacheFile, $jpg);
         return 'data:image/jpeg;base64,' . base64_encode($jpg);
     }
 

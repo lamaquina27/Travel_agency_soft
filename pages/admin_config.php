@@ -223,23 +223,69 @@ if (!function_exists('adminConfigIcon')) {
         .main-content {
             margin-left: 0;
             margin-top: 70px;
-            padding: 34px 38px;
+            padding: 30px 32px 56px;
             transition: margin-left .35s cubic-bezier(.4, 0, .2, 1);
             min-height: calc(100vh - 70px);
+            background: #f1f5f9;
         }
 
         .main-content.sidebar-open {
             margin-left: 320px;
         }
 
+        /* Contenedor centrado: todo en una columna ordenada, no flotando */
+        .config-shell {
+            max-width: 940px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .config-shell #configForm {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Encabezado de la página */
+        .config-pagehead {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 4px 2px 2px;
+        }
+        .config-pagehead .cph-icon {
+            width: 46px; height: 46px; border-radius: 14px;
+            background: var(--admin-gradient); color: #fff;
+            display: grid; place-items: center; flex-shrink: 0;
+            box-shadow: 0 6px 18px rgba(0,0,0,.12);
+        }
+        .config-pagehead .cph-icon svg { width: 24px; height: 24px; stroke: #fff; }
+        .config-pagehead h1 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.02em; margin: 0; }
+        .config-pagehead p { font-size: 13px; color: var(--text-muted); margin: 2px 0 0; }
+
+        /* Pestañas */
+        .cfg-tabnav {
+            display: flex; gap: 6px; background: #fff; border: 1px solid #e7ecf3;
+            border-radius: 14px; padding: 6px; box-shadow: 0 1px 3px rgba(15,23,42,.05);
+            overflow-x: auto;
+        }
+        .cfg-tabnav button {
+            flex: 1; min-width: 92px; border: none; background: transparent;
+            padding: 11px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 700;
+            color: #64748b; cursor: pointer; white-space: nowrap; transition: all .18s; font-family: inherit;
+        }
+        .cfg-tabnav button:hover { background: #f1f5f9; color: #0f172a; }
+        .cfg-tabnav button.active { background: var(--admin-gradient); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.14); }
+
         .preview-section,
         .config-section {
-            background: rgba(255, 255, 255, .94);
-            border-radius: 28px;
-            padding: 28px;
-            margin-bottom: 28px;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(226, 232, 240, .9);
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px 26px;
+            margin: 0;
+            box-shadow: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+            border: 1px solid #e7ecf3;
             position: relative;
             overflow: hidden;
         }
@@ -249,15 +295,15 @@ if (!function_exists('adminConfigIcon')) {
             content: '';
             position: absolute;
             inset: 0 0 auto 0;
-            height: 4px;
+            height: 3px;
             background: var(--admin-gradient);
             opacity: .95;
         }
 
         .section-title {
-            font-size: 22px;
+            font-size: 17px;
             color: var(--text);
-            margin-bottom: 22px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -1054,8 +1100,25 @@ if (!function_exists('adminConfigIcon')) {
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
+        <div class="config-shell">
+        <div class="config-pagehead">
+            <div class="cph-icon"><?= adminConfigIcon('settings') ?></div>
+            <div>
+                <h1>Configuración de la agencia</h1>
+                <p>Personaliza marca, colores, módulos, Gmail y pipeline.</p>
+            </div>
+        </div>
+
+        <!-- Pestañas de configuración -->
+        <div class="cfg-tabnav">
+            <button type="button" data-tab="marca" class="active" onclick="cfgTab('marca')">Marca</button>
+            <button type="button" data-tab="colores" onclick="cfgTab('colores')">Colores</button>
+            <button type="button" data-tab="modulos" onclick="cfgTab('modulos')">Módulos</button>
+            <button type="button" data-tab="gmail" onclick="cfgTab('gmail')">Gmail</button>
+            <button type="button" data-tab="pipeline" onclick="cfgTab('pipeline')">Pipeline</button>
+        </div>
         <!-- Preview Section -->
-        <div class="preview-section">
+        <div class="preview-section" data-cfgtab="colores">
             <h2 class="section-title">
                 <span class="section-icon"><?= adminConfigIcon('eye') ?></span>
                 Vista Previa por Roles
@@ -1091,7 +1154,7 @@ if (!function_exists('adminConfigIcon')) {
         <!-- Configuration Form -->
         <form id="configForm">
             <!-- Basic Settings -->
-            <div class="config-section">
+            <div class="config-section" data-cfgtab="marca">
                 <h2 class="section-title">
                     <span class="section-icon"><?= adminConfigIcon('building') ?></span>
                     Información de la Empresa
@@ -1134,7 +1197,7 @@ if (!function_exists('adminConfigIcon')) {
             </div>
 
             <!-- Color Settings -->
-            <div class="config-section">
+            <div class="config-section" data-cfgtab="colores">
                 <h2 class="section-title">
                     <span class="section-icon"><?= adminConfigIcon('palette') ?></span>
                     Personalización de Colores por Roles
@@ -1192,7 +1255,23 @@ if (!function_exists('adminConfigIcon')) {
             </div>
 
 
-            <div class="advanced-content" id="advancedContent">
+            <div class="config-section" data-cfgtab="modulos">
+                <h2 class="section-title">
+                    <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
+                    Módulos
+                </h2>
+                <label class="checkbox-row" style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:6px 0;">
+                    <input type="hidden" name="rooming_agentes_visible" value="0">
+                    <input type="checkbox" name="rooming_agentes_visible" value="1" style="margin-top:3px;"
+                        <?= !empty($config['rooming_agentes_visible']) ? 'checked' : '' ?>>
+                    <span>
+                        <strong style="display:block;color:#1e293b;font-size:14px;">Mostrar “Traslados / Rooming” a los agentes</strong>
+                        <small style="color:#718096;">El administrador siempre ve el módulo. Actívalo para que también lo vean los agentes de esta agencia. Útil en unas agencias; en otras puede ser información confidencial, así que está desactivado por defecto.</small>
+                    </span>
+                </label>
+            </div>
+
+            <div class="advanced-content" id="advancedContent" data-cfgtab="modulos">
                 <div class="config-section">
                     <h2 class="section-title">
                         <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
@@ -1219,7 +1298,7 @@ if (!function_exists('adminConfigIcon')) {
         <!-- ============================================================ -->
         <!-- Gmail — Cuenta de correo del administrador                  -->
         <!-- ============================================================ -->
-        <div class="config-section">
+        <div class="config-section" data-cfgtab="gmail">
             <h2 class="section-title">
                 <span class="section-icon"><?= adminConfigIcon('plane') ?></span>
                 Cuenta Gmail
@@ -1274,7 +1353,7 @@ if (!function_exists('adminConfigIcon')) {
         <!-- SOLO FRONTEND: el muestreo de datos reales y el guardado     -->
         <!-- quedan pendientes (ver TODOs en el script).                  -->
         <!-- ============================================================ -->
-        <div class="config-section">
+        <div class="config-section" data-cfgtab="pipeline">
             <h2 class="section-title">
                 <span class="section-icon"><?= adminConfigIcon('settings') ?></span>
                 Configuración del Pipeline
@@ -1348,6 +1427,7 @@ if (!function_exists('adminConfigIcon')) {
                 <div class="loading-spinner" id="loadingSpinner"></div>
             </button>
         </div>
+        </div><!-- /config-shell -->
     </div>
 
     <!-- Scripts -->
@@ -1364,7 +1444,20 @@ if (!function_exists('adminConfigIcon')) {
             initializeFormHandlers();
             initializeGoogleTranslate();
             applyDefaultLanguage();
+            cfgTab('marca');
         });
+
+        // Pestañas de configuración
+        function cfgTab(name) {
+            document.querySelectorAll('[data-cfgtab]').forEach(function (el) {
+                el.style.display = (el.dataset.cfgtab === name) ? 'block' : 'none';
+            });
+            document.querySelectorAll('.cfg-tabnav button').forEach(function (b) {
+                b.classList.toggle('active', b.dataset.tab === name);
+            });
+            var save = document.querySelector('.save-section');
+            if (save) save.style.display = (name === 'gmail' || name === 'pipeline') ? 'none' : '';
+        }
 
         // Funciones de sidebar
         function toggleSidebar() {

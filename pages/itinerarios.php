@@ -2165,7 +2165,7 @@ function crearDesdeCeroRapido() {
             card.innerHTML = `
                 <div class="program-image">
                     ${tieneImagen ?
-                        `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` :
+                        `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.outerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` :
                         `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
                     }
                     ${bookmarkBtn}

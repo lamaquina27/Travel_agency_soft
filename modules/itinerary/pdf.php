@@ -65,6 +65,22 @@ try {
     $dompdf->setPaper('A4', 'portrait');
     $dompdf->render();
 
+    // Numeración de páginas (esquina inferior derecha)
+    try {
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('DejaVu Sans', 'normal');
+        if ($font) {
+            $canvas->page_text(
+                $canvas->get_width() - 115,
+                $canvas->get_height() - 24,
+                'Página {PAGE_NUM} / {PAGE_COUNT}',
+                $font, 8, [0.55, 0.6, 0.68]
+            );
+        }
+    } catch (Throwable $e) {
+        error_log('PDF page numbers: ' . $e->getMessage());
+    }
+
     $filename = 'itinerary-program-' . $programaId . '.pdf';
 
     $dompdf->stream($filename, [

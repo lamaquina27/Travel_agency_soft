@@ -25,7 +25,8 @@ if (App::isLoggedIn()) {
             '/perfil',
             '/perfil/api',
             '/auth/logout',
-            // '/futura-vista',
+            '/rooming',
+            '/rooming/api',
         ];
         if (!in_array($path, $rutasOperador, true)) {
             App::redirect('/perfil');
@@ -218,6 +219,20 @@ switch ($path) {
     case '/pipeline/api':
         App::requireLogin();
         include 'modules/pipeline/api.php';
+        break;
+
+    case '/rooming':
+        App::requireLogin();
+        $user = App::getUser();
+        // Operador: siempre (es la razón de su rol). Admin: siempre.
+        // Agente: solo si la agencia lo habilita.
+        $roomingVisible = in_array($user['role'], ['admin', 'operador'], true)
+            || ($user['role'] === 'agent' && ConfigManager::roomingAgentesVisible());
+        if (!$roomingVisible) {
+            App::redirect('/dashboard');
+            exit;
+        }
+        include 'pages/rooming.php';
         break;
 
     case '/rooming/api':

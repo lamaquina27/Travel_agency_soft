@@ -5147,6 +5147,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                         <span class="slider"></span>
                                     </label>
                                 </div>
+                                <script>window.ORIG_COMPRADO = <?= (!empty($form_data['comprado']) && $form_data['comprado'] == 1) ? 1 : 0 ?>;</script>
                             </div>
                         </div>
                     </div>
@@ -5532,6 +5533,23 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                             <div class="char-counter" id="info_seguros-counter">0/3000</div>
                                         </div>
                                     </div>
+                                    <?php foreach ([
+                                        ['visados_entrada',          'Visados y requisitos de entrada',   'Documentación y trámites de entrada al país...'],
+                                        ['requisitos_sanitarios',    'Requisitos sanitarios',             'Vacunas, certificados sanitarios...'],
+                                        ['llegada_punto_encuentro',  'Llegada y punto de encuentro',      'Dónde y cómo es el encuentro a la llegada...'],
+                                        ['asistencia_emergencia',    'Asistencia y emergencias',          'Contactos y protocolo de emergencias...'],
+                                        ['info_hoteles_servicios',   'Información de hoteles y servicios', 'Datos de hoteles y servicios incluidos...'],
+                                        ['informacion_practica',     'Información práctica',               'Moneda, clima, enchufes, recomendaciones...'],
+                                    ] as $sf): ?>
+                                    <div class="form-group">
+                                        <label class="form-label"><?= $sf[1] ?></label>
+                                        <div class="textarea-with-counter">
+                                            <textarea class="form-control" name="<?= $sf[0] ?>" rows="3"
+                                                placeholder="<?= $sf[2] ?>" maxlength="3000" data-max-chars="3000"></textarea>
+                                            <div class="char-counter" id="<?= $sf[0] ?>-counter">0/3000</div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
@@ -7548,6 +7566,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 if (!form.checkValidity()) {
                     form.reportValidity();
                     return;
+                }
+
+                // Confirmación al DESMARCAR como vendido: sus traslados saldrán del Rooming
+                const vendidoToggle = document.getElementById('vendido-toggle');
+                if (window.ORIG_COMPRADO === 1 && vendidoToggle && !vendidoToggle.checked) {
+                    if (!confirm('Vas a marcar esta reserva como NO vendida. Sus traslados saldrán del Rooming List (no se borran; reaparecen si la vuelves a marcar como vendida). ¿Continuar?')) {
+                        return;
+                    }
                 }
 
                 try {
@@ -9621,6 +9647,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                             form.querySelector('[name="condiciones_generales"]').value = data.condiciones_generales || '';
                             form.querySelector('[name="info_pasaporte"]').value = data.info_pasaporte || '';
                             form.querySelector('[name="info_seguros"]').value = data.info_seguros || '';
+                            // Solapas adicionales (migración 010)
+                            ['visados_entrada','requisitos_sanitarios','llegada_punto_encuentro','asistencia_emergencia','info_hoteles_servicios','informacion_practica'].forEach(function(f){
+                                const el = form.querySelector('[name="'+f+'"]');
+                                if (el) { el.value = data[f] || ''; actualizarContadorTexto(f); }
+                            });
 
                             // ACTUALIZAR CONTADORES DE CARACTERES
                             actualizarContadorTexto('precio_incluye');
@@ -10793,7 +10824,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     { name: 'precio_no_incluye', max: 3000 },
                     { name: 'condiciones_generales', max: 3000 },
                     { name: 'info_pasaporte', max: 3000 },
-                    { name: 'info_seguros', max: 3000 }
+                    { name: 'info_seguros', max: 3000 },
+                    { name: 'visados_entrada', max: 3000 },
+                    { name: 'requisitos_sanitarios', max: 3000 },
+                    { name: 'llegada_punto_encuentro', max: 3000 },
+                    { name: 'asistencia_emergencia', max: 3000 },
+                    { name: 'info_hoteles_servicios', max: 3000 },
+                    { name: 'informacion_practica', max: 3000 }
                 ];
 
                 // Configurar inputs normales (tu código original)

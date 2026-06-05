@@ -200,6 +200,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293
 .lm-msg.in{align-self:flex-start;background:#fff;border:1px solid #e2e8f0;color:#334155;border-bottom-left-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,.02);}
 .lm-msg.out{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 12px rgba(var(--pr-rgb),.2);}
 .lm-msg-time{display:block;font-size:11px;margin-top:8px;opacity:.7;}
+.chat-attachments{margin-top:10px;padding-top:8px;border-top:1px solid rgba(148,163,184,.3);display:flex;flex-direction:column;gap:4px;}
+.chat-attachment{font-size:13px;}
+.chat-attachment a{color:inherit;text-decoration:underline;word-break:break-all;}
 .lm-chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;color:#cbd5e1;}
 .lm-chat-empty svg{width:44px;height:44px;stroke:#dde3eb;fill:none;stroke-width:1.5;margin-bottom:12px;}
 .lm-chat-empty p{font-size:14px;}
@@ -1392,8 +1395,14 @@ function lmClearComposer(){
     const sendBtn=document.getElementById('lmSendBtn'); if(sendBtn) sendBtn.disabled=false;
     _lmAttachedFiles=[];
 }
+// Límites de tamaño (Gmail tope ~25MB por correo)
+const LM_MAX_FILE_SIZE=20*1024*1024;  // 20 MB por archivo
+const LM_MAX_TOTAL_SIZE=25*1024*1024; // 25 MB en total
 function lmHandleFiles(files){
     Array.from(files).forEach(f=>{
+        if(f.size>LM_MAX_FILE_SIZE){ showToast(`"${f.name}" supera 20 MB`,'err'); return; }
+        const totalActual=_lmAttachedFiles.reduce((s,x)=>s+x.size,0);
+        if(totalActual+f.size>LM_MAX_TOTAL_SIZE){ showToast('Adjuntos superan 25 MB en total','err'); return; }
         _lmAttachedFiles.push(f);
         const chip=document.createElement('div'); chip.className='lm-att-chip';
         chip.innerHTML=`<span>${esc(f.name)}</span><button class="lm-att-rm" onclick="lmRemoveFile(this,'${esc(f.name)}')">&times;</button>`;
@@ -1413,10 +1422,21 @@ async function lmEnviarMensaje(){
     const btn=document.getElementById('lmSendBtn');
     const orig=btn.innerHTML; btn.innerHTML='Enviando…'; btn.disabled=true;
     try {
-        const r=await fetch(APP_URL+'/modules/gmail/chat_api.php?action=send',{
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({pipeline_id:S.currentLeadId,message_body:msg,email_account_id:_lmEmailAccountId})
-        });
+        let r;
+        if(_lmAttachedFiles.length>0){
+            // Con adjuntos: multipart/form-data (sin Content-Type manual; el navegador pone el boundary)
+            const fd=new FormData();
+            fd.append('pipeline_id',S.currentLeadId);
+            fd.append('message_body',msg);
+            fd.append('email_account_id',_lmEmailAccountId);
+            _lmAttachedFiles.forEach(f=>fd.append('attachments[]',f,f.name));
+            r=await fetch(APP_URL+'/modules/gmail/chat_api.php?action=send',{method:'POST',body:fd});
+        } else {
+            r=await fetch(APP_URL+'/modules/gmail/chat_api.php?action=send',{
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({pipeline_id:S.currentLeadId,message_body:msg,email_account_id:_lmEmailAccountId})
+            });
+        }
         const d=await r.json();
         if(r.ok&&d.success){ lmClearComposer(); _lmLastCount=-1; await lmLoadChat(S.currentLeadId); showToast('Mensaje enviado','ok'); }
         else showToast(d.error||'Error al enviar','err');

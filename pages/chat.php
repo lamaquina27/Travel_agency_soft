@@ -404,6 +404,26 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
             opacity: 0.7;
         }
 
+        /* Adjuntos dentro de una burbuja */
+        .chat-attachments {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chat-attachment {
+            font-size: 13px;
+        }
+
+        .chat-attachment a {
+            color: inherit;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+
         /* =============================================
            Área de Composición de Mensajes (Editor)
         ============================================= */
@@ -1032,17 +1052,72 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         }
 
         .tpl-row {
-            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 24px;
             font-size: 15px;
             color: #334155;
-            cursor: pointer;
             border-bottom: 1px solid #f1f5f9;
-            transition: background 0.12s, color 0.12s;
+            transition: background 0.12s;
         }
 
         .tpl-row:hover {
             background: #f8fafc;
+        }
+
+        .tpl-row-name {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+            padding: 2px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: color 0.12s;
+        }
+
+        .tpl-row-name:hover {
             color: var(--accent-color);
+        }
+
+        .tpl-row-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .tpl-icon-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .tpl-icon-btn.edit:hover {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .tpl-icon-btn.del:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .tpl-icon-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
         }
 
         .tpl-empty {
@@ -1084,8 +1159,21 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
             min-height: 90px;
         }
 
-        .tpl-form button {
-            align-self: flex-end;
+        .tpl-form-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .tpl-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .tpl-form-actions button {
             background: var(--primary-gradient);
             color: var(--on-primary);
             border: none;
@@ -1098,8 +1186,19 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
             transition: background 0.15s;
         }
 
-        .tpl-form button:hover {
+        .tpl-form-actions button:hover {
             filter: brightness(0.95);
+        }
+
+        .tpl-form-actions .tpl-cancel-btn {
+            background: #fff;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tpl-form-actions .tpl-cancel-btn:hover {
+            background: #f8fafc;
+            filter: none;
         }
     </style>
 </head>
@@ -1528,7 +1627,7 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
     function abrir_modal_templates() {
         document.getElementById('tpl-overlay').classList.add('active');
         document.getElementById('tpl-search').value = '';
-        document.getElementById('tpl-form').style.display = 'none';
+        cancelar_form_template();
         llamar_templates();
     }
 
@@ -1562,9 +1661,32 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         lista.forEach(t => {
             const row = document.createElement('div');
             row.className = 'tpl-row';
-            row.textContent = t.nombre;
-            row.title = 'Insertar en el mensaje';
-            row.onclick = () => usar_template(t);
+
+            const name = document.createElement('div');
+            name.className = 'tpl-row-name';
+            name.textContent = t.nombre;
+            name.title = 'Insertar en el mensaje';
+            name.onclick = () => usar_template(t);
+
+            const acts = document.createElement('div');
+            acts.className = 'tpl-row-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'tpl-icon-btn edit';
+            editBtn.title = 'Editar';
+            editBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+            editBtn.onclick = (e) => { e.stopPropagation(); abrir_form_template(t); };
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'tpl-icon-btn del';
+            delBtn.title = 'Eliminar';
+            delBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+            delBtn.onclick = (e) => { e.stopPropagation(); eliminar_template(t); };
+
+            acts.appendChild(editBtn);
+            acts.appendChild(delBtn);
+            row.appendChild(name);
+            row.appendChild(acts);
             container.appendChild(row);
         });
     }
@@ -1582,14 +1704,29 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         cerrar_modal_templates();
     }
 
-    function abrir_form_template() {
+    // Abre el formulario. Si recibe un template, entra en modo edición (pre-rellena).
+    function abrir_form_template(t) {
         const form = document.getElementById('tpl-form');
-        form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+        const isEdit = t && t.id;
+        document.getElementById('tpl-form-title').textContent = isEdit ? 'Editar template' : 'Nuevo template';
+        document.getElementById('tpl-edit-id').value = isEdit ? t.id : '';
+        document.getElementById('tpl-nombre').value = isEdit ? t.nombre : '';
+        document.getElementById('tpl-texto').value = isEdit ? t.texto : '';
+        form.style.display = 'flex';
+        document.getElementById('tpl-nombre').focus();
+    }
+
+    function cancelar_form_template() {
+        document.getElementById('tpl-form').style.display = 'none';
+        document.getElementById('tpl-edit-id').value = '';
+        document.getElementById('tpl-nombre').value = '';
+        document.getElementById('tpl-texto').value = '';
     }
 
     async function guardar_template() {
         const nombre = document.getElementById('tpl-nombre').value.trim();
         const texto = document.getElementById('tpl-texto').value.trim();
+        const editId = document.getElementById('tpl-edit-id').value;
         if (!nombre || !texto) {
             alert('El nombre y el contenido son obligatorios');
             return;
@@ -1598,22 +1735,42 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
             const fd = new FormData();
             fd.append('nombre', nombre);
             fd.append('texto', texto);
+            const action = editId ? 'update_template' : 'crear_template';
+            if (editId) fd.append('id', editId);
 
-            const response = await fetch(`${APP_URL}/pipeline/api?action=crear_template`, {
+            const response = await fetch(`${APP_URL}/pipeline/api?action=${action}`, {
                 method: 'POST',
                 body: fd
             });
             const result = await response.json();
             if (result.success) {
-                document.getElementById('tpl-nombre').value = '';
-                document.getElementById('tpl-texto').value = '';
-                document.getElementById('tpl-form').style.display = 'none';
+                cancelar_form_template();
                 llamar_templates();
             } else {
-                alert(result.message || 'Error al crear el template');
+                alert(result.message || 'Error al guardar el template');
             }
         } catch (error) {
             console.error('Error guardando template:', error);
+        }
+    }
+
+    async function eliminar_template(t) {
+        if (!confirm(`¿Eliminar el template "${t.nombre}"?`)) return;
+        try {
+            const fd = new FormData();
+            fd.append('id', t.id);
+            const response = await fetch(`${APP_URL}/pipeline/api?action=delete_template`, {
+                method: 'POST',
+                body: fd
+            });
+            const result = await response.json();
+            if (result.success) {
+                llamar_templates();
+            } else {
+                alert(result.message || 'Error al eliminar el template');
+            }
+        } catch (error) {
+            console.error('Error eliminando template:', error);
         }
     }
     async function carga_datos() {
@@ -1750,12 +1907,27 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         document.getElementById('file-input').click();
     }
 
+    // Límites de tamaño (Gmail tope ~25MB por correo)
+    const MAX_FILE_SIZE = 20 * 1024 * 1024;  // 20 MB por archivo
+    const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25 MB en total
+
     document.getElementById('file-input').addEventListener('change', function () {
         const newFiles = Array.from(this.files);
         newFiles.forEach(file => {
             // Evitar duplicados por nombre+tamaño
             const exists = attachedFiles.some(f => f.name === file.name && f.size === file.size);
-            if (!exists) attachedFiles.push(file);
+            if (exists) return;
+
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`"${file.name}" supera el máximo de 20 MB y no se adjuntó.`);
+                return;
+            }
+            const totalActual = attachedFiles.reduce((s, f) => s + f.size, 0);
+            if (totalActual + file.size > MAX_TOTAL_SIZE) {
+                alert(`No se puede adjuntar "${file.name}": se superaría el máximo total de 25 MB.`);
+                return;
+            }
+            attachedFiles.push(file);
         });
         this.value = ''; // Reset para permitir seleccionar el mismo archivo de nuevo
         renderAttachments();
@@ -1838,17 +2010,32 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
         btnEnviar.disabled = true;
 
         try {
-            const payload = {
-                pipeline_id: PIPELINE_ID,
-                message_body: message,
-                email_account_id: EMAIL_ACCOUNT_ID
-            };
+            let response;
+            if (attachedFiles.length > 0) {
+                // Con adjuntos: multipart/form-data (no fijar Content-Type, el navegador pone el boundary)
+                const fd = new FormData();
+                fd.append('pipeline_id', PIPELINE_ID);
+                fd.append('message_body', message);
+                fd.append('email_account_id', EMAIL_ACCOUNT_ID);
+                attachedFiles.forEach(file => fd.append('attachments[]', file, file.name));
 
-            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?action=send`, {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+                response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?action=send`, {
+                    method: "POST",
+                    body: fd
+                });
+            } else {
+                // Sin adjuntos: JSON
+                const payload = {
+                    pipeline_id: PIPELINE_ID,
+                    message_body: message,
+                    email_account_id: EMAIL_ACCOUNT_ID
+                };
+                response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?action=send`, {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
             const result = await response.json();
 
             if (response.ok && result.success) {
@@ -2127,11 +2314,16 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
 
         <div class="tpl-list" id="tpl-list"></div>
 
-        <!-- Formulario de creación (oculto por defecto) -->
+        <!-- Formulario de creación/edición (oculto por defecto) -->
         <div class="tpl-form" id="tpl-form" style="display:none">
+            <span class="tpl-form-title" id="tpl-form-title">Nuevo template</span>
+            <input type="hidden" id="tpl-edit-id" value="">
             <input type="text" id="tpl-nombre" placeholder="Nombre del template">
             <textarea id="tpl-texto" placeholder="Contenido del mensaje..."></textarea>
-            <button onclick="guardar_template()">Guardar template</button>
+            <div class="tpl-form-actions">
+                <button type="button" class="tpl-cancel-btn" onclick="cancelar_form_template()">Cancelar</button>
+                <button type="button" onclick="guardar_template()">Guardar template</button>
+            </div>
         </div>
     </div>
 </div>

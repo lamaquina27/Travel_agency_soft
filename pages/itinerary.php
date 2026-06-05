@@ -1122,7 +1122,7 @@ if ($programa['fecha_llegada']) {
 
         .day-card {
             position: relative;
-            margin-bottom: 40px;
+            margin-bottom: 24px;
             padding-left: 140px;
             animation: fadeInUp 0.6s ease-out;
         }
@@ -1443,11 +1443,11 @@ if ($programa['fecha_llegada']) {
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
-            gap: 15px;
-            height: 400px;
+            gap: 12px;
+            height: 300px;
             border-radius: 12px;
             overflow: hidden;
-            margin: 20px 0;
+            margin: 0 0 16px;
         }
 
         .day-image {
@@ -1463,6 +1463,46 @@ if ($programa['fecha_llegada']) {
         .day-image:first-child {
             grid-row: span 2;
         }
+
+        /* Hero del día: día/fecha/lugares sobre la imagen grande */
+        .day-content.has-hero > .day-header { display: none; }
+        .day-image-hero { cursor: pointer; }
+        .day-image-overlay {
+            position: absolute;
+            inset: auto 0 0 0;
+            padding: 40px 18px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.45) 55%, rgba(0,0,0,0) 100%);
+            color: #fff;
+            pointer-events: none;
+        }
+        .day-image-overlay .dih-title {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin: 0 0 6px;
+            color: #fff;
+            text-shadow: 0 1px 6px rgba(0,0,0,.4);
+        }
+        .day-image-overlay .dih-date {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0 0 6px;
+            opacity: .95;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .day-image-overlay .dih-locs {
+            font-size: 13px;
+            margin: 0;
+            opacity: .95;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            line-height: 1.35;
+        }
+        .day-image-overlay .dih-date i,
+        .day-image-overlay .dih-locs i { margin-top: 2px; opacity: .9; }
 
         .day-image:hover {
             transform: scale(1.02);
@@ -2799,6 +2839,26 @@ if ($programa['fecha_llegada']) {
             gap: 20px;
             align-items: flex-start;
         }
+
+        /* Hotel "Ver más" */
+        .hotel-more[hidden] { display: none; }
+        .hotel-more { margin-top: 4px; }
+        .hotel-vermas-btn {
+            margin-top: 10px;
+            background: none;
+            border: none;
+            padding: 4px 0;
+            color: var(--brand-primary, #2563eb);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+        .hotel-vermas-btn:hover { text-decoration: underline; }
+        .hotel-vermas-btn i { font-size: 11px; transition: transform .2s; }
 
         .hotel-thumbnail {
             position: relative;
@@ -5183,7 +5243,7 @@ if ($programa['fecha_llegada']) {
                             </div>
                         </div>
 
-                        <div class="day-content">
+                        <div class="day-content<?= !empty($dia['imagen1']) ? ' has-hero' : '' ?>">
                             <div class="day-header">
                                 <div class="day-heading-overlay">
                                     <div>
@@ -5253,9 +5313,24 @@ if ($programa['fecha_llegada']) {
                                 ?>
                                 <div class="day-images">
                                     <?php if ($dia['imagen1']): ?>
-                                        <div class="day-image"
+                                        <?php
+                                        $dhLugares = array_values(array_filter(array_merge(
+                                            [$dia['ubicacion'] ?? ''],
+                                            array_map(function ($u) { return $u['ubicacion'] ?? ''; }, $dia['ubicaciones_secundarias'] ?? [])
+                                        )));
+                                        ?>
+                                        <div class="day-image day-image-hero"
                                             style="background-image: url('<?= htmlspecialchars($dia['imagen1']) ?>')"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 0, '<?= htmlspecialchars($dia['titulo']) ?>')">
+                                            <div class="day-image-overlay">
+                                                <h3 class="dih-title"><?= htmlspecialchars($dia['titulo'] ?: $rangoTexto) ?></h3>
+                                                <?php if (!empty($fechaTexto)): ?>
+                                                    <p class="dih-date"><i class="fas fa-calendar-day"></i> <?= htmlspecialchars($fechaTexto) ?></p>
+                                                <?php endif; ?>
+                                                <?php if (!empty($dhLugares)): ?>
+                                                    <p class="dih-locs"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars(implode(' · ', $dhLugares)) ?></p>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
 
@@ -5484,8 +5559,7 @@ if ($programa['fecha_llegada']) {
                                                                     <?php endif; ?>
 
                                                                     <div class="hotel-text">
-                                                                        <p><?= nl2br(htmlspecialchars($servicio['descripcion'])) ?></p>
-
+                                                                        <!-- Info básica siempre visible -->
                                                                         <div class="service-meta">
                                                                             <?php if ($servicio['ubicacion']): ?>
                                                                                 <span><i class="fas fa-map-marker-alt"></i>
@@ -5498,13 +5572,26 @@ if ($programa['fecha_llegada']) {
                                                                             <?php endif; ?>
                                                                         </div>
 
-                                                                        <?php if ($servicio['alojamiento_sitio_web']): ?>
-                                                                            <div class="service-website">
-                                                                                <a href="<?= htmlspecialchars($servicio['alojamiento_sitio_web']) ?>"
-                                                                                    target="_blank" rel="noopener noreferrer">
-                                                                                    <i class="fas fa-external-link-alt"></i> Visitar sitio web
-                                                                                </a>
+                                                                        <?php $hotelTieneMas = trim((string)$servicio['descripcion']) !== '' || !empty($servicio['alojamiento_sitio_web']); ?>
+                                                                        <?php if ($hotelTieneMas): ?>
+                                                                            <!-- Detalle ampliable (Ver más) -->
+                                                                            <div class="hotel-more" id="hotelMore-<?= $servicio['id'] ?>" hidden>
+                                                                                <?php if (trim((string)$servicio['descripcion']) !== ''): ?>
+                                                                                    <p><?= nl2br(htmlspecialchars($servicio['descripcion'])) ?></p>
+                                                                                <?php endif; ?>
+                                                                                <?php if ($servicio['alojamiento_sitio_web']): ?>
+                                                                                    <div class="service-website">
+                                                                                        <a href="<?= htmlspecialchars($servicio['alojamiento_sitio_web']) ?>"
+                                                                                            target="_blank" rel="noopener noreferrer">
+                                                                                            <i class="fas fa-external-link-alt"></i> Visitar sitio web
+                                                                                        </a>
+                                                                                    </div>
+                                                                                <?php endif; ?>
                                                                             </div>
+                                                                            <button type="button" class="hotel-vermas-btn"
+                                                                                onclick="toggleHotelMore(<?= $servicio['id'] ?>, this)">
+                                                                                Ver más <i class="fas fa-chevron-down"></i>
+                                                                            </button>
                                                                         <?php endif; ?>
                                                                     </div>
                                                                 </div>
@@ -5870,6 +5957,32 @@ if ($programa['fecha_llegada']) {
                         </div>
                     <?php endif; ?>
 
+                    <!-- Solapas adicionales de información (migración 010) -->
+                    <?php
+                    $solapas_extra = [
+                        ['visados_entrada',         'Visados y requisitos de entrada',    'fa-passport',        '#8e44ad'],
+                        ['requisitos_sanitarios',   'Requisitos sanitarios',              'fa-notes-medical',   '#e74c3c'],
+                        ['llegada_punto_encuentro', 'Llegada y punto de encuentro',       'fa-map-marker-alt',  '#2980b9'],
+                        ['asistencia_emergencia',   'Asistencia y emergencias',           'fa-headset',         '#d35400'],
+                        ['info_hoteles_servicios',  'Información de hoteles y servicios',  'fa-hotel',           '#16a085'],
+                        ['informacion_practica',    'Información práctica',                'fa-circle-info',     '#f39c12'],
+                    ];
+                    foreach ($solapas_extra as $sx):
+                        if (empty($precios[$sx[0]])) continue; ?>
+                        <div class="pricing-accordion">
+                            <div class="accordion-header" onclick="toggleAccordion(this)">
+                                <div class="accordion-title">
+                                    <i class="fas <?= $sx[2] ?>" style="color: <?= $sx[3] ?>;"></i>
+                                    <span><?= $sx[1] ?></span>
+                                </div>
+                                <i class="fas fa-chevron-down accordion-icon"></i>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="passport-text"><?= nl2br(htmlspecialchars($precios[$sx[0]])) ?></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+
                     <!-- Movilidad Reducida -->
                     <?php if ($precios['movilidad_reducida']): ?>
                         <div class="accessibility-badge">
@@ -6081,6 +6194,22 @@ if ($programa['fecha_llegada']) {
         // =====================================================
         // ACCORDION FUNCTIONALITY FOR PRICING SECTION
         // =====================================================
+        // Hotel: desplegar/ocultar descripción y sitio web ("Ver más")
+        function toggleHotelMore(id, btn) {
+            const box = document.getElementById('hotelMore-' + id);
+            if (!box) return;
+            const abierto = !box.hasAttribute('hidden');
+            if (abierto) {
+                box.setAttribute('hidden', '');
+                btn.innerHTML = 'Ver más <i class="fas fa-chevron-down"></i>';
+                btn.classList.remove('open');
+            } else {
+                box.removeAttribute('hidden');
+                btn.innerHTML = 'Ver menos <i class="fas fa-chevron-up"></i>';
+                btn.classList.add('open');
+            }
+        }
+
         function toggleAccordion(element) {
             // Obtener el header desde el elemento clickeado
             const header = element.closest ? element.closest('.accordion-header') : element;

@@ -54,6 +54,11 @@ $userId     = (int)($user['id'] ?? 0);
 $dbStats    = ['leads'=>0,'itinerarios'=>0,'recursos'=>0,'usuarios'=>0];
 $recentLeads = [];
 
+// ¿Este usuario ve el módulo de Rooming? (admin siempre; agente según config de agencia)
+$canRooming = ($user['role']==='admin')
+    || ($user['role']==='agent' && class_exists('ConfigManager') && ConfigManager::roomingAgentesVisible());
+$roomingAlerts = [];
+
 if ($db && $agenciaId) {
     try {
         $dbStats['leads'] = (int)($db->fetch(
@@ -85,6 +90,29 @@ if ($db && $agenciaId) {
              ORDER BY p.created_at DESC LIMIT 5",
             $leadParams
         ) ?: [];
+
+        // Alertas de Rooming: reservas vendidas que viajan pronto (≤7 días) con
+        // traslados incompletos (OUT sin hora de recogida o algún traslado sin operador).
+        if ($canRooming) {
+            $rWhere  = "ps.agencia_id = ? AND ps.comprado = 1";
+            $rParams = [$agenciaId];
+            if ($user['role'] !== 'admin') { $rWhere .= " AND ps.user_id = ?"; $rParams[] = $userId; }
+            $roomingAlerts = $db->fetchAll(
+                "SELECT ps.id, ps.id_solicitud, ps.destino, ps.fecha_llegada,
+                        DATEDIFF(DATE(ps.fecha_llegada), CURDATE()) AS dias,
+                        SUM(CASE WHEN r.service_type='llevada_al_aeropuerto' AND r.pickup_time IS NULL THEN 1 ELSE 0 END) AS sin_hora,
+                        SUM(CASE WHEN NOT EXISTS(SELECT 1 FROM asignacion_operadores ao WHERE ao.rooming_id=r.id) THEN 1 ELSE 0 END) AS sin_operador
+                 FROM programa_solicitudes ps
+                 JOIN rooming r ON r.solicitud_id = ps.id
+                 WHERE $rWhere
+                   AND ps.fecha_llegada IS NOT NULL
+                   AND DATE(ps.fecha_llegada) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+                 GROUP BY ps.id
+                 HAVING sin_hora > 0 OR sin_operador > 0
+                 ORDER BY dias ASC",
+                $rParams
+            ) ?: [];
+        }
     } catch (Exception $e) {
         error_log('Dashboard stats error: '.$e->getMessage());
     }
@@ -100,6 +128,7 @@ function dashboardIcon($name) {
         'pipeline' => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 3h4v18H3V3zm7 0h4v11h-4V3zm7 0h4v7h-4V3z"/></svg>',
         'map' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20.5 3-.16.03L15 5.1 9 3 3.36 4.9A.5.5 0 0 0 3 5.38V20.5c0 .35.35.6.68.47L9 18.9l6 2.1 5.64-1.9a.5.5 0 0 0 .36-.48V3.5c0-.28-.22-.5-.5-.5ZM10 5.47l4 1.4v11.66l-4-1.4V5.47Zm-5 1.08 3-1.01v11.92l-3 1.1V6.55Zm14 11.9-3 1.01V7.54l3-1.1v12.01Z"/></svg>',
         'profile' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-2.02 4-4.5S14.21 3 12 3 8 5.02 8 7.5s1.79 4.5 4 4.5Zm0 2c-3.33 0-7 1.7-7 4.25V20c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-1.75C19 15.7 15.33 14 12 14Z"/></svg>',
+        'rooming' => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2l1-5h12l1 5h2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M6 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/></svg>',
     ];
     return $icons[$name] ?? $icons['plane'];
 }
@@ -709,6 +738,21 @@ function dashboardIcon($name) {
         .db-stat-l{font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;}
 
         /* Action cards grid */
+        .db-rooming-alerts{background:#fff;border:1px solid rgba(23,32,51,.08);border-left:4px solid #f59e0b;border-radius:16px;padding:18px 20px;box-shadow:0 2px 8px rgba(15,23,42,.04);}
+        .db-ra-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+        .db-ra-title{font-size:14px;font-weight:800;color:#0f172a;}
+        .db-ra-list{display:flex;flex-direction:column;gap:8px;}
+        .db-ra-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;background:#f8fafc;text-decoration:none;transition:background .15s,transform .12s;}
+        .db-ra-row:hover{background:#f1f5f9;transform:translateX(2px);}
+        .db-ra-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+        .db-ra-row.sev-red .db-ra-dot{background:#ef4444;}
+        .db-ra-row.sev-amber .db-ra-dot{background:#f59e0b;}
+        .db-ra-info{flex:1;min-width:0;}
+        .db-ra-name{font-size:13px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .db-ra-sub{font-size:12px;color:#64748b;}
+        .db-ra-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+        .db-ra-row.sev-red .db-ra-badge{background:#fee2e2;color:#b91c1c;}
+        .db-ra-row.sev-amber .db-ra-badge{background:#fef9c3;color:#a16207;}
         .db-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
         .action-card{background:#fff;border:1px solid rgba(23,32,51,.08);border-radius:18px;padding:22px;cursor:pointer;position:relative;overflow:hidden;transition:all .25s;box-shadow:0 2px 8px rgba(15,23,42,.04);}
         .action-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary-gradient);opacity:.9;}
@@ -900,6 +944,35 @@ function dashboardIcon($name) {
             </div>
         </div>
 
+        <?php if (!empty($roomingAlerts)): ?>
+        <!-- Alertas de Rooming: viajes próximos con traslados incompletos -->
+        <div class="db-rooming-alerts animate-in">
+            <div class="db-ra-head">
+                <span class="db-ra-title">⚠ Traslados por completar — viajes próximos</span>
+                <a class="db-section-link" href="<?= APP_URL ?>/rooming">Ir a Rooming →</a>
+            </div>
+            <div class="db-ra-list">
+                <?php foreach ($roomingAlerts as $a):
+                    $dias = (int)$a['dias'];
+                    $sev  = $dias <= 3 ? 'red' : 'amber';
+                    $cuando = $dias <= 0 ? 'hoy' : ($dias === 1 ? 'mañana' : "en $dias días");
+                    $faltan = [];
+                    if ((int)$a['sin_hora'] > 0)     $faltan[] = (int)$a['sin_hora'].' sin hora de recogida';
+                    if ((int)$a['sin_operador'] > 0) $faltan[] = (int)$a['sin_operador'].' sin operador';
+                ?>
+                <a class="db-ra-row sev-<?= $sev ?>" href="<?= APP_URL ?>/rooming">
+                    <span class="db-ra-dot"></span>
+                    <div class="db-ra-info">
+                        <div class="db-ra-name"><?= htmlspecialchars($a['id_solicitud'] ?: ('Reserva #'.$a['id'])) ?> · <?= htmlspecialchars($a['destino'] ?? '') ?></div>
+                        <div class="db-ra-sub">Viaja <?= $cuando ?> · <?= htmlspecialchars(implode(' · ', $faltan)) ?></div>
+                    </div>
+                    <span class="db-ra-badge"><?= $cuando ?></span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Acciones rápidas -->
         <div class="db-actions">
             <?php if ($user['role']==='admin'): ?>
@@ -912,6 +985,11 @@ function dashboardIcon($name) {
                 <div class="action-icon"><?= dashboardIcon('plane') ?></div>
                 <h3 class="action-title">Programas</h3>
                 <p class="action-description">Todos los itinerarios de la agencia.</p>
+            </div>
+            <div class="action-card animate-in" onclick="goTo('/rooming')" style="animation-delay:.12s">
+                <div class="action-icon"><?= dashboardIcon('rooming') ?></div>
+                <h3 class="action-title">Traslados / Rooming</h3>
+                <p class="action-description">Logística de traslados de aeropuerto.</p>
             </div>
             <div class="action-card animate-in" onclick="goTo('/administrador')" style="animation-delay:.15s">
                 <div class="action-icon"><?= dashboardIcon('users') ?></div>
@@ -944,6 +1022,13 @@ function dashboardIcon($name) {
                 <h3 class="action-title">Biblioteca</h3>
                 <p class="action-description">Tus recursos: días, alojamientos, servicios.</p>
             </div>
+            <?php if ($canRooming): ?>
+            <div class="action-card animate-in" onclick="goTo('/rooming')" style="animation-delay:.18s">
+                <div class="action-icon"><?= dashboardIcon('rooming') ?></div>
+                <h3 class="action-title">Traslados / Rooming</h3>
+                <p class="action-description">Logística de traslados de aeropuerto.</p>
+            </div>
+            <?php endif; ?>
             <div class="action-card animate-in" onclick="goTo('/perfil')" style="animation-delay:.2s">
                 <div class="action-icon"><?= dashboardIcon('profile') ?></div>
                 <h3 class="action-title">Mi Perfil</h3>

@@ -121,9 +121,21 @@ class RoomingModel
     public function getById(int $id, int $agenciaId): ?array
     {
         $rooming = $this->db->fetch(
-            "SELECT r.*, ba.nombre as hotel_nombre
+            "SELECT r.*,
+                    ba.nombre AS hotel_nombre,
+                    ps.id_solicitud AS reserva_codigo,
+                    COALESCE(NULLIF(v.nombre, ''),   ps.nombre)   AS titular_nombre,
+                    COALESCE(NULLIF(v.apellido, ''), ps.apellido) AS titular_apellido,
+                    COALESCE(r.service_date, pd.fecha_dia,
+                             DATE_ADD(DATE(ps.fecha_llegada), INTERVAL (pd.dia_numero - 1) DAY)) AS service_date_eff,
+                    COALESCE(r.pickup_time,
+                             CASE WHEN r.service_type = 'llevada_al_hotel'
+                                  THEN r.arrival_time END) AS pickup_time_eff
             FROM rooming r
             LEFT JOIN biblioteca_alojamientos ba ON ba.id = r.hotel_id
+            LEFT JOIN programa_solicitudes ps    ON ps.id = r.solicitud_id
+            LEFT JOIN viajeros v                 ON v.id  = ps.titular_id
+            LEFT JOIN programa_dias pd           ON pd.id = r.programa_dia_id
             WHERE r.id = ? AND r.agencia_id = ?",
             [$id, $agenciaId]
         );
@@ -169,7 +181,9 @@ class RoomingModel
             throw new Exception('agencia_id es obligatorio para filtrar');
         }
 
-        $where  = ["r.agencia_id = ?"];
+        // Solo traslados de programas vendidos: si un viaje se desmarca/cancela,
+        // sus traslados salen del Rooming List (sin borrarlos; vuelven al re-venderse).
+        $where  = ["r.agencia_id = ?", "ps.comprado = 1"];
         $params = [(int) $filters['agencia_id']];
 
         if (!empty($filters['solicitud_id'])) {
@@ -207,9 +221,30 @@ class RoomingModel
             $params[] = $filters['service_date_to'];
         }
 
-        $sql = "SELECT r.*, ba.nombre as hotel_nombre
+        $sql = "SELECT r.*,
+                       ba.nombre AS hotel_nombre,
+                       ps.id_solicitud AS reserva_codigo,
+                       COALESCE(NULLIF(v.nombre, ''),   ps.nombre)   AS titular_nombre,
+                       COALESCE(NULLIF(v.apellido, ''), ps.apellido) AS titular_apellido,
+                       (SELECT GROUP_CONCAT(uo.full_name ORDER BY uo.full_name SEPARATOR ', ')
+                          FROM asignacion_operadores ao2
+                          JOIN operadores o2 ON o2.id = ao2.operador_id
+                          JOIN users uo      ON uo.id = o2.usuario_id
+                         WHERE ao2.rooming_id = r.id) AS operadores_nombres,
+                       (SELECT GROUP_CONCAT(o2.id)
+                          FROM asignacion_operadores ao2
+                          JOIN operadores o2 ON o2.id = ao2.operador_id
+                         WHERE ao2.rooming_id = r.id) AS operadores_ids,
+                       COALESCE(r.service_date, pd.fecha_dia,
+                                DATE_ADD(DATE(ps.fecha_llegada), INTERVAL (pd.dia_numero - 1) DAY)) AS service_date_eff,
+                       COALESCE(r.pickup_time,
+                                CASE WHEN r.service_type = 'llevada_al_hotel'
+                                     THEN r.arrival_time END) AS pickup_time_eff
                 FROM rooming r
                 LEFT JOIN biblioteca_alojamientos ba ON ba.id = r.hotel_id
+                LEFT JOIN programa_solicitudes ps    ON ps.id = r.solicitud_id
+                LEFT JOIN viajeros v                 ON v.id  = ps.titular_id
+                LEFT JOIN programa_dias pd           ON pd.id = r.programa_dia_id
                 WHERE " . implode(' AND ', $where) . "
                 ORDER BY r.service_date ASC, r.created_at DESC";
 
@@ -276,12 +311,33 @@ class RoomingModel
     public function getByOperador(int $usuarioId, int $agenciaId): array
     {
         return $this->db->fetchAll(
-            "SELECT r.*, ba.nombre AS hotel_nombre
+            "SELECT r.*,
+                    ba.nombre AS hotel_nombre,
+                    ps.id_solicitud AS reserva_codigo,
+                    COALESCE(NULLIF(v.nombre, ''),   ps.nombre)   AS titular_nombre,
+                    COALESCE(NULLIF(v.apellido, ''), ps.apellido) AS titular_apellido,
+                    (SELECT GROUP_CONCAT(uo.full_name ORDER BY uo.full_name SEPARATOR ', ')
+                       FROM asignacion_operadores ao2
+                       JOIN operadores o2 ON o2.id = ao2.operador_id
+                       JOIN users uo      ON uo.id = o2.usuario_id
+                      WHERE ao2.rooming_id = r.id) AS operadores_nombres,
+                    (SELECT GROUP_CONCAT(o2.id)
+                       FROM asignacion_operadores ao2
+                       JOIN operadores o2 ON o2.id = ao2.operador_id
+                      WHERE ao2.rooming_id = r.id) AS operadores_ids,
+                    COALESCE(r.service_date, pd.fecha_dia,
+                             DATE_ADD(DATE(ps.fecha_llegada), INTERVAL (pd.dia_numero - 1) DAY)) AS service_date_eff,
+                    COALESCE(r.pickup_time,
+                             CASE WHEN r.service_type = 'llevada_al_hotel'
+                                  THEN r.arrival_time END) AS pickup_time_eff
             FROM rooming r
             JOIN asignacion_operadores ao ON ao.rooming_id = r.id
             JOIN operadores o ON o.id = ao.operador_id
             LEFT JOIN biblioteca_alojamientos ba ON ba.id = r.hotel_id
-            WHERE o.usuario_id = ? AND o.agencia_id = ? AND r.agencia_id = ?
+            LEFT JOIN programa_solicitudes ps    ON ps.id = r.solicitud_id
+            LEFT JOIN viajeros v                 ON v.id  = ps.titular_id
+            LEFT JOIN programa_dias pd           ON pd.id = r.programa_dia_id
+            WHERE o.usuario_id = ? AND o.agencia_id = ? AND r.agencia_id = ? AND ps.comprado = 1
             ORDER BY r.service_date ASC, r.created_at DESC",
             [$usuarioId, $agenciaId, $agenciaId]
         );
@@ -383,6 +439,12 @@ class RoomingModel
         // Sincronizar la cantidad de pasajeros en los roomings del programa
         $this->sincronizarPasajeros($solicitudId, $agenciaId);
 
+        // Aplicar reglas de asignación automática a los traslados recién creados
+        if ($idsCreados) {
+            try { $this->aplicarReglasIds($idsCreados, $agenciaId); }
+            catch (\Exception $e) { error_log('aplicarReglas (generar): ' . $e->getMessage()); }
+        }
+
         return $idsCreados;
     }
 
@@ -406,10 +468,10 @@ class RoomingModel
         if ((int) $prog['comprado'] !== 1) {
             return ['generado' => false, 'motivo' => 'no_vendido', 'ids' => []];
         }
-        if ((int) $prog['rooming_generado'] === 1) {
-            return ['generado' => false, 'motivo' => 'ya_generado', 'ids' => []];
-        }
 
+        // Nota: NO se corta por rooming_generado. generateFromItinerary es
+        // idempotente (no duplica), así que volver a correrlo recoge los vuelos
+        // añadidos DESPUÉS de la primera generación sin crear repetidos.
         $ids = $this->generateFromItinerary($solicitudId, $agenciaId);
 
         // Marcar como generado si el programa YA tiene roomings (recién creados o
@@ -433,6 +495,35 @@ class RoomingModel
             'motivo'   => !empty($ids) ? 'ok' : ($tieneRoomings ? 'ya_existian' : 'sin_vuelos'),
             'ids'      => $ids,
         ];
+    }
+
+    /**
+     * Genera el Rooming List de TODOS los programas vendidos de la agencia que
+     * aún están pendientes (comprado=1 y rooming_generado=0). Idempotente y
+     * barato: los ya generados se saltan por la bandera. Pensado para
+     * auto-completar al abrir el módulo de Rooming (self-heal), de modo que un
+     * programa vendido siempre tenga sus traslados sin acción manual.
+     *
+     * @return int total de roomings creados en esta pasada
+     */
+    public function generarPendientes(int $agenciaId): int
+    {
+        $pendientes = $this->db->fetchAll(
+            "SELECT id FROM programa_solicitudes
+             WHERE agencia_id = ? AND comprado = 1 AND rooming_generado = 0",
+            [$agenciaId]
+        );
+
+        $total = 0;
+        foreach ($pendientes as $p) {
+            try {
+                $res = $this->generarSiVendido((int) $p['id'], $agenciaId);
+                $total += count($res['ids']);
+            } catch (\Exception $e) {
+                error_log('generarPendientes #' . $p['id'] . ': ' . $e->getMessage());
+            }
+        }
+        return $total;
     }
 
     /**
@@ -488,6 +579,7 @@ class RoomingModel
             'flight_code'          => $v['codigo_vuelo'],
             'arrival_time'         => $v['hora_llegada'],
             'departure_time'       => $v['hora_salida'],
+            'pickup_time'          => $v['hora_llegada'],          // IN: se recoge a la hora de llegada del vuelo
             'pickup_location'      => $v['aeropuerto_destino'],   // aeropuerto donde aterriza
             'dropoff_location'     => $hotel['nombre'] ?? null,   // hotel destino
             'hotel_id'             => $hotel['id'] ?? null,
@@ -514,6 +606,9 @@ class RoomingModel
             'flight_code'          => $v['codigo_vuelo'],
             'arrival_time'         => $v['hora_llegada'],
             'departure_time'       => $v['hora_salida'],
+            // OUT: la hora de recogida se deja en blanco a propósito; se asigna a
+            // mano porque depende de distancias/tiempos de traslado variables.
+            'pickup_time'          => null,
             'pickup_location'      => $hotel['nombre'] ?? null,   // hotel de salida
             'dropoff_location'     => $v['aeropuerto_origen'],    // aeropuerto de donde despega
             'hotel_id'             => $hotel['id'] ?? null,
@@ -538,6 +633,135 @@ class RoomingModel
             [$programaDiaId]
         );
         return $row ?: null;
+    }
+
+    // =========================================================
+    // Reglas de asignación automática
+    // =========================================================
+
+    public function getReglas(int $agenciaId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT rr.*, u.full_name AS operador_nombre
+             FROM rooming_reglas rr
+             JOIN operadores o ON o.id = rr.operador_id
+             JOIN users u      ON u.id = o.usuario_id
+             WHERE rr.agencia_id = ?
+             ORDER BY rr.prioridad ASC, rr.id ASC",
+            [$agenciaId]
+        );
+    }
+
+    public function createRegla(int $agenciaId, int $operadorId, ?string $airport, ?string $type, ?string $city): int
+    {
+        // Nueva regla al final (menor prioridad): MAX(prioridad)+1
+        $pos = $this->db->fetch(
+            "SELECT COALESCE(MAX(prioridad), -1) + 1 AS p FROM rooming_reglas WHERE agencia_id = ?",
+            [$agenciaId]
+        );
+        $this->db->query(
+            "INSERT INTO rooming_reglas (agencia_id, operador_id, airport_code, service_type, city, prioridad)
+             VALUES (?, ?, ?, ?, ?, ?)",
+            [$agenciaId, $operadorId, $airport ?: null, $type ?: null, $city ?: null, (int) $pos['p']]
+        );
+        return (int) $this->db->getConnection()->lastInsertId();
+    }
+
+    public function updateRegla(int $id, int $agenciaId, int $operadorId, ?string $airport, ?string $type, ?string $city): bool
+    {
+        $r = $this->db->query(
+            "UPDATE rooming_reglas SET operador_id = ?, airport_code = ?, service_type = ?, city = ?
+             WHERE id = ? AND agencia_id = ?",
+            [$operadorId, $airport ?: null, $type ?: null, $city ?: null, $id, $agenciaId]
+        );
+        return $r->rowCount() >= 0;
+    }
+
+    /** Reordena las reglas de la agencia según el array de ids (prioridad = posición). */
+    public function reordenarReglas(array $orderedIds, int $agenciaId): void
+    {
+        $pos = 0;
+        foreach ($orderedIds as $id) {
+            $this->db->query(
+                "UPDATE rooming_reglas SET prioridad = ? WHERE id = ? AND agencia_id = ?",
+                [$pos++, (int) $id, $agenciaId]
+            );
+        }
+    }
+
+    public function toggleRegla(int $id, int $agenciaId, int $activa): bool
+    {
+        $r = $this->db->query(
+            "UPDATE rooming_reglas SET activa = ? WHERE id = ? AND agencia_id = ?",
+            [$activa ? 1 : 0, $id, $agenciaId]
+        );
+        return $r->rowCount() > 0;
+    }
+
+    public function deleteRegla(int $id, int $agenciaId): bool
+    {
+        $r = $this->db->query(
+            "DELETE FROM rooming_reglas WHERE id = ? AND agencia_id = ?",
+            [$id, $agenciaId]
+        );
+        return $r->rowCount() > 0;
+    }
+
+    /** Aeropuerto relevante de un traslado: origen si OUT, destino si IN. */
+    private function aeroRelevante(array $r): ?string
+    {
+        return ($r['service_type'] ?? '') === self::TYPE_AL_AEROPUERTO
+            ? ($r['airport_code_origen']  ?? null)
+            : ($r['airport_code_destino'] ?? null);
+    }
+
+    /**
+     * Aplica las reglas activas de la agencia a una lista de roomings.
+     * Por cada regla que haga match, asigna su operador (sin duplicar).
+     * @return int número de asignaciones nuevas creadas
+     */
+    public function aplicarReglasIds(array $ids, int $agenciaId, ?int $userId = null): int
+    {
+        // Reglas activas en orden de prioridad (menor número = mayor prioridad)
+        $reglas = $this->db->fetchAll(
+            "SELECT * FROM rooming_reglas WHERE agencia_id = ? AND activa = 1
+             ORDER BY prioridad ASC, id ASC",
+            [$agenciaId]
+        );
+        if (!$reglas) {
+            return 0;
+        }
+
+        $asignados = 0;
+        foreach ($ids as $rid) {
+            $rid = (int) $rid;
+            if (!$rid) {
+                continue;
+            }
+            $room = $this->getById($rid, $agenciaId);
+            if (!$room) {
+                continue;
+            }
+            $aero = (string) $this->aeroRelevante($room);
+
+            // Gana la PRIMERA regla que coincida (por prioridad); luego se detiene.
+            foreach ($reglas as $rule) {
+                if (!empty($rule['airport_code']) && strcasecmp(trim($rule['airport_code']), $aero) !== 0) {
+                    continue;
+                }
+                if (!empty($rule['service_type']) && $rule['service_type'] !== $room['service_type']) {
+                    continue;
+                }
+                if (!empty($rule['city']) && strcasecmp(trim($rule['city']), trim((string) ($room['city'] ?? ''))) !== 0) {
+                    continue;
+                }
+                if ($this->assignOperator($rid, (int) $rule['operador_id'], $userId)) {
+                    $asignados++;
+                }
+                break; // primera coincidencia gana
+            }
+        }
+        return $asignados;
     }
 
     private function logTrace(int $roomingId, string $action, ?int $userId): void

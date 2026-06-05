@@ -148,7 +148,8 @@ class UIComponents
             'map' => '<svg viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path></svg>',
             'profile' => '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>',
             'logout'   => '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>',
-            'pipeline' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>'
+            'pipeline' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+            'rooming' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2l1-5h12l1 5h2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M6 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/></svg>'
         ];
 
         return $icons[$icon] ?? $icons['dashboard'];
@@ -201,11 +202,17 @@ class UIComponents
                     'icon' => 'map',
                     'title' => 'Gestión de Itinerarios',
                     'description' => 'Administrar todos los itinerarios'
+                ],
+                [
+                    'url' => '/rooming',
+                    'icon' => 'rooming',
+                    'title' => 'Traslados / Rooming',
+                    'description' => 'Logística de traslados de aeropuerto'
                 ]
             ]);
         } else if ($role === 'agent') {
             // Menú LIMITADO para Agente - Solo las opciones específicas
-            $menuItems = array_merge($menuItems, [
+            $agentItems = [
                 [
                     'url'         => '/pipeline',
                     'icon'        => 'pipeline',
@@ -223,18 +230,33 @@ class UIComponents
                     'icon' => 'library',
                     'title' => 'Biblioteca',
                     'description' => 'Mis recursos y materiales'
-                ],
-                [
-                    'url' => '/perfil',
-                    'icon' => 'profile',
-                    'title' => 'Mi Perfil',
-                    'description' => 'Configuración personal'
                 ]
-            ]);
+            ];
+            // Traslados/Rooming: solo si la agencia lo habilita para agentes
+            if (ConfigManager::roomingAgentesVisible()) {
+                $agentItems[] = [
+                    'url' => '/rooming',
+                    'icon' => 'rooming',
+                    'title' => 'Traslados / Rooming',
+                    'description' => 'Logística de traslados de aeropuerto'
+                ];
+            }
+            $agentItems[] = [
+                'url' => '/perfil',
+                'icon' => 'profile',
+                'title' => 'Mi Perfil',
+                'description' => 'Configuración personal'
+            ];
+            $menuItems = array_merge($menuItems, $agentItems);
         } else if ($role === 'operador') {
-            // Menú LIMITADO para Agente - Solo las opciones específicas
+            // Menú del operador: sus traslados asignados + su perfil
             $menuItems = array_merge($menuItems, [
-
+                [
+                    'url' => '/rooming',
+                    'icon' => 'rooming',
+                    'title' => 'Mis Traslados',
+                    'description' => 'Traslados asignados a mí'
+                ],
                 [
                     'url' => '/perfil',
                     'icon' => 'profile',

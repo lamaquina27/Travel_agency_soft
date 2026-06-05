@@ -44,8 +44,9 @@ class ConfigManager {
                     admin_primary_color,
                     admin_secondary_color,
                     agent_primary_color,
-                    agent_secondary_color
-                 FROM agencias 
+                    agent_secondary_color,
+                    rooming_agentes_visible
+                 FROM agencias
                  WHERE id = ? AND activa = 1",
                 [$agencia_id]
             );
@@ -66,6 +67,7 @@ class ConfigManager {
                 'admin_secondary_color' => self::$agenciaData['admin_secondary_color'] ?? '#fd746c',
                 'agent_primary_color' => self::$agenciaData['agent_primary_color'] ?? '#667eea',
                 'agent_secondary_color' => self::$agenciaData['agent_secondary_color'] ?? '#764ba2',
+                'rooming_agentes_visible' => (int)(self::$agenciaData['rooming_agentes_visible'] ?? 0),
                 'default_language' => 'es',
                 'max_file_size' => 10
             ];
@@ -88,6 +90,7 @@ class ConfigManager {
             'admin_secondary_color' => '#fd746c',
             'agent_primary_color' => '#667eea',
             'agent_secondary_color' => '#764ba2',
+            'rooming_agentes_visible' => 0,
             'login_bg_color' => '#667eea',
             'login_secondary_color' => '#764ba2',
             'default_language' => 'es',
@@ -131,6 +134,14 @@ class ConfigManager {
     
     public static function getDefaultLanguage() {
         return self::get('default_language') ?: 'es';
+    }
+
+    /**
+     * ¿Los agentes de la agencia pueden ver el módulo de Rooming/Traslados?
+     * El admin siempre lo ve; esto solo controla la visibilidad para agentes.
+     */
+    public static function roomingAgentesVisible() {
+        return (int) (self::get('rooming_agentes_visible') ?? 0) === 1;
     }
     
     public static function getColorsForRole($role) {

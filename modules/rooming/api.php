@@ -63,6 +63,15 @@ class RoomingAPI
                 case 'get_programas_vendidos':  $result = $this->getProgramasVendidos(); break;
                 case 'asignar_operador':        $result = $this->asignarOperador();     break;
                 case 'quitar_operador':         $result = $this->quitarOperador();      break;
+                case 'bulk_asignar_operador':   $result = $this->bulkAsignarOperador(); break;
+                case 'bulk_update':             $result = $this->bulkUpdate();          break;
+                case 'get_reglas':              $result = $this->getReglas();           break;
+                case 'crear_regla':             $result = $this->crearRegla();          break;
+                case 'update_regla':            $result = $this->updateRegla();         break;
+                case 'toggle_regla':            $result = $this->toggleRegla();         break;
+                case 'eliminar_regla':          $result = $this->eliminarRegla();       break;
+                case 'reordenar_reglas':        $result = $this->reordenarReglas();     break;
+                case 'aplicar_reglas':          $result = $this->aplicarReglas();       break;
                 case 'actualizar_estado':       $result = $this->actualizarEstado();    break;
                 case 'actualizar':              $result = $this->actualizar();          break;
                 case 'crear':                   $result = $this->crear();               break;
@@ -118,6 +127,15 @@ class RoomingAPI
         if ($this->esOperador()) {
             $data = $this->model->getByOperador((int) $this->userId, (int) $this->agenciaId);
             return ['success' => true, 'data' => $data];
+        }
+
+        // admin/agent: auto-generar los traslados de programas vendidos que aún
+        // estén pendientes (self-heal), para que el listado siempre esté completo
+        // sin requerir acción manual. Es idempotente y no debe romper el listado.
+        try {
+            $this->model->generarPendientes((int) $this->agenciaId);
+        } catch (Exception $e) {
+            error_log('Rooming auto-generar pendientes: ' . $e->getMessage());
         }
 
         // admin/agent: lista con filtros opcionales
@@ -218,6 +236,84 @@ class RoomingAPI
 
         $ok = $this->model->removeOperator($roomingId, $operadorId, (int) $this->userId);
         return ['success' => true, 'eliminado' => $ok];
+    }
+
+    // =========================================================
+    // Acciones en lote (solo gestores)
+    // =========================================================
+
+    /** Asigna un operador a varios traslados a la vez. */
+    private function bulkAsignarOperador(): array
+    {
+        $this->requireGestor();
+        $ids        = $_POST['ids'] ?? [];
+        $operadorId = (int) ($_POST['operador_id'] ?? 0);
+        if (!is_array($ids) || !$ids) {
+            throw new Exception('Selecciona al menos un traslado');
+        }
+        if (!$operadorId) {
+            throw new Exception('operador_id requerido');
+        }
+        // El operador debe pertenecer a la agencia
+        $op = $this->db->fetch(
+            "SELECT id FROM operadores WHERE id = ? AND agencia_id = ?",
+            [$operadorId, (int) $this->agenciaId]
+        );
+        if (!$op) {
+            throw new Exception('Operador no válido para esta agencia');
+        }
+
+        $count = 0;
+        foreach ($ids as $rid) {
+            $rid = (int) $rid;
+            if (!$rid || !$this->model->getById($rid, (int) $this->agenciaId)) {
+                continue; // ignora ids inválidos o de otra agencia
+            }
+            $this->model->assignOperator($rid, $operadorId, (int) $this->userId);
+            $count++;
+        }
+        return ['success' => true, 'afectados' => $count];
+    }
+
+    /** Aplica campos (hora de recogida y/o estado) a varios traslados a la vez. */
+    private function bulkUpdate(): array
+    {
+        $this->requireGestor();
+        $ids = $_POST['ids'] ?? [];
+        if (!is_array($ids) || !$ids) {
+            throw new Exception('Selecciona al menos un traslado');
+        }
+
+        $data = [];
+        foreach (['pickup_time', 'status'] as $c) {
+            if (array_key_exists($c, $_POST) && $_POST[$c] !== '') {
+                $data[$c] = $_POST[$c];
+            }
+        }
+        if (empty($data)) {
+            throw new Exception('No hay cambios para aplicar');
+        }
+        if (isset($data['status'])) {
+            $validos = [RoomingModel::STATUS_EN_PROCESO, RoomingModel::STATUS_COMPLETADO, RoomingModel::STATUS_CANCELADO];
+            if (!in_array($data['status'], $validos, true)) {
+                throw new Exception('Estado no válido');
+            }
+        }
+
+        $count = 0;
+        foreach ($ids as $rid) {
+            $rid = (int) $rid;
+            if (!$rid) {
+                continue;
+            }
+            try {
+                $this->model->update($rid, (int) $this->agenciaId, $data, (int) $this->userId);
+                $count++;
+            } catch (Exception $e) {
+                // ignora fallos puntuales para no romper el lote
+            }
+        }
+        return ['success' => true, 'afectados' => $count];
     }
 
     // =========================================================
@@ -382,6 +478,119 @@ class RoomingAPI
         }
         fclose($out);
         exit;
+    }
+
+    // =========================================================
+    // Reglas de asignación automática (solo gestores)
+    // =========================================================
+
+    private function getReglas(): array
+    {
+        $this->requireGestor();
+        return ['success' => true, 'data' => $this->model->getReglas((int) $this->agenciaId)];
+    }
+
+    private function crearRegla(): array
+    {
+        $this->requireGestor();
+        $operadorId = (int) ($_POST['operador_id'] ?? 0);
+        $airport    = trim($_POST['airport_code'] ?? '');
+        $type       = trim($_POST['service_type'] ?? '');
+        $city       = trim($_POST['city'] ?? '');
+
+        if (!$operadorId) {
+            throw new Exception('Selecciona el operador de la regla');
+        }
+        if ($airport === '' && $type === '' && $city === '') {
+            throw new Exception('Define al menos una condición (aeropuerto, tipo o ciudad)');
+        }
+        if ($type !== '' && !in_array($type, [RoomingModel::TYPE_AL_HOTEL, RoomingModel::TYPE_AL_AEROPUERTO], true)) {
+            throw new Exception('Tipo no válido');
+        }
+        // El operador debe ser de la agencia
+        $op = $this->db->fetch("SELECT id FROM operadores WHERE id = ? AND agencia_id = ?", [$operadorId, (int) $this->agenciaId]);
+        if (!$op) {
+            throw new Exception('Operador no válido para esta agencia');
+        }
+
+        $id = $this->model->createRegla((int) $this->agenciaId, $operadorId, strtoupper($airport) ?: null, $type ?: null, $city ?: null);
+        return ['success' => true, 'id' => $id];
+    }
+
+    private function updateRegla(): array
+    {
+        $this->requireGestor();
+        $id         = (int) ($_POST['id'] ?? 0);
+        $operadorId = (int) ($_POST['operador_id'] ?? 0);
+        $airport    = trim($_POST['airport_code'] ?? '');
+        $type       = trim($_POST['service_type'] ?? '');
+        $city       = trim($_POST['city'] ?? '');
+
+        if (!$id) {
+            throw new Exception('ID de regla requerido');
+        }
+        if (!$operadorId) {
+            throw new Exception('Selecciona el operador de la regla');
+        }
+        if ($airport === '' && $type === '' && $city === '') {
+            throw new Exception('Define al menos una condición (aeropuerto, tipo o ciudad)');
+        }
+        if ($type !== '' && !in_array($type, [RoomingModel::TYPE_AL_HOTEL, RoomingModel::TYPE_AL_AEROPUERTO], true)) {
+            throw new Exception('Tipo no válido');
+        }
+        $op = $this->db->fetch("SELECT id FROM operadores WHERE id = ? AND agencia_id = ?", [$operadorId, (int) $this->agenciaId]);
+        if (!$op) {
+            throw new Exception('Operador no válido para esta agencia');
+        }
+
+        $this->model->updateRegla($id, (int) $this->agenciaId, $operadorId, strtoupper($airport) ?: null, $type ?: null, $city ?: null);
+        return ['success' => true];
+    }
+
+    private function reordenarReglas(): array
+    {
+        $this->requireGestor();
+        $orden = $_POST['orden'] ?? [];
+        if (!is_array($orden) || !$orden) {
+            throw new Exception('Orden inválido');
+        }
+        $this->model->reordenarReglas($orden, (int) $this->agenciaId);
+        return ['success' => true];
+    }
+
+    private function toggleRegla(): array
+    {
+        $this->requireGestor();
+        $id     = (int) ($_POST['id'] ?? 0);
+        $activa = (int) ($_POST['activa'] ?? 0);
+        if (!$id) {
+            throw new Exception('ID de regla requerido');
+        }
+        $ok = $this->model->toggleRegla($id, (int) $this->agenciaId, $activa);
+        return ['success' => true, 'actualizado' => $ok];
+    }
+
+    private function eliminarRegla(): array
+    {
+        $this->requireGestor();
+        $id = (int) ($_POST['id'] ?? 0);
+        if (!$id) {
+            throw new Exception('ID de regla requerido');
+        }
+        $ok = $this->model->deleteRegla($id, (int) $this->agenciaId);
+        return ['success' => true, 'eliminado' => $ok];
+    }
+
+    /** Aplica las reglas activas a una lista de traslados (los filtrados en la vista). */
+    private function aplicarReglas(): array
+    {
+        $this->requireGestor();
+        $ids = $_POST['ids'] ?? [];
+        if (!is_array($ids) || !$ids) {
+            throw new Exception('No hay traslados a los que aplicar las reglas');
+        }
+        $asignados = $this->model->aplicarReglasIds($ids, (int) $this->agenciaId, (int) $this->userId);
+        return ['success' => true, 'asignados' => $asignados, 'evaluados' => count($ids)];
     }
 
     // =========================================================
