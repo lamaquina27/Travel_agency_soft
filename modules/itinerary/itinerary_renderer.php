@@ -29,6 +29,7 @@ class ItineraryRenderer
         $primary = $this->normalizeColor($agencia['primary_color'] ?? '#0f766e');
         $secondary = $this->normalizeColor($agencia['secondary_color'] ?? '#0f172a');
         $dark = '#101828';
+        $mostrarPrecio = !isset($precios['mostrar_precio']) || (int)($precios['mostrar_precio']) === 1;
 
         $titulo = $programa['titulo_programa'] ?: 'Travel itinerary';
         $destino = $programa['destino'] ?? '';
@@ -358,7 +359,7 @@ class ItineraryRenderer
                 <div class="price-section">
                     <h2 class="section-title">Precio y condiciones</h2>
                     <table class="pricing-table">
-                        <?php if (!empty($precios['precio_total'])): ?><tr><td class="price-label">Precio total</td><td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></span></td></tr><?php endif; ?>
+                        <?php if ($mostrarPrecio && !empty($precios['precio_total'])): ?><tr><td class="price-label">Precio total</td><td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></span></td></tr><?php endif; ?>
                         <?php foreach ([['precio_incluye','Incluye'],['precio_no_incluye','No incluye'],['condiciones_generales','Condiciones generales'],['info_pasaporte','Pasaporte y visados'],['info_seguros','Seguros'],['visados_entrada','Visados y requisitos de entrada'],['requisitos_sanitarios','Requisitos sanitarios'],['llegada_punto_encuentro','Llegada y punto de encuentro'],['asistencia_emergencia','Asistencia y emergencias'],['info_hoteles_servicios','Información de hoteles y servicios'],['informacion_practica','Información práctica']] as $row): ?>
                             <?php if (!empty($precios[$row[0]])): ?><tr><td class="price-label"><?= $row[1] ?></td><td><?= nl2br(htmlspecialchars($precios[$row[0]])) ?></td></tr><?php endif; ?>
                         <?php endforeach; ?>

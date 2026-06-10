@@ -393,7 +393,7 @@ if ($num_dias == 0) {
     $num_dias = count($dias);
 }
 
-$num_noches = $num_dias - 1;
+$num_noches = max(0, $num_dias - 1);
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
@@ -538,7 +538,9 @@ if ($programa['fecha_llegada']) {
 
     // Calcular fecha de salida: fecha_llegada + duración_días (incluye día adicional de regreso)
     $fecha_fin = clone $fecha_inicio;
-    $fecha_fin->add(new DateInterval('P' . $duracion_dias . 'D'));
+    if ($duracion_dias > 0) {
+        $fecha_fin->add(new DateInterval('P' . $duracion_dias . 'D'));
+    }
     $fecha_fin_formatted = $fecha_fin->format('d M Y');
 }
 
