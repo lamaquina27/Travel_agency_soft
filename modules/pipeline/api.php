@@ -330,7 +330,7 @@ class PipelineAPI
         $tags = $this->db->fetchAll(
             "SELECT id, nombre
             FROM tags
-            WHERE agencia_id = ?
+            WHERE agencia_id = ? AND WHERE tipo = 'pipeline'
             ORDER BY id ASC",
             [$agencia_id]
         );

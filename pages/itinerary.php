@@ -212,33 +212,35 @@ try {
             $origen = trim(($vl['ciudad_origen'] ?? '') . (!empty($vl['codigo_aeropuerto_origen']) ? ' (' . $vl['codigo_aeropuerto_origen'] . ')' : ''));
             $destino = trim(($vl['ciudad_destino'] ?? '') . (!empty($vl['codigo_aeropuerto_destino']) ? ' (' . $vl['codigo_aeropuerto_destino'] . ')' : ''));
             $resumen_vuelos[] = [
-                'dia'       => $d['dia_numero'],
-                'fecha'     => $d['fecha_calculada'] ?? null,
-                'codigo'    => $vl['codigo_vuelo'] ?? '',
+                'dia' => $d['dia_numero'],
+                'fecha' => $d['fecha_calculada'] ?? null,
+                'codigo' => $vl['codigo_vuelo'] ?? '',
                 'aerolinea' => $vl['aerolinea'] ?? '',
-                'origen'    => $origen,
-                'destino'   => $destino,
-                'salida'    => $vl['hora_salida'] ?? '',
-                'llegada'   => $vl['hora_llegada'] ?? '',
-                'terminal'  => $vl['terminal'] ?? '',
+                'origen' => $origen,
+                'destino' => $destino,
+                'salida' => $vl['hora_salida'] ?? '',
+                'llegada' => $vl['hora_llegada'] ?? '',
+                'terminal' => $vl['terminal'] ?? '',
             ];
         }
 
         // Hoteles: desde los servicios de alojamiento del día
-        if (empty($d['servicios'])) continue;
+        if (empty($d['servicios']))
+            continue;
         foreach ($d['servicios'] as $grupo) {
             $s = $grupo['principal'] ?? null;
-            if (!$s) continue;
+            if (!$s)
+                continue;
 
             if ($s['tipo_servicio'] === 'alojamiento') {
                 $resumen_hoteles[] = [
-                    'dia'         => $d['dia_numero'],
-                    'fecha'       => $d['fecha_calculada'] ?? null,
-                    'noches'      => max(1, (int) ($d['duracion_estancia'] ?? 1)),
-                    'nombre'      => $s['nombre'] ?? 'Alojamiento',
-                    'tipo'        => $s['tipo_alojamiento'] ?? '',
-                    'categoria'   => (int) ($s['categoria_alojamiento'] ?? 0),
-                    'ubicacion'   => $s['ubicacion'] ?? ($d['ubicacion'] ?? ''),
+                    'dia' => $d['dia_numero'],
+                    'fecha' => $d['fecha_calculada'] ?? null,
+                    'noches' => max(1, (int) ($d['duracion_estancia'] ?? 1)),
+                    'nombre' => $s['nombre'] ?? 'Alojamiento',
+                    'tipo' => $s['tipo_alojamiento'] ?? '',
+                    'categoria' => (int) ($s['categoria_alojamiento'] ?? 0),
+                    'ubicacion' => $s['ubicacion'] ?? ($d['ubicacion'] ?? ''),
                     'acomodacion' => $s['acomodacion_nombre'] ?? '',
                 ];
             }
@@ -248,6 +250,12 @@ try {
     // Obtener información de precios
     $precios = $db->fetch(
         "SELECT * FROM programa_precios WHERE solicitud_id = ?",
+        [$programa_id]
+    );
+
+    // Obtener adjuntos (archivos y enlaces) en orden de subida
+    $adjuntos = $db->fetchAll(
+        "SELECT id, archivo, enlace FROM programa_adjuntos WHERE solicitud_id = ? ORDER BY created_at ASC, id ASC",
         [$programa_id]
     );
 
@@ -857,6 +865,118 @@ if ($programa['fecha_llegada']) {
             color: var(--brand-muted);
             max-width: 600px;
             margin: 0 auto;
+        }
+
+        /* ===== Adjuntos: archivos y enlaces ===== */
+        .adj-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .adj-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+            border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, #e8e8e8);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            text-decoration: none;
+            color: var(--brand-text);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .adj-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+            border-color: var(--brand-primary);
+        }
+
+        .adj-card.adj-hidden {
+            display: none;
+        }
+
+        .adj-card-icon {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .adj-card-icon.adj-file {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        }
+
+        .adj-card-icon.adj-link {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        }
+
+        .adj-card-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .adj-card-name {
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .adj-card-meta {
+            font-size: 13px;
+            color: var(--brand-muted);
+        }
+
+        .adj-card-action {
+            flex-shrink: 0;
+            color: var(--brand-primary);
+            font-size: 15px;
+            opacity: 0.7;
+        }
+
+        .adj-more-wrap {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .adj-more-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            border: 1px solid var(--brand-primary);
+            border-radius: 30px;
+            background: transparent;
+            color: var(--brand-primary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .adj-more-btn:hover {
+            background: var(--brand-primary);
+            color: #fff;
+        }
+
+        .adj-more-btn.is-open i {
+            transform: rotate(180deg);
+        }
+
+        .adj-more-btn i {
+            transition: transform 0.2s ease;
         }
 
         /* ===== SELECTOR DE IDIOMA ELEGANTE ===== */
@@ -2203,10 +2323,17 @@ if ($programa['fecha_llegada']) {
             line-height: 1.5;
         }
 
+        .conditions-text {
+            height: 380px;
+            overflow-y: scroll;
+        }
+
         .conditions-text,
-        .passport-info,
-        .insurance-info,
+        .passport-text,
+        .insurance-text,
         .additional-info {
+            height: 380px;
+            overflow-y: scroll;
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
@@ -4537,6 +4664,7 @@ if ($programa['fecha_llegada']) {
 
         .pricing-accordion {
             overflow: hidden !important;
+
         }
 
         .accordion-header {
@@ -5289,6 +5417,59 @@ if ($programa['fecha_llegada']) {
                 </div>
             </div>
         </section>
+
+        <!-- Adjuntos: archivos y enlaces -->
+        <?php if (!empty($adjuntos)):
+            $adj_limite = 6; // a partir de aquí se ocultan tras "Ver más"
+        ?>
+            <section id="adjuntos" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Documentos y enlaces</h2>
+                    <p class="section-subtitle">
+                        Archivos y recursos relacionados con tu viaje
+                    </p>
+                </div>
+
+                <div class="adj-grid" id="adjGrid">
+                    <?php foreach ($adjuntos as $i => $adj):
+                        $es_enlace = !empty($adj['enlace']);
+                        $url = $es_enlace ? $adj['enlace'] : $adj['archivo'];
+                        if ($es_enlace) {
+                            $nombre = $adj['enlace'];
+                            $meta = 'Enlace';
+                            $icono = 'fa-link';
+                        } else {
+                            $nombre = rawurldecode(basename(parse_url($adj['archivo'], PHP_URL_PATH)));
+                            $ext = strtoupper(pathinfo($nombre, PATHINFO_EXTENSION));
+                            $meta = 'Archivo' . ($ext ? ' · ' . $ext : '');
+                            $icono = 'fa-file';
+                        }
+                        $oculto = $i >= $adj_limite ? ' adj-hidden' : '';
+                    ?>
+                        <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener"
+                           class="adj-card<?= $oculto ?>"<?= $es_enlace ? '' : ' download' ?>>
+                            <div class="adj-card-icon <?= $es_enlace ? 'adj-link' : 'adj-file' ?>">
+                                <i class="fas <?= $icono ?>"></i>
+                            </div>
+                            <div class="adj-card-info">
+                                <span class="adj-card-name"><?= htmlspecialchars($nombre) ?></span>
+                                <span class="adj-card-meta"><?= htmlspecialchars($meta) ?></span>
+                            </div>
+                            <i class="fas <?= $es_enlace ? 'fa-external-link-alt' : 'fa-download' ?> adj-card-action"></i>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+
+                <?php if (count($adjuntos) > $adj_limite): ?>
+                    <div class="adj-more-wrap">
+                        <button type="button" class="adj-more-btn" id="adjMoreBtn" onclick="toggleAdjuntos()">
+                            <span class="adj-more-text">Ver más (<?= count($adjuntos) - $adj_limite ?>)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </section>
+        <?php endif; ?>
 
         <!-- Map Section -->
         <?php if (!empty($puntos_mapa)): ?>
@@ -6314,6 +6495,30 @@ if ($programa['fecha_llegada']) {
             }
         }
 
+        function toggleAdjuntos() {
+            const btn = document.getElementById('adjMoreBtn');
+            const ocultos = document.querySelectorAll('#adjGrid .adj-card.adj-hidden');
+            const texto = btn.querySelector('.adj-more-text');
+            const expandido = btn.classList.toggle('is-open');
+
+            document.querySelectorAll('#adjGrid .adj-card').forEach(card => {
+                if (card.dataset.adjBase === undefined) {
+                    // marca las tarjetas que arrancan ocultas para poder re-ocultarlas
+                    card.dataset.adjBase = card.classList.contains('adj-hidden') ? 'hidden' : 'visible';
+                }
+            });
+
+            document.querySelectorAll('#adjGrid .adj-card').forEach(card => {
+                if (card.dataset.adjBase === 'hidden') {
+                    card.classList.toggle('adj-hidden', !expandido);
+                }
+            });
+
+            texto.textContent = expandido
+                ? 'Ver menos'
+                : 'Ver más (' + document.querySelectorAll('#adjGrid .adj-card[data-adj-base="hidden"]').length + ')';
+        }
+
         function toggleAccordion(element) {
             // Obtener el header desde el elemento clickeado
             const header = element.closest ? element.closest('.accordion-header') : element;
@@ -6920,129 +7125,279 @@ if ($programa['fecha_llegada']) {
     </script>
 
     <?php if (!empty($resumen_vuelos) || !empty($resumen_hoteles)): ?>
-    <!-- ── Accesos rápidos: resumen de vuelos y hoteles ── -->
-    <style>
-        .quick-access { position: fixed; right: 20px; bottom: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 9000; }
-        .qa-btn { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border: none; border-radius: 50px; background: var(--primary-color, #1a5276); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,.22); transition: transform .2s, box-shadow .2s; }
-        .qa-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.3); }
-        .qa-btn .qa-count { background: rgba(255,255,255,.25); border-radius: 50px; padding: 1px 9px; font-size: 12px; }
-        .resumen-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); z-index: 9500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .resumen-overlay.active { display: flex; }
-        .resumen-card { background: #fff; border-radius: 20px; width: 100%; max-width: 620px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 70px rgba(0,0,0,.3); }
-        .resumen-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: var(--primary-color, #1a5276); color: #fff; }
-        .resumen-head h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-        .resumen-close { background: rgba(255,255,255,.2); border: none; color: #fff; width: 34px; height: 34px; border-radius: 10px; font-size: 20px; cursor: pointer; line-height: 1; }
-        .resumen-body { padding: 18px 24px; overflow-y: auto; }
-        .resumen-item { border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
-        .resumen-item:last-child { margin-bottom: 0; }
-        .resumen-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
-        .resumen-item-title { font-weight: 700; color: #1f2937; font-size: 15px; }
-        .resumen-daychip { background: #eef2ff; color: #4338ca; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 50px; white-space: nowrap; }
-        .resumen-route { display: flex; align-items: center; gap: 8px; color: #374151; font-size: 14px; flex-wrap: wrap; }
-        .resumen-route i { color: var(--primary-color, #1a5276); }
-        .resumen-meta { color: #6b7280; font-size: 13px; margin-top: 4px; }
-        .resumen-stars { color: #f59e0b; }
-        @media print { .quick-access, .resumen-overlay { display: none !important; } }
-    </style>
+        <!-- ── Accesos rápidos: resumen de vuelos y hoteles ── -->
+        <style>
+            .quick-access {
+                position: fixed;
+                right: 20px;
+                bottom: 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                z-index: 9000;
+            }
 
-    <div class="quick-access">
+            .qa-btn {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 18px;
+                border: none;
+                border-radius: 50px;
+                background: var(--primary-color, #1a5276);
+                color: #fff;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 8px 22px rgba(0, 0, 0, .22);
+                transition: transform .2s, box-shadow .2s;
+            }
+
+            .qa-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(0, 0, 0, .3);
+            }
+
+            .qa-btn .qa-count {
+                background: rgba(255, 255, 255, .25);
+                border-radius: 50px;
+                padding: 1px 9px;
+                font-size: 12px;
+            }
+
+            .resumen-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, .55);
+                backdrop-filter: blur(4px);
+                z-index: 9500;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .resumen-overlay.active {
+                display: flex;
+            }
+
+            .resumen-card {
+                background: #fff;
+                border-radius: 20px;
+                width: 100%;
+                max-width: 620px;
+                max-height: 85vh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 30px 70px rgba(0, 0, 0, .3);
+            }
+
+            .resumen-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px 24px;
+                background: var(--primary-color, #1a5276);
+                color: #fff;
+            }
+
+            .resumen-head h3 {
+                margin: 0;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .resumen-close {
+                background: rgba(255, 255, 255, .2);
+                border: none;
+                color: #fff;
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                font-size: 20px;
+                cursor: pointer;
+                line-height: 1;
+            }
+
+            .resumen-body {
+                padding: 18px 24px;
+                overflow-y: auto;
+            }
+
+            .resumen-item {
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+                padding: 14px 16px;
+                margin-bottom: 12px;
+            }
+
+            .resumen-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .resumen-item-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                margin-bottom: 6px;
+            }
+
+            .resumen-item-title {
+                font-weight: 700;
+                color: #1f2937;
+                font-size: 15px;
+            }
+
+            .resumen-daychip {
+                background: #eef2ff;
+                color: #4338ca;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 3px 10px;
+                border-radius: 50px;
+                white-space: nowrap;
+            }
+
+            .resumen-route {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #374151;
+                font-size: 14px;
+                flex-wrap: wrap;
+            }
+
+            .resumen-route i {
+                color: var(--primary-color, #1a5276);
+            }
+
+            .resumen-meta {
+                color: #6b7280;
+                font-size: 13px;
+                margin-top: 4px;
+            }
+
+            .resumen-stars {
+                color: #f59e0b;
+            }
+
+            @media print {
+
+                .quick-access,
+                .resumen-overlay {
+                    display: none !important;
+                }
+            }
+        </style>
+
+        <div class="quick-access">
+            <?php if (!empty($resumen_vuelos)): ?>
+                <button type="button" class="qa-btn" onclick="abrirResumen('resumen-vuelos')">
+                    <i class="fas fa-plane"></i> Vuelos <span class="qa-count"><?= count($resumen_vuelos) ?></span>
+                </button>
+            <?php endif; ?>
+            <?php if (!empty($resumen_hoteles)): ?>
+                <button type="button" class="qa-btn" onclick="abrirResumen('resumen-hoteles')">
+                    <i class="fas fa-hotel"></i> Hoteles <span class="qa-count"><?= count($resumen_hoteles) ?></span>
+                </button>
+            <?php endif; ?>
+        </div>
+
         <?php if (!empty($resumen_vuelos)): ?>
-            <button type="button" class="qa-btn" onclick="abrirResumen('resumen-vuelos')">
-                <i class="fas fa-plane"></i> Vuelos <span class="qa-count"><?= count($resumen_vuelos) ?></span>
-            </button>
-        <?php endif; ?>
-        <?php if (!empty($resumen_hoteles)): ?>
-            <button type="button" class="qa-btn" onclick="abrirResumen('resumen-hoteles')">
-                <i class="fas fa-hotel"></i> Hoteles <span class="qa-count"><?= count($resumen_hoteles) ?></span>
-            </button>
-        <?php endif; ?>
-    </div>
-
-    <?php if (!empty($resumen_vuelos)): ?>
-        <div class="resumen-overlay" id="resumen-vuelos" onclick="if(event.target===this)cerrarResumen()">
-            <div class="resumen-card">
-                <div class="resumen-head">
-                    <h3><i class="fas fa-plane"></i> Resumen de vuelos</h3>
-                    <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
-                </div>
-                <div class="resumen-body">
-                    <?php foreach ($resumen_vuelos as $v): ?>
-                        <div class="resumen-item">
-                            <div class="resumen-item-top">
-                                <span class="resumen-item-title">
-                                    <?= htmlspecialchars($v['aerolinea'] ?: 'Vuelo') ?>
-                                    <?php if (!empty($v['codigo'])): ?>
-                                        <span style="color:#6b7280;font-weight:600;">· <?= htmlspecialchars($v['codigo']) ?></span>
-                                    <?php endif; ?>
-                                </span>
-                                <span class="resumen-daychip">Día <?= (int) $v['dia'] ?><?= $v['fecha'] ? ' · ' . date('d/m/Y', strtotime($v['fecha'])) : '' ?></span>
-                            </div>
-                            <div class="resumen-route">
-                                <i class="fas fa-plane-departure"></i> <?= htmlspecialchars($v['origen'] ?: '—') ?>
-                                <i class="fas fa-arrow-right"></i>
-                                <i class="fas fa-plane-arrival"></i> <?= htmlspecialchars($v['destino'] ?: '—') ?>
-                            </div>
-                            <?php if (!empty($v['salida']) || !empty($v['llegada'])): ?>
-                                <div class="resumen-meta">
-                                    <i class="far fa-clock"></i>
-                                    <?= htmlspecialchars($v['salida'] ?: '—') ?> → <?= htmlspecialchars($v['llegada'] ?: '—') ?>
-                                    <?= !empty($v['terminal']) ? ' · Terminal ' . htmlspecialchars($v['terminal']) : '' ?>
+            <div class="resumen-overlay" id="resumen-vuelos" onclick="if(event.target===this)cerrarResumen()">
+                <div class="resumen-card">
+                    <div class="resumen-head">
+                        <h3><i class="fas fa-plane"></i> Resumen de vuelos</h3>
+                        <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
+                    </div>
+                    <div class="resumen-body">
+                        <?php foreach ($resumen_vuelos as $v): ?>
+                            <div class="resumen-item">
+                                <div class="resumen-item-top">
+                                    <span class="resumen-item-title">
+                                        <?= htmlspecialchars($v['aerolinea'] ?: 'Vuelo') ?>
+                                        <?php if (!empty($v['codigo'])): ?>
+                                            <span style="color:#6b7280;font-weight:600;">· <?= htmlspecialchars($v['codigo']) ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="resumen-daychip">Día
+                                        <?= (int) $v['dia'] ?>
+                                        <?= $v['fecha'] ? ' · ' . date('d/m/Y', strtotime($v['fecha'])) : '' ?></span>
                                 </div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if (!empty($resumen_hoteles)): ?>
-        <div class="resumen-overlay" id="resumen-hoteles" onclick="if(event.target===this)cerrarResumen()">
-            <div class="resumen-card">
-                <div class="resumen-head">
-                    <h3><i class="fas fa-hotel"></i> Resumen de hoteles</h3>
-                    <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
-                </div>
-                <div class="resumen-body">
-                    <?php foreach ($resumen_hoteles as $h): ?>
-                        <div class="resumen-item">
-                            <div class="resumen-item-top">
-                                <span class="resumen-item-title"><?= htmlspecialchars($h['nombre']) ?></span>
-                                <span class="resumen-daychip">Día <?= (int) $h['dia'] ?><?= $h['fecha'] ? ' · ' . date('d/m/Y', strtotime($h['fecha'])) : '' ?></span>
-                            </div>
-                            <div class="resumen-meta">
-                                <?= htmlspecialchars(formatAccommodationType($h['tipo'])) ?>
-                                <?php if ($h['tipo'] === 'hotel' && $h['categoria'] > 0): ?>
-                                    <span class="resumen-stars"><?= str_repeat('★', $h['categoria']) ?></span>
+                                <div class="resumen-route">
+                                    <i class="fas fa-plane-departure"></i> <?= htmlspecialchars($v['origen'] ?: '—') ?>
+                                    <i class="fas fa-arrow-right"></i>
+                                    <i class="fas fa-plane-arrival"></i> <?= htmlspecialchars($v['destino'] ?: '—') ?>
+                                </div>
+                                <?php if (!empty($v['salida']) || !empty($v['llegada'])): ?>
+                                    <div class="resumen-meta">
+                                        <i class="far fa-clock"></i>
+                                        <?= htmlspecialchars($v['salida'] ?: '—') ?> → <?= htmlspecialchars($v['llegada'] ?: '—') ?>
+                                        <?= !empty($v['terminal']) ? ' · Terminal ' . htmlspecialchars($v['terminal']) : '' ?>
+                                    </div>
                                 <?php endif; ?>
-                                · <?= (int) $h['noches'] ?> <?= $h['noches'] == 1 ? 'noche' : 'noches' ?>
                             </div>
-                            <?php if (!empty($h['ubicacion'])): ?>
-                                <div class="resumen-meta"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($h['ubicacion']) ?></div>
-                            <?php endif; ?>
-                            <?php if (!empty($h['acomodacion'])): ?>
-                                <div class="resumen-meta"><i class="fas fa-bed"></i> <?= htmlspecialchars($h['acomodacion']) ?></div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
-        </div>
-    <?php endif; ?>
+        <?php endif; ?>
 
-    <script>
-        function abrirResumen(id) {
-            const el = document.getElementById(id);
-            if (el) { el.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        }
-        function cerrarResumen() {
-            document.querySelectorAll('.resumen-overlay').forEach(o => o.classList.remove('active'));
-            document.body.style.overflow = 'auto';
-        }
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') cerrarResumen();
-        });
-    </script>
+        <?php if (!empty($resumen_hoteles)): ?>
+            <div class="resumen-overlay" id="resumen-hoteles" onclick="if(event.target===this)cerrarResumen()">
+                <div class="resumen-card">
+                    <div class="resumen-head">
+                        <h3><i class="fas fa-hotel"></i> Resumen de hoteles</h3>
+                        <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
+                    </div>
+                    <div class="resumen-body">
+                        <?php foreach ($resumen_hoteles as $h): ?>
+                            <div class="resumen-item">
+                                <div class="resumen-item-top">
+                                    <span class="resumen-item-title"><?= htmlspecialchars($h['nombre']) ?></span>
+                                    <span class="resumen-daychip">Día
+                                        <?= (int) $h['dia'] ?>
+                                        <?= $h['fecha'] ? ' · ' . date('d/m/Y', strtotime($h['fecha'])) : '' ?></span>
+                                </div>
+                                <div class="resumen-meta">
+                                    <?= htmlspecialchars(formatAccommodationType($h['tipo'])) ?>
+                                    <?php if ($h['tipo'] === 'hotel' && $h['categoria'] > 0): ?>
+                                        <span class="resumen-stars"><?= str_repeat('★', $h['categoria']) ?></span>
+                                    <?php endif; ?>
+                                    · <?= (int) $h['noches'] ?>             <?= $h['noches'] == 1 ? 'noche' : 'noches' ?>
+                                </div>
+                                <?php if (!empty($h['ubicacion'])): ?>
+                                    <div class="resumen-meta"><i class="fas fa-map-marker-alt"></i>
+                                        <?= htmlspecialchars($h['ubicacion']) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($h['acomodacion'])): ?>
+                                    <div class="resumen-meta"><i class="fas fa-bed"></i> <?= htmlspecialchars($h['acomodacion']) ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <script>
+            function abrirResumen(id) {
+                const el = document.getElementById(id);
+                if (el) { el.classList.add('active'); document.body.style.overflow = 'hidden'; }
+            }
+            function cerrarResumen() {
+                document.querySelectorAll('.resumen-overlay').forEach(o => o.classList.remove('active'));
+                document.body.style.overflow = 'auto';
+            }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') cerrarResumen();
+            });
+        </script>
     <?php endif; ?>
 
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
