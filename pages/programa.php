@@ -3282,6 +3282,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .programa-no-guardado .tab-item[data-tab="dia-a-dia"],
         .programa-no-guardado .tab-item[data-tab="precio"],
         .programa-no-guardado .tab-item[data-tab="viajeros"],
+        .tab-item[data-tab="adjuntos"],
         .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"],
         .programa-no-guardado .nav-button[onclick*="compartirEnlace"],
         .programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"] {
@@ -3293,6 +3294,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .programa-no-guardado .tab-item[data-tab="dia-a-dia"]::after,
         .programa-no-guardado .tab-item[data-tab="precio"]::after,
         .programa-no-guardado .tab-item[data-tab="viajeros"]::after,
+        .tab-item[data-tab="adjuntos"]::after,
         .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"]::after,
         .programa-no-guardado .nav-button[onclick*="compartirEnlace"]::after,
         .programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"]::after {
@@ -4928,6 +4930,232 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             color: var(--text-primary) !important;
         }
 
+
+        /* ====== ADJUNTOS: zona de añadir ====== */
+        .adj-add-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 28px;
+            margin-bottom: 36px;
+        }
+
+        @media (max-width: 900px) {
+            .adj-add-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Dropzone (arrastrar o clic) */
+        .adj-dropzone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 180px;
+            padding: 28px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .adj-dropzone:hover {
+            border-color: var(--primary-color);
+            background: #fff;
+        }
+
+        /* Estado activo al arrastrar encima (toggle con JS: classList 'is-dragover') */
+        .adj-dropzone.is-dragover {
+            border-color: var(--primary-color);
+            background: rgba(45, 90, 74, 0.06);
+            transform: scale(1.01);
+        }
+
+        .adj-dropzone i {
+            font-size: 44px;
+            color: var(--primary-color);
+        }
+
+        .adj-dz-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .adj-dz-sub {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Caja de enlace */
+        .adj-link-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 24px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            justify-content: center;
+        }
+
+        .adj-link-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .adj-link-label i {
+            color: var(--primary-color);
+        }
+
+        .adj-link-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .adj-link-input {
+            flex: 1;
+            font-size: 15px;
+            padding: 12px 14px;
+        }
+
+        .adj-link-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .adj-link-btn:hover {
+            opacity: 0.92;
+        }
+
+        .adj-link-btn:active {
+            transform: scale(0.97);
+        }
+
+        .adj-link-hint {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* ====== ADJUNTOS: lista ====== */
+        .adj-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .adj-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            border: 1px solid #eef0f3;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .adj-item:hover {
+            border-color: #d7dce3;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .adj-item-icon {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .adj-icon-file {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        }
+
+        .adj-icon-link {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .adj-item-info {
+            flex: 1;
+            min-width: 0;
+            /* permite el truncado */
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .adj-item-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .adj-item-name:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .adj-item-meta {
+            font-size: 12.5px;
+            color: #9ca3af;
+        }
+
+        .adj-item-action {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #4b5563;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .adj-item-action:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .adj-item-delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 18px 14px 36px !important;
@@ -4994,6 +5222,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             <a href="#" class="tab-item" data-tab="dia-a-dia">Día a día</a>
             <a href="#" class="tab-item" data-tab="precio">Precio</a>
             <a href="#" class="tab-item" data-tab="viajeros">Viajeros</a>
+            <a href="#" class="tab-item" data-tab="informacion">Informacion Adicional</a>
             <a href="#" class="tab-item" onclick="abrirVistaPrevia()">
                 <i class="fas fa-eye"></i> Vista previa
             </a>
@@ -5676,6 +5905,61 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             </div>
         </div>
 
+
+
+        <!-- Contenido de la pestaña Informacion adicional -->
+        <div id="informacion" class="tab-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-users"></i>
+                        Informacion adicional
+                    </div>
+                </div>
+
+                <div class="section-body">
+
+                    <!-- ZONA DE AÑADIR: archivo (izq) + enlace (der) -->
+                    <div class="adj-add-grid">
+                        <!-- Dropzone: arrastrar O clic -->
+                        <label class="adj-dropzone" for="adj-file-input">
+                            <input type="file" id="adj-file-input" multiple hidden>
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span class="adj-dz-title">Arrastra tus archivos aquí</span>
+                            <span class="adj-dz-sub">o haz clic para buscar · PDF, imágenes, Word, Excel</span>
+                        </label>
+
+                        <!-- Enlace: pegar + Enter / botón -->
+                        <div class="adj-link-box">
+                            <span class="adj-link-label"><i class="fas fa-link"></i> Añadir un enlace</span>
+                            <div class="adj-link-row">
+                                <input type="url" id="adj-link-input" class="form-control adj-link-input"
+                                    placeholder="https://… y presiona Enter">
+                                <button type="button" class="adj-link-btn">
+                                    <i class="fas fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                            <span class="adj-link-hint">Reservas, vuelos, documentos compartidos…</span>
+                        </div>
+                    </div>
+
+                    <!-- LISTA DE ADJUNTOS -->
+                    <div class="adj-list" id="adj-list">
+
+
+
+                    </div>
+
+                    <!-- ESTADO VACÍO (mostrar solo si no hay adjuntos) -->
+                    <div class="empty-state adj-empty" id="adj-empty" style="display:none;">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>Aún no hay archivos ni enlaces</h3>
+                        <p>Arrastra un archivo o pega un enlace para empezar.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
         <!-- Modal para crear/seleccionar viajeros -->
         <div id="modal-viajero" class="modal" style="display: none;">
             <div class="modal-content modal-viajero-content">
@@ -6924,6 +7208,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             document.addEventListener('DOMContentLoaded', async function () {
                 console.log('🚀 Iniciando programa.php...');
                 setupTabNavigation();
+                setupAdjuntos();
                 setupFormHandling();
                 setupCharacterCounters();
                 setupFileValidation();
@@ -6937,6 +7222,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     // ✅ IMPORTANTE: ESPERAR a que termine de cargar
                     await cargarDiasPrograma();
                     await cargarPreciosPrograma();
+                    cargarArchivos();   // ← carga adjuntos al recargar la página
 
                     // ✅ AHORA SÍ calcular la fecha de salida
                     actualizarFechaSalida();
@@ -6988,6 +7274,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                     cargarPreciosPrograma();
                                 }
                                 break;
+                            case 'adjuntos':
+                                if (isEditing && programaId) {
+                                    cargarArchivos();
+                                }
+                                break;
                         }
                     });
                 });
@@ -7013,7 +7304,40 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     });
                 }
             }
+            function setupAdjuntos() {
+                const fileInput = document.getElementById('adj-file-input');
+                const linkInput = document.getElementById('adj-link-input');
+                const linkBtn = document.querySelector('.adj-link-btn');
+                const dropzone = document.querySelector('.adj-dropzone');
+                if (!fileInput) return;   // el tab no está en el DOM, salir
 
+                // Elegir archivo desde el explorador → subir
+                fileInput.addEventListener('change', guardarArchivos);
+
+                // Botón "Añadir" enlace
+                linkBtn.addEventListener('click', guardarArchivos);
+
+                // Enter en el input de enlace
+                linkInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); guardarArchivos(); }
+                });
+
+                // Drag & drop sobre la dropzone
+                ['dragover', 'dragenter'].forEach(ev =>
+                    dropzone.addEventListener(ev, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.add('is-dragover');
+                    }));
+                ['dragleave', 'drop'].forEach(ev =>
+                    dropzone.addEventListener(ev, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.remove('is-dragover');
+                    }));
+                dropzone.addEventListener('drop', (e) => {
+                    fileInput.files = e.dataTransfer.files;   // pasa los archivos soltados
+                    guardarArchivos();
+                });
+            }
 
 
             // Configurar manejadores de comidas - VERSIÓN MEJORADA
@@ -10601,6 +10925,133 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 }
             }
 
+            // ============================================================
+            // FUNCION PARA INFORMACION Adicional
+            // ============================================================
+
+            function cargarArchivos() {
+                if (!programaId) return;
+                fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=get&programa_id=${programaId}`)
+                    .then(r => r.json())
+                    .then(result => {
+                        const lista = document.getElementById('adj-list');
+                        const vacio = document.getElementById('adj-empty');
+                        lista.innerHTML = '';
+                        console.log("holaa");
+                        const items = (result.success && result.data) ? result.data : [];
+                        vacio.style.display = items.length ? 'none' : 'block';
+
+                        items.forEach(item => {
+                            lista.insertAdjacentHTML('beforeend', item.enlace
+                                ? renderEnlace(item)
+                                : renderArchivo(item));
+                        });
+                    })
+                    .catch(err => console.error('Error cargando adjuntos:', err));
+            }
+            function renderEnlace(item) {
+                const url = escapeHtml(item.enlace);
+                return `
+                    <div class="adj-item" data-id="${item.id}">
+                        <div class="adj-item-icon adj-icon-link"><i class="fas fa-link"></i></div>
+                        <div class="adj-item-info">
+                            <a href="${url}" class="adj-item-name" target="_blank" rel="noopener">${url}</a>
+                            <span class="adj-item-meta">Enlace</span>
+                        </div>
+                        <a href="${url}" class="adj-item-action" title="Descargar" target="_blank" rel="noopener">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button type="button" class="adj-item-action adj-item-delete"
+                                title="Eliminar" onclick="eliminarArchivos(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }
+            function renderArchivo(item) {
+                const url = escapeHtml(item.archivo);
+                const ext = (item.archivo.split('.').pop() || '').toLowerCase();
+                const nombre = escapeHtml(decodeURIComponent(item.archivo.split('/').pop() || item.archivo));
+                const icono = iconoPorExtension(ext);
+                return `
+                    <div class="adj-item" data-id="${item.id}">
+                        <div class="adj-item-icon adj-icon-file"><i class="fas ${icono}"></i></div>
+                        <div class="adj-item-info">
+                            <a href="${url}" class="adj-item-name" target="_blank" rel="noopener">${nombre}</a>
+                            <span class="adj-item-meta">Archivo · ${ext.toUpperCase()}</span>
+                        </div>
+                        <a href="${url}" class="adj-item-action" title="Descargar" download target="_blank" rel="noopener">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <button type="button" class="adj-item-action adj-item-delete"
+                                title="Eliminar" onclick="eliminarArchivos(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }
+            function iconoPorExtension(ext) {
+                const mapa = {
+                    pdf: 'fa-file-pdf',
+                    doc: 'fa-file-word', docx: 'fa-file-word',
+                    xls: 'fa-file-excel', xlsx: 'fa-file-excel', csv: 'fa-file-csv',
+                    ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint',
+                    jpg: 'fa-file-image', jpeg: 'fa-file-image', png: 'fa-file-image',
+                    webp: 'fa-file-image', gif: 'fa-file-image',
+                    zip: 'fa-file-archive', rar: 'fa-file-archive',
+                    txt: 'fa-file-lines'
+                };
+                return mapa[ext] || 'fa-file';
+            }
+
+            async function guardarArchivos() {
+                if (!programaId) return;
+
+                try {
+                    const archivos = document.getElementById('adj-file-input').files;
+                    const enlace = document.getElementById('adj-link-input').value.trim();
+                    const fd = new FormData();
+                    fd.append('programa_id', programaId);
+                    if (enlace) fd.append('enlace', enlace);
+                    for (const f of archivos) fd.append('archivos[]', f);   // multipart real
+
+                    if (!enlace && archivos.length === 0) {
+                        showAlert('Añade un archivo o un enlace', 'error');
+                        return;
+                    }
+                    const response = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=save&programa_id=${programaId}`, {
+                        method: 'POST',
+                        body: fd
+                    }
+                    );
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('adj-file-input').value = "";
+                        document.getElementById('adj-link-input').value = "";
+                        cargarArchivos();
+                    } else {
+                        showAlert(result.message || 'Error al guardar', 'error');
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+            async function eliminarArchivos(adjuntoId) {
+                if (!adjuntoId) return;
+                if (!confirm('¿Eliminar este adjunto?')) return;
+
+                const fd = new FormData();
+                fd.append('id', adjuntoId);
+
+                const resp = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=delete`, {
+                    method: 'POST',
+                    body: fd
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    cargarArchivos();
+                    showAlert('Adjunto eliminado', 'success');
+                }
+            }
 
             // ============================================================
             // FUNCIONES AUXILIARES

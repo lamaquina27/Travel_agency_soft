@@ -59,6 +59,18 @@ class PipelineAPI
                 case 'delete_tags':
                     $result = $this->deleteTags();
                     break;
+                case 'get_source':
+                    $result = $this->getSource();
+                    break;
+                case 'save_source':
+                    $result = $this->saveSource();
+                    break;
+                case 'update_source':
+                    $result = $this->updateSource();
+                    break;
+                case 'delete_source':
+                    $result = $this->deleteSource();
+                    break;
                 case 'get_agentes':
                     $result = $this->getAgentes();
                     break;
@@ -330,7 +342,7 @@ class PipelineAPI
         $tags = $this->db->fetchAll(
             "SELECT id, nombre
             FROM tags
-            WHERE agencia_id = ?
+            WHERE agencia_id = ? AND  tipo = 'pipeline'
             ORDER BY id ASC",
             [$agencia_id]
         );
@@ -404,6 +416,94 @@ class PipelineAPI
         );
         return ['success' => true, 'mensaje' => 'tags eliminados exitosamente'];
     }
+
+
+    private function getSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $source = $this->db->fetchAll(
+            "SELECT id, nombre
+            FROM pipeline_sources
+            WHERE agencia_id = ?
+            ORDER BY id ASC",
+            [$agencia_id]
+        );
+
+        return ['success' => true, 'data' => $source];
+    }
+    private function saveSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->insert(
+            'pipeline_sources',
+            [
+                'agencia_id' => $agencia_id,
+                'nombre' => $data['nombre'],
+            ]
+
+        );
+        return ['success' => true, 'mensaje' => 'source guardado exitosamente'];
+    }
+    private function updateSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->update(
+            'pipeline_sources',
+            [
+                'nombre' => $data['nombre'],
+            ],
+            'agencia_id = ? AND id=?',
+            [$agencia_id, $data['id']]
+        );
+        return ['success' => true, 'mensaje' => 'source actualizados exitosamente'];
+    }
+    private function deleteSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (empty($data['id']))
+            throw new Exception('ID requerido');
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->delete(
+            'pipeline_sources',
+            'id = ? AND agencia_id = ?',
+
+            [$data['id'], $agencia_id]
+        );
+        return ['success' => true, 'mensaje' => 'tags eliminados exitosamente'];
+    }
+
+
     private function getAgentes()
     {
         $agencia_id = $_SESSION['agencia_id'] ?? null;
@@ -487,7 +587,7 @@ class PipelineAPI
             'fecha_salida' => $fecha_salida,
             'fecha_llegada' => $_POST['fecha_llegada'] ?? null,
             'budget' => !empty($_POST['budget']) ? floatval($_POST['budget']) : null,
-            'source' => trim($_POST['source'] ?? '') ?: null,
+            'source' => !empty($_POST['source']) ? intval($_POST['source']) : null,
             'estado_id' => intval($estado_id),
             'usuario_id' => !empty($_POST['usuario_id']) ? intval($_POST['usuario_id']) : null,
             'tag_id' => !empty($_POST['tag_id']) ? intval($_POST['tag_id']) : null,
@@ -868,7 +968,7 @@ class PipelineAPI
             'fecha_llegada' => $data['fecha_llegada'] ?: null,
             'viajeros' => intval($data['viajeros'] ?? 1),
             'budget' => $data['budget'] !== '' && $data['budget'] !== null ? floatval($data['budget']) : null,
-            'source' => trim($data['source'] ?? '') ?: null,
+            'source' => intval($data['source'] ?? '') ?: null,
             'descripcion' => trim($data['descripcion'] ?? '') ?: null,
         ], 'id = ?', [$pipeline_id]);
 

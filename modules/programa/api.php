@@ -181,7 +181,14 @@ class ProgramaAPI
                          WHERE pd.solicitud_id = ps.id) as total_dias_real,
                         (SELECT COUNT(*)
                          FROM viajeros_solicitud vs
-                         WHERE vs.solicitud_id = ps.id) as viajeros_count
+                         WHERE vs.solicitud_id = ps.id) as viajeros_count,
+                        (SELECT GROUP_CONCAT(it.tag_id)
+                         FROM itinerario_tags it
+                         WHERE it.solicitud_id = ps.id) as tag_ids,
+                        (SELECT GROUP_CONCAT(t.nombre SEPARATOR '||')
+                         FROM itinerario_tags it
+                         JOIN tags t ON t.id = it.tag_id
+                         WHERE it.solicitud_id = ps.id) as tag_nombres
                 FROM programa_solicitudes ps
                 LEFT JOIN users u ON ps.user_id = u.id
                 LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
