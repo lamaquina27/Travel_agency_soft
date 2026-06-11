@@ -24,6 +24,9 @@ if (!$programa_id) {
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
+$is_sub = isset($_GET['sub']) && $_GET['sub'] == '1'
+       && isset($_SESSION['subagencia_context'])
+       && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int)$programa_id;
 
 // --------------------------------------------------------------------
 // Helpers
@@ -184,11 +187,59 @@ try {
         "SELECT * FROM programa_precios WHERE solicitud_id = ?",
         [$programa_id]
     );
+
+    $sub_config  = null;
+    $sub_precios = null;
+
+    if ($is_sub) {
+        $subCtx = $_SESSION['subagencia_context'];
+        $sub_config = $db->fetch(
+            "SELECT nombre, logo_url, primary_color, secondary_color, divisa
+             FROM config_sub_agencias WHERE user_id = ?",
+            [(int)$subCtx['user_id']]
+        );
+        $sub_precios = $db->fetch(
+            "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
+            [(int)$subCtx['user_id'], (int)$programa_id]
+        );
+    }
+
 } catch (Exception $e) {
     error_log('Error cargando programa para preview: ' . $e->getMessage());
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
+
+if ($is_sub && $sub_config) {
+    if (!empty($sub_config['nombre']))
+        $company_name = $sub_config['nombre'];
+    if (!empty($sub_config['logo_url']))
+        $company_logo = preview_asset_url($sub_config['logo_url']);
+    if (!empty($sub_config['primary_color'])) {
+        $brand_primary   = preview_sanitize_hex($sub_config['primary_color']);
+        $brand_secondary = preview_sanitize_hex($sub_config['secondary_color'] ?? $brand_primary, $brand_primary);
+        $brand_text      = preview_readable_text($brand_primary);
+        [$brand_r, $brand_g, $brand_b]   = preview_hex_to_rgb($brand_primary);
+        [$brand2_r, $brand2_g, $brand2_b] = preview_hex_to_rgb($brand_secondary);
+    }
+}
+
+if ($is_sub && $sub_precios) {
+    $precios = array_merge($precios ?? [], [
+        'precio_adulto'         => $sub_precios['precio_adulto'],
+        'precio_nino'           => $sub_precios['precio_nino'],
+        'precio_total'          => $sub_precios['precio_total'],
+        'moneda'                => $sub_config['divisa']               ?? ($precios['moneda'] ?? ''),
+        'precio_incluye'        => $sub_precios['precio_incluye'],
+        'precio_no_incluye'     => $sub_precios['precio_no_incluye'],
+        'condiciones_generales' => $sub_precios['condiciones_generales'],
+        'movilidad_reducida'    => $sub_precios['movilidad_reducida'],
+        'info_pasaporte'        => $sub_precios['info_pasaporte'],
+        'info_seguros'          => $sub_precios['info_seguros'],
+        'mostrar_precio'        => 1,
+    ]);
+}
+
 $duracion_dias = 0;
 $num_noches = 0;
 foreach ($dias as $dia) {
