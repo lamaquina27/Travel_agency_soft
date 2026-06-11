@@ -45,13 +45,25 @@ $pRgb = pl_rgb($userColors['primary']);
     }
 
     :root {
-      --pr: <?= $userColors['primary'] ?>;
-      --sc: <?= $userColors['secondary'] ?>;
-      --pr-rgb: <?= $pRgb ?>;
+      --pr:
+        <?= $userColors['primary'] ?>
+      ;
+      --sc:
+        <?= $userColors['secondary'] ?>
+      ;
+      --pr-rgb:
+        <?= $pRgb ?>
+      ;
       --grad: linear-gradient(135deg, var(--pr) 0%, var(--sc) 100%);
-      --primary-color: <?= $userColors['primary'] ?>;
-      --secondary-color: <?= $userColors['secondary'] ?>;
-      --primary-color-rgb: <?= $pRgb ?>;
+      --primary-color:
+        <?= $userColors['primary'] ?>
+      ;
+      --secondary-color:
+        <?= $userColors['secondary'] ?>
+      ;
+      --primary-color-rgb:
+        <?= $pRgb ?>
+      ;
     }
 
     body {
@@ -2967,8 +2979,8 @@ $pRgb = pl_rgb($userColors['primary']);
                   type="number" min="1"></div>
               <div class="lm-efield"><label class="lm-elbl">Presupuesto (USD)</label><input class="lm-einp"
                   id="leBudget" type="number" min="0"></div>
-              <div class="lm-efield full"><label class="lm-elbl">Origen</label><input class="lm-einp" id="leSource"
-                  type="text" placeholder="WhatsApp, web…"></div>
+              <div class="lm-efield full"><label class="lm-elbl">Origen</label><select class="lm-einp"
+                  id="leSource"></select></div>
               <div class="lm-efield full"><label class="lm-elbl">Descripción</label><textarea class="lm-einp lm-eta"
                   id="leDesc"></textarea></div>
             </div>
@@ -3266,7 +3278,7 @@ $pRgb = pl_rgb($userColors['primary']);
           </div>
           <div class="f-field">
             <label class="f-lbl">Origen</label>
-            <input class="f-inp" id="fSource" type="text" placeholder="WhatsApp, web, referido…">
+            <select class="f-inp" id="fSource"></select>
           </div>
           <div class="f-field full">
             <label class="f-lbl">Descripción</label>
@@ -3303,6 +3315,14 @@ $pRgb = pl_rgb($userColors['primary']);
             <input class="tag-new-inp" id="tagNewInp" type="text" placeholder="Nombre del tag…"
               onkeydown="if(event.key==='Enter')addTag()">
             <button class="btn-add-tag" onclick="addTag()">+ Agregar</button>
+          </div>
+
+          <div class="cfg-sec-title">Orígenes</div>
+          <div class="tag-list" id="sourceMgrList"></div>
+          <div class="tag-new-row">
+            <input class="tag-new-inp" id="sourceNewInp" type="text" placeholder="Nombre del origen…"
+              onkeydown="if(event.key==='Enter')addSource()">
+            <button class="btn-add-tag" onclick="addSource()">+ Agregar</button>
           </div>
         </div>
       </div>
@@ -3359,7 +3379,7 @@ $pRgb = pl_rgb($userColors['primary']);
 
     // ── STATE ──
     const S = {
-      estados: [], leads: [], agentes: [], tags: [],
+      estados: [], leads: [], agentes: [], tags: [], source: [],
       currentLeadId: null,
       view: 'kanban',
       sortKey: 'created_at', sortDir: 'desc',
@@ -3395,14 +3415,15 @@ $pRgb = pl_rgb($userColors['primary']);
 
     // ── LOAD ALL ──
     async function loadAll() {
-      const [rE, rL, rA, rT] = await Promise.all([
+      const [rE, rL, rA, rT, rS] = await Promise.all([
         api('get_estados'), api('filtrar_pipeline', S.filters),
-        api('get_agentes'), api('get_tags')
+        api('get_agentes'), api('get_tags'), api("get_source")
       ]);
       S.estados = rE.success ? rE.data : [];
       S.leads = rL.success ? rL.data : [];
       S.agentes = rA.success ? rA.data : [];
       S.tags = rT.success ? rT.data : [];
+      S.source = rS.success ? rS.data : [];
       fillSelects();
       render();
     }
@@ -3420,6 +3441,11 @@ $pRgb = pl_rgb($userColors['primary']);
       // toolbar tag
       const sT = document.getElementById('selTag');
       if (sT) { sT.innerHTML = '<option value="">Todos los tags</option>'; S.tags.forEach(t => sT.innerHTML += `<option value="${t.id}">${esc(t.nombre)}</option>`); }
+      const sS = document.getElementById('fSource');
+      if (sS) { sS.innerHTML = '<option value="">Sin origen</option>'; S.source.forEach(s => sS.innerHTML += `<option value="${s.id}">${esc(s.nombre)}</option>`); }
+
+      const sL = document.getElementById('leSource');
+      if (sL) { sL.innerHTML = '<option value="">Sin origen</option>'; S.source.forEach(s => sL.innerHTML += `<option value="${s.id}">${esc(s.nombre)}</option>`); }
       // modal estado
       const fE = document.getElementById('fEstado');
       if (fE) { fE.innerHTML = '<option value="">Seleccionar…</option>'; S.estados.forEach(e => fE.innerHTML += `<option value="${e.id}">${esc(e.nombre)}</option>`); }
@@ -3631,6 +3657,7 @@ $pRgb = pl_rgb($userColors['primary']);
       _renderVincBadge(lead);
       document.getElementById('leadModal').classList.add('open');
       _lmLastCount = -1;
+      document.getElementById('lmChatMsgs').innerHTML = '<div class="lm-chat-empty"><p style="color:#e2e8f0">Cargando…</p></div>';
       lmLoadChat(id);
       lmStartPolling(id);
     }
@@ -3754,7 +3781,6 @@ $pRgb = pl_rgb($userColors['primary']);
     }
     async function lmLoadChat(pipelineId) {
       const msgs = document.getElementById('lmChatMsgs');
-      msgs.innerHTML = '<div class="lm-chat-empty"><p style="color:#e2e8f0">Cargando…</p></div>';
       try {
         const r = await fetch(APP_URL + '/modules/gmail/chat_api.php?pipeline_id=' + pipelineId);
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -3984,6 +4010,7 @@ $pRgb = pl_rgb($userColors['primary']);
     function openConfig() {
       renderEstList();
       renderTagMgr();
+      renderSourceMgr();
       document.getElementById('cfgModal')?.classList.add('open');
     }
     function closeConfig() { document.getElementById('cfgModal')?.classList.remove('open'); }
@@ -4107,6 +4134,61 @@ $pRgb = pl_rgb($userColors['primary']);
         renderTagMgr(); fillSelects(); render();
         showToast('Tag eliminado', 'ok');
       } else showToast(r.message || 'Error', 'err');
+    }
+
+    function renderSourceMgr() {
+      const el = document.getElementById('sourceMgrList'); if (!el) return;
+      if (!S.source.length) { el.innerHTML = '<span style="font-size:12px;color:#94a3b8;">Sin orígenes aún</span>'; return; }
+      el.innerHTML = S.source.map(s => {
+        return `<span class="tag-mgr-chip" style="background:#64748b20;color:#475569;">
+            <span id="src-lbl-${s.id}">${esc(s.nombre)}</span>
+            <button class="tag-mgr-del" title="Renombrar" onclick="renameSourceInline(${s.id})" style="background:rgba(0,0,0,.1);margin-right:2px;">✎</button>
+            <button class="tag-mgr-del" onclick="deleteSource(${s.id})">✕</button>
+        </span>`;
+      }).join('');
+    }
+    async function addSource() {
+      const inp = document.getElementById('sourceNewInp');
+      const nombre = inp?.value.trim();
+      if (!nombre) return showToast('Escribe un nombre para el origen', 'err');
+      const r = await apiJ('save_source', { nombre });
+      if (r.success) {
+        inp.value = '';
+        const rS = await api('get_source');
+        S.source = rS.success ? rS.data : S.source;
+        renderSourceMgr(); fillSelects();
+        showToast(`Origen "${esc(nombre)}" creado`, 'ok');
+      } else showToast(r.message || 'Error', 'err');
+    }
+    async function deleteSource(id) {
+      const r = await apiJ('delete_source', { id });
+      if (r.success) {
+        S.source = S.source.filter(s => s.id != id);
+        renderSourceMgr(); fillSelects(); render();
+        showToast('Origen eliminado', 'ok');
+      } else showToast(r.message || 'Error', 'err');
+    }
+    function renameSourceInline(id) {
+      const src = S.source.find(s => s.id == id); if (!src) return;
+      const lbl = document.getElementById('src-lbl-' + id); if (!lbl) return;
+      const oldName = src.nombre;
+      const inp = document.createElement('input');
+      inp.value = oldName;
+      inp.style.cssText = 'border:none;background:transparent;color:inherit;font-size:12.5px;font-weight:600;width:90px;outline:none;font-family:inherit;';
+      lbl.replaceWith(inp); inp.focus(); inp.select();
+      async function save() {
+        const newName = inp.value.trim();
+        if (!newName || newName === oldName) { renderSourceMgr(); return; }
+        const r = await apiJ('update_source', { id, nombre: newName });
+        if (r.success) {
+          src.nombre = newName;
+          fillSelects(); render();
+          showToast(`Origen renombrado a "${esc(newName)}"`, 'ok');
+        } else showToast(r.message || 'Error', 'err');
+        renderSourceMgr();
+      }
+      inp.addEventListener('blur', save);
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') renderSourceMgr(); });
     }
 
     // ── TOAST ──
