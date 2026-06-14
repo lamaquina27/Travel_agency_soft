@@ -22,27 +22,58 @@ $userColors = ConfigManager::getColorsForRole($user['role']);
 $companyName = ConfigManager::getCompanyName();
 $logo = ConfigManager::getLogo();
 $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
+
+function ts_hex_to_rgb_string($hex)
+{
+    $hex = trim((string) $hex);
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 3) {
+        $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+    }
+    if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+        return '59, 130, 246';
+    }
+    return hexdec(substr($hex, 0, 2)) . ', ' . hexdec(substr($hex, 2, 2)) . ', ' . hexdec(substr($hex, 4, 2));
+}
+
+$primaryRgb = ts_hex_to_rgb_string($userColors['primary']);
+$secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 ?>
 
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Programas - <?= htmlspecialchars($companyName) ?></title>
-    
+
     <!-- Incluir estilos de componentes -->
     <?= UIComponents::getComponentStyles() ?>
-    
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary-color: <?= $userColors['primary'] ?>;
-            --secondary-color: <?= $userColors['secondary'] ?>;
+            --primary-color:
+                <?= $userColors['primary'] ?>
+            ;
+            --secondary-color:
+                <?= $userColors['secondary'] ?>
+            ;
+            --primary-color-rgb:
+                <?= $primaryRgb ?>
+            ;
+            --secondary-color-rgb:
+                <?= $secondaryRgb ?>
+            ;
             --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -262,12 +293,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         }
 
         /* Ocultar banner azul */
-        .goog-te-banner-frame.skiptranslate { 
-            display: none !important; 
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
         }
 
-        body { 
-            top: 0px !important; 
+        body {
+            top: 0px !important;
         }
 
         /* Responsive */
@@ -276,27 +307,28 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
                 top: 10px;
                 right: 10px;
             }
-            
+
             #google_translate_element {
                 padding: 6px 10px;
             }
-            
+
             .VIpgJd-ZVi9od-xl07Ob-lTBxed {
                 font-size: 12px !important;
                 padding: 3px 6px !important;
             }
-            
+
             .goog-te-menu2-item {
                 font-size: 12px !important;
                 padding: 8px 14px !important;
             }
         }
+
         .VIpgJd-ZVi9od-ORHb-OEVmcd {
             left: 0;
             display: none !important;
             top: 0;
         }
-        
+
         .goog-te-gadget img {
             vertical-align: middle;
             border: none;
@@ -578,7 +610,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             overflow: hidden;
         }
 
-       
+
 
 
         .program-image img {
@@ -604,12 +636,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         }
 
         /* Fallback para imágenes que no cargan */
-        .program-image img[src=""], 
+        .program-image img[src=""],
         .program-image img:not([src]) {
             display: none;
         }
 
-        .program-image img[src=""]:after, 
+        .program-image img[src=""]:after,
         .program-image img:not([src]):after {
             content: '';
             position: absolute;
@@ -717,16 +749,17 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             background: var(--primary-color);
             color: white;
         }
-        .btn-danger-sm {
-    background: #ef4444;
-    color: white;
-}
 
-.btn-danger-sm:hover {
-    background: #dc2626;
-    color: white;
-    transform: translateY(-2px);
-}
+        .btn-danger-sm {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger-sm:hover {
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
+        }
 
         .btn-primary-sm:hover {
             background: var(--secondary-color);
@@ -891,7 +924,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             color: #374151;
         }
 
-        .form-input, .form-select {
+        .form-input,
+        .form-select {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e2e8f0;
@@ -900,7 +934,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             transition: all 0.3s ease;
         }
 
-        .form-input:focus, .form-select:focus {
+        .form-input:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -943,7 +978,9 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         }
 
         /* Estados de carga */
-        .loading-state, .empty-state, .error-state {
+        .loading-state,
+        .empty-state,
+        .error-state {
             text-align: center;
             padding: 60px 20px;
             color: #718096;
@@ -983,8 +1020,13 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         }
 
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Overlay */
@@ -1079,33 +1121,510 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
                 padding: 20px;
             }
         }
+
         /* Toast notifications */
-.toast {
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    padding: 20px 25px;
-    border-radius: 15px;
-    color: white;
-    z-index: 20000;
-    transform: translateX(400px);
-    transition: transform 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
-    min-width: 300px;
-}
+        .toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            padding: 20px 25px;
+            border-radius: 15px;
+            color: white;
+            z-index: 20000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            min-width: 300px;
+        }
 
-.toast.show {
-    transform: translateX(0);
-}
+        .toast.show {
+            transform: translateX(0);
+        }
 
-.toast.success {
-    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-}
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        }
 
-.toast.error {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        /* ===== Rediseño limpio TravelSoft - Itinerarios ===== */
+        body {
+            background: radial-gradient(circle at top left, rgba(var(--primary-color-rgb), 0.07), transparent 34%), #f6f8fb !important;
+            color: #0f172a !important;
+        }
+
+        .main-content {
+            padding: 32px !important;
+            max-width: 1480px;
+        }
+
+        .page-header {
+            text-align: left !important;
+            padding: 30px 32px !important;
+            border-radius: 28px !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.12) !important;
+            border-left: 1px solid rgba(var(--primary-color-rgb), 0.12) !important;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(var(--primary-color-rgb), 0.055) 100%) !important;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.075) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            right: -60px;
+            top: -80px;
+            width: 230px;
+            height: 230px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.14), rgba(var(--secondary-color-rgb), 0.08));
+        }
+
+        .page-title {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+            color: #111827 !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+            font-size: clamp(2rem, 3vw, 2.7rem) !important;
+            letter-spacing: -0.045em !important;
+            margin-bottom: 8px !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-title i,
+        .section-title i,
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(var(--primary-color-rgb), 0.10);
+            color: var(--primary-color) !important;
+            font-size: 18px !important;
+            box-shadow: 0 10px 24px rgba(var(--primary-color-rgb), 0.12);
+        }
+
+        .page-subtitle {
+            margin: 0 !important;
+            max-width: 720px !important;
+            color: #64748b !important;
+            font-size: 1rem !important;
+            line-height: 1.65 !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+            gap: 18px !important;
+        }
+
+        .stat-card,
+        .programs-section,
+        .program-card,
+        .modal {
+            border-radius: 24px !important;
+            border: 1px solid #e5e7eb !important;
+            border-left: 1px solid #e5e7eb !important;
+            background: rgba(255, 255, 255, 0.96) !important;
+            box-shadow: 0 16px 38px rgba(15, 23, 42, 0.065) !important;
+        }
+
+        .stat-card {
+            text-align: left !important;
+            padding: 22px !important;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            column-gap: 15px;
+        }
+
+        .stat-card:hover,
+        .program-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 22px 48px rgba(15, 23, 42, 0.10) !important;
+        }
+
+        .stat-icon {
+            grid-row: span 2;
+            margin-bottom: 0 !important;
+        }
+
+        .stat-number {
+            color: #111827 !important;
+            font-size: 2rem !important;
+            line-height: 1 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .stat-label {
+            color: #64748b !important;
+            font-size: .86rem !important;
+            font-weight: 700 !important;
+        }
+
+        .quick-actions {
+            justify-content: flex-start !important;
+            margin-bottom: 34px !important;
+        }
+
+        .action-btn,
+        .modal-btn,
+        .btn-sm {
+            border-radius: 14px !important;
+            font-weight: 750 !important;
+            letter-spacing: -0.01em;
+        }
+
+        .action-btn {
+            padding: 13px 18px !important;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            box-shadow: 0 12px 26px rgba(var(--primary-color-rgb), 0.22) !important;
+        }
+
+        .action-btn.secondary {
+            background: #ffffff !important;
+            color: var(--primary-color) !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.18) !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        .programs-section {
+            padding: 28px !important;
+            margin-bottom: 26px !important;
+        }
+
+        .section-header {
+            align-items: flex-start !important;
+            margin-bottom: 22px !important;
+        }
+
+        .section-title {
+            color: #111827 !important;
+            font-size: 1.35rem !important;
+            letter-spacing: -0.035em !important;
+        }
+
+        .section-title .badge {
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.14) !important;
+        }
+
+        .filters-container {
+            gap: 10px !important;
+        }
+
+        .search-input,
+        .filter-select,
+        .form-input,
+        .form-select {
+            border-radius: 14px !important;
+            border: 1px solid #dbe3ef !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.035) !important;
+        }
+
+        .search-input:focus,
+        .filter-select:focus,
+        .form-input:focus,
+        .form-select:focus {
+            border-color: rgba(var(--primary-color-rgb), 0.55) !important;
+            box-shadow: 0 0 0 4px rgba(var(--primary-color-rgb), 0.10) !important;
+        }
+
+        .search-icon,
+        .program-destination i,
+        .program-traveler i {
+            color: var(--primary-color) !important;
+        }
+
+        .programs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+            gap: 20px !important;
+        }
+
+        .program-card {
+            overflow: hidden !important;
+        }
+
+        .program-card::before {
+            height: 3px !important;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+
+        .program-card.readonly::before {
+            background: linear-gradient(90deg, rgba(var(--primary-color-rgb), 0.34), rgba(var(--secondary-color-rgb), 0.24)) !important;
+        }
+
+        .program-image {
+            height: 150px !important;
+            background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.92), rgba(var(--secondary-color-rgb), 0.88)) !important;
+        }
+
+        .program-image .placeholder {
+            background: transparent !important;
+        }
+
+        .program-content {
+            padding: 18px !important;
+        }
+
+        .program-title {
+            color: #111827 !important;
+            font-size: 1.08rem !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.02em !important;
+        }
+
+        .program-destination,
+        .program-traveler {
+            color: #64748b !important;
+            font-weight: 600 !important;
+        }
+
+        .program-details {
+            background: #f8fafc !important;
+            border: 1px solid #edf2f7 !important;
+            border-radius: 16px !important;
+            padding: 14px !important;
+        }
+
+        .detail-label {
+            color: #64748b !important;
+        }
+
+        .detail-value {
+            color: #111827 !important;
+            font-weight: 800 !important;
+        }
+
+        .program-actions {
+            flex-wrap: wrap !important;
+        }
+
+        .btn-primary-sm {
+            background: var(--primary-color) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-outline-sm {
+            background: #ffffff !important;
+            border: 1px solid rgba(var(--primary-color-rgb), 0.16) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-outline-sm:hover {
+            background: rgba(var(--primary-color-rgb), 0.08) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-danger-sm {
+            background: #fff1f2 !important;
+            color: #be123c !important;
+            border: 1px solid #fecdd3 !important;
+        }
+
+        .btn-danger-sm:hover {
+            background: #ffe4e6 !important;
+            color: #9f1239 !important;
+        }
+
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.45) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        .modal {
+            padding: 30px !important;
+            max-width: 560px !important;
+        }
+
+        .modal-title {
+            color: #111827 !important;
+            font-weight: 850 !important;
+            letter-spacing: -0.035em !important;
+        }
+
+        .modal-subtitle,
+        .option-description,
+        .state-description {
+            color: #64748b !important;
+        }
+
+        .modal-option {
+            border: 1px solid #e5e7eb !important;
+            border-radius: 20px !important;
+            background: #ffffff !important;
+        }
+
+        .modal-option:hover,
+        .modal-option.selected {
+            border-color: rgba(var(--primary-color-rgb), 0.24) !important;
+            background: rgba(var(--primary-color-rgb), 0.055) !important;
+        }
+
+        .option-icon {
+            border-radius: 16px !important;
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .modal-option.selected .option-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+            color: #ffffff !important;
+        }
+
+        .loading-state,
+        .empty-state,
+        .error-state {
+            background: #f8fafc !important;
+            border: 1px dashed #dbe3ef !important;
+            border-radius: 22px !important;
+            padding: 46px 20px !important;
+        }
+
+        .state-icon {
+            color: var(--primary-color) !important;
+            font-size: 2.8rem !important;
+        }
+
+        .toast {
+            border-radius: 18px !important;
+            background: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14) !important;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--primary-color) !important;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444 !important;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .toast.error .toast-icon {
+            color: #ef4444;
+        }
+
+        .overlay {
+            background: rgba(15, 23, 42, 0.35) !important;
+            backdrop-filter: blur(3px) !important;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px !important;
+            }
+
+            .page-header {
+                padding: 24px !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .programs-section {
+                padding: 20px !important;
+            }
+
+            .section-header {
+                align-items: stretch !important;
+            }
+        }
+
+
+        /* ===== Corrección de iconografía profesional sin FontAwesome ===== */
+        .ts-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: currentColor;
+            line-height: 1;
+        }
+
+        .ts-icon svg {
+            width: 1em;
+            height: 1em;
+            display: block;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.15;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .page-title .ts-icon,
+        .section-title .ts-icon,
+        .stat-icon.ts-icon {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            border-radius: 16px !important;
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+            font-size: 20px !important;
+            box-shadow: 0 10px 24px rgba(var(--primary-color-rgb), 0.12) !important;
+        }
+
+        .stat-card .stat-icon.ts-icon {
+            grid-row: span 2;
+            margin-bottom: 0 !important;
+        }
+
+        .action-btn .ts-icon,
+        .modal-btn .ts-icon,
+        .program-action .ts-icon,
+        .filter-btn .ts-icon {
+            width: 17px;
+            height: 17px;
+            font-size: 17px;
+        }
+
+        .search-icon.ts-icon {
+            color: #94a3b8 !important;
+        }
+
+        .state-icon.ts-icon {
+            width: 54px !important;
+            height: 54px !important;
+            margin-bottom: 14px !important;
+            border-radius: 18px !important;
+            background: rgba(var(--primary-color-rgb), 0.10) !important;
+            color: var(--primary-color) !important;
+            font-size: 25px !important;
+        }
+
+        .placeholder .ts-icon {
+            color: var(--primary-color) !important;
+            font-size: 30px !important;
+            opacity: 0.82;
+        }
     </style>
 </head>
 
@@ -1173,17 +1692,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
                     Mis Programas
                     <span class="badge" id="misProgramasBadge">0</span>
                 </h2>
-                
+
                 <div class="filters-container">
                     <div class="search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input 
-                            type="text" 
-                            id="searchInputMios" 
-                            class="search-input" 
-                            placeholder="Buscar mis programas..."
-                            oninput="filtrarProgramas('mios')"
-                        >
+                        <input type="text" id="searchInputMios" class="search-input"
+                            placeholder="Buscar mis programas..." oninput="filtrarProgramas('mios')">
                     </div>
                 </div>
             </div>
@@ -1206,17 +1720,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
                     Otros Programas
                     <span class="badge" id="otrosProgramasBadge">0</span>
                 </h2>
-                
+
                 <div class="filters-container">
                     <div class="search-box">
                         <i class="fas fa-search search-icon"></i>
-                        <input 
-                            type="text" 
-                            id="searchInputOtros" 
-                            class="search-input" 
-                            placeholder="Buscar otros programas..."
-                            oninput="filtrarProgramas('otros')"
-                        >
+                        <input type="text" id="searchInputOtros" class="search-input"
+                            placeholder="Buscar otros programas..." oninput="filtrarProgramas('otros')">
                     </div>
                     <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
                         <option value="">Todos los estados</option>
@@ -1250,13 +1759,15 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             </div>
 
             <div class="modal-options">
-                <div class="modal-option" onclick="seleccionarOpcion('desde-cero')" ondblclick="crearDesdeCeroRapido()" id="opcion-desde-cero">
+                <div class="modal-option" onclick="seleccionarOpcion('desde-cero')" ondblclick="crearDesdeCeroRapido()"
+                    id="opcion-desde-cero">
                     <div class="option-icon">
                         <i class="fas fa-plus"></i>
                     </div>
                     <div class="option-content">
                         <div class="option-title">Crear desde cero</div>
-                        <div class="option-description">Comienza un programa completamente nuevo con información básica</div>
+                        <div class="option-description">Comienza un programa completamente nuevo con información básica
+                        </div>
                     </div>
                 </div>
 
@@ -1281,7 +1792,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
                 </div>
                 <div class="form-group">
                     <label class="form-label">Vista previa:</label>
-                    <div id="previstaPrograma" style="padding: 12px; background: #f8fafc; border-radius: 8px; color: #718096; font-size: 0.9rem;">
+                    <div id="previstaPrograma"
+                        style="padding: 12px; background: #f8fafc; border-radius: 8px; color: #718096; font-size: 0.9rem;">
                         Selecciona un programa para ver la vista previa
                     </div>
                 </div>
@@ -1296,6 +1808,86 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
 
     <!-- Scripts -->
     <script>
+
+
+        /* Iconos internos TravelSoft: reemplazan FontAwesome para evitar cuadros vacíos */
+        const TS_ICON_SVGS = {
+            route: '<path d="M6 19c2.5 0 2.5-4 5-4s2.5 4 5 4 2.5-4 5-4"></path><circle cx="5" cy="5" r="2"></circle><circle cx="19" cy="5" r="2"></circle><path d="M5 7v3a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V7"></path>',
+            plane: '<path d="M17.8 19.2 16 11l3.5-3.5c1-1 1.3-2.5.6-3.2s-2.2-.4-3.2.6L13.4 8.4 5.2 6.6 4 7.8l6.7 3.1-3.2 3.2-2.1-.4-.9.9 3.1 1.7 1.7 3.1.9-.9-.4-2.1 3.2-3.2 3.1 6.7z"></path>',
+            userEdit: '<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9.5" cy="7" r="4"></circle><path d="M18.5 3.5a2.1 2.1 0 0 1 3 3L16 12l-4 1 1-4z"></path>',
+            users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+            plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+            sync: '<path d="M21 12a9 9 0 0 0-15-6.7L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"></path><path d="M21 21v-5h-5"></path>',
+            search: '<circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>',
+            spinner: '<path d="M21 12a9 9 0 1 1-6.2-8.56"></path>',
+            copy: '<rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>',
+            map: '<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path>',
+            pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle>',
+            user: '<path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle>',
+            eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle>',
+            trash: '<path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>',
+            edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path>',
+            pdf: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h1.5a1.5 1.5 0 0 1 0 3H8v-3z"></path><path d="M13 13v3"></path><path d="M16 13h2"></path><path d="M16 16h1.5"></path>',
+            close: '<path d="M18 6 6 18"></path><path d="M6 6l12 12"></path>',
+            info: '<circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>',
+            external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path>',
+            warning: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
+            redo: '<path d="M21 7v6h-6"></path><path d="M21 13a9 9 0 1 1-3-6.7L21 9"></path>',
+            check: '<path d="M20 6 9 17l-5-5"></path>'
+        };
+
+        function tsIconNameFromClass(className) {
+            const c = String(className || '');
+            if (c.includes('fa-route')) return 'route';
+            if (c.includes('fa-plane')) return 'plane';
+            if (c.includes('fa-user-edit')) return 'userEdit';
+            if (c.includes('fa-users')) return 'users';
+            if (c.includes('fa-plus')) return 'plus';
+            if (c.includes('fa-sync')) return 'sync';
+            if (c.includes('fa-search')) return 'search';
+            if (c.includes('fa-spinner')) return 'spinner';
+            if (c.includes('fa-copy')) return 'copy';
+            if (c.includes('fa-map-marked') || c.includes('fa-map')) return 'map';
+            if (c.includes('fa-map-marker')) return 'pin';
+            if (c.includes('fa-user')) return 'user';
+            if (c.includes('fa-eye')) return 'eye';
+            if (c.includes('fa-trash')) return 'trash';
+            if (c.includes('fa-edit')) return 'edit';
+            if (c.includes('fa-file-pdf')) return 'pdf';
+            if (c.includes('fa-times')) return 'close';
+            if (c.includes('fa-info-circle')) return 'info';
+            if (c.includes('fa-external-link-alt')) return 'external';
+            if (c.includes('fa-exclamation-triangle')) return 'warning';
+            if (c.includes('fa-redo')) return 'redo';
+            if (c.includes('fa-check')) return 'check';
+            return 'route';
+        }
+
+        function replaceTsIcons(root = document) {
+            root.querySelectorAll('i.fas, i.fa').forEach((node) => {
+                if (node.dataset.tsIconReady === '1') return;
+                const iconName = tsIconNameFromClass(node.className);
+                const span = document.createElement('span');
+                span.className = String(node.className).replace(/\bfas\b|\bfa\b|\bfa-[^\s]+\b|\bfa-spin\b/g, '').replace(/\s+/g, ' ').trim();
+                span.className = (span.className ? span.className + ' ' : '') + 'ts-icon';
+                span.setAttribute('aria-hidden', 'true');
+                if (node.getAttribute('style')) span.setAttribute('style', node.getAttribute('style'));
+                span.innerHTML = `<svg viewBox="0 0 24 24">${TS_ICON_SVGS[iconName] || TS_ICON_SVGS.route}</svg>`;
+                node.replaceWith(span);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            replaceTsIcons(document);
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) replaceTsIcons(node);
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
         // Configuración global
         const APP_URL = '<?= APP_URL ?>';
         const DEFAULT_LANGUAGE = '<?= $defaultLanguage ?>';
@@ -1329,10 +1921,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
         let opcionSeleccionada = null;
 
         window.crearDesdeCeroRapido = crearDesdeCeroRapido;
-        
+
         // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando página de itinerarios mejorada...');
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Iniciando página de itinerarios mejorada...');
             cargarProgramas();
             initializeGoogleTranslate();
         });
@@ -1342,14 +1934,14 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
             const sidebar = document.querySelector('.enhanced-sidebar');
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (!sidebar) {
-                console.error('❌ Sidebar no encontrado con clase .enhanced-sidebar');
+                console.error('Sidebar no encontrado con clase .enhanced-sidebar');
                 return;
             }
-            
+
             sidebarOpen = !sidebarOpen;
-            
+
             if (sidebarOpen) {
                 sidebar.classList.add('open');
                 if (overlay) overlay.classList.add('show');
@@ -1368,11 +1960,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage() ?? 'es';
                 toggleSidebar();
             }
         }
-function crearDesdeCeroRapido() {
-    if (event) event.stopPropagation();
-    opcionSeleccionada = 'desde-cero';
-    window.location.href = '<?= APP_URL ?>/programa';
-}
+        function crearDesdeCeroRapido() {
+            if (event) event.stopPropagation();
+            opcionSeleccionada = 'desde-cero';
+            window.location.href = '<?= APP_URL ?>/programa';
+        }
         function toggleUserMenu() {
             if (confirm('¿Desea cerrar sesión?')) {
                 window.location.href = '<?= APP_URL ?>/auth/logout';
@@ -1382,49 +1974,49 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE CARGA DE DATOS
         // ============================================================
-        
+
         async function cargarProgramas() {
-            console.log('📥 Cargando programas (míos y otros) con imágenes...');
-            
+            console.log('Cargando programas con imágenes...');
+
             showLoadingState('mios');
             showLoadingState('otros');
-            
+
             try {
                 // Cargar todos los programas (incluye user_id, full_name del creador E IMÁGENES)
                 const response = await fetch('<?= APP_URL ?>/programa/api?action=list_all');
-                
+
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
-                
+
                 const result = await response.json();
-                console.log('📋 Datos recibidos:', result);
-                
+                console.log('Datos recibidos:', result);
+
                 if (result.success) {
                     allProgramas = result.data || [];
-                    
+
                     // Debug de imágenes
                     allProgramas.forEach(programa => {
                         if (programa.foto_portada) {
-                            console.log(`🖼️ Programa ${programa.id} tiene imagen: ${programa.foto_portada}`);
+                            console.log(`Programa ${programa.id} tiene imagen: ${programa.foto_portada}`);
                         } else {
-                            console.log(`📷 Programa ${programa.id} SIN imagen de portada`);
+                            console.log(`Programa ${programa.id} sin imagen de portada`);
                         }
                     });
-                    
+
                     // Separar programas por propietario
                     separarProgramas();
                     actualizarEstadisticas();
                     mostrarProgramas();
                     cargarAutoresEnFiltro();
-                    
-                    console.log(`✅ ${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
+
+                    console.log(`${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
                 } else {
                     throw new Error(result.error || 'Error al cargar programas');
                 }
-                
+
             } catch (error) {
-                console.error('❌ Error cargando programas:', error);
+                console.error('Error cargando programas:', error);
                 showErrorState('mios', error.message);
                 showErrorState('otros', error.message);
             }
@@ -1433,21 +2025,21 @@ function crearDesdeCeroRapido() {
         function separarProgramas() {
             const misProgramas = allProgramas.filter(p => p.user_id == CURRENT_USER_ID);
             const otrosProgramas = allProgramas.filter(p => p.user_id != CURRENT_USER_ID);
-            
+
             misProgramasFiltrados = [...misProgramas];
             otrosProgramasFiltrados = [...otrosProgramas];
-            
-            console.log(`📊 Separación: ${misProgramas.length} míos, ${otrosProgramas.length} otros`);
+
+            console.log(`Separación: ${misProgramas.length} míos, ${otrosProgramas.length} otros`);
         }
 
         function cargarAutoresEnFiltro() {
             const autores = [...new Set(otrosProgramasFiltrados.map(p => p.created_by_name))]
                 .filter(name => name)
                 .sort();
-            
+
             const filterAuthor = document.getElementById('filterAuthor');
             filterAuthor.innerHTML = '<option value="">Todos los autores</option>';
-            
+
             autores.forEach(autor => {
                 const option = document.createElement('option');
                 option.value = autor;
@@ -1459,57 +2051,62 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE VISUALIZACIÓN
         // ============================================================
-        
+
         function mostrarProgramas() {
             mostrarProgramasSeccion('mios', misProgramasFiltrados);
             mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
         }
-        
+
         function mostrarProgramasSeccion(tipo, programas) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
             const container = document.getElementById(containerId);
-            
+
             if (!programas || programas.length === 0) {
                 showEmptyState(tipo);
                 return;
             }
-            
+
             const programsGrid = document.createElement('div');
             programsGrid.className = 'programs-grid';
-            
+
             programas.forEach(programa => {
                 const card = crearTarjetaPrograma(programa, tipo === 'otros');
                 programsGrid.appendChild(card);
             });
-            
+
             container.innerHTML = '';
             container.appendChild(programsGrid);
         }
-        
+
         function crearTarjetaPrograma(programa, esReadonly = false) {
             const card = document.createElement('div');
             card.className = `program-card ${esReadonly ? 'readonly' : ''}`;
-            
+            console.log(programa, "holaaaaaaaaaaaaaaa")
             if (!esReadonly) {
                 card.onclick = () => editarPrograma(programa.id);
             }
-            
+
             // Calcular duración
             let duracion = 'N/A';
-            
-            // Primero intentar con total_dias_real (más confiable)
+
             if (programa.total_dias_real && parseInt(programa.total_dias_real) > 0) {
                 const dias = parseInt(programa.total_dias_real);
-                duracion = `${dias} ${dias === 1 ? 'día' : 'días'}`;
+                const noches = dias - 1;
+                duracion = `${dias} ${dias === 1 ? 'día' : 'días'} / ${noches} ${noches === 1 ? 'noche' : 'noches'}`;
             } else if (programa.fecha_llegada && programa.fecha_salida) {
                 const llegada = new Date(programa.fecha_llegada + 'T00:00:00');
                 const salida = new Date(programa.fecha_salida + 'T00:00:00');
-                const dias = Math.round((salida - llegada) / (1000 * 60 * 60 * 24));
-                duracion = dias > 0 ? `${dias} ${dias === 1 ? 'día' : 'días'}` : '1 día';
+                const noches = Math.round((salida - llegada) / (1000 * 60 * 60 * 24));
+                if (noches > 0) {
+                    const dias = noches + 1;
+                    duracion = `${dias} ${dias === 1 ? 'día' : 'días'} / ${noches} ${noches === 1 ? 'noche' : 'noches'}`;
+                } else {
+                    duracion = '1 día';
+                }
             }
-            
-            
-            
+
+
+
             // OBTENER IMAGEN DE PORTADA DESDE LA BASE DE DATOS
             // Normalizar ruta: siempre usar APP_URL local sin importar
             // si la BD tiene URL del hosting o ruta relativa
@@ -1519,15 +2116,15 @@ function crearDesdeCeroRapido() {
 
             // Validar que la imagen existe y es una URL válida
             const tieneImagen = !!imagenPortada;
-            
-            console.log(`🖼️ Programa ${programa.id}: imagen = ${imagenPortada}, válida = ${tieneImagen}`);
-            
+
+            console.log(`Programa ${programa.id}: imagen = ${imagenPortada}, válida = ${tieneImagen}`);
+
             card.innerHTML = `
                 <div class="program-image">
-                    ${tieneImagen ? 
-                        `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` : 
-                        `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
-                    }
+                    ${tieneImagen ?
+                    `<img src="${imagenPortada}" alt="Portada del programa" onerror="this.parentElement.innerHTML='<div class=&quot;placeholder&quot;><i class=&quot;fas fa-map-marked-alt&quot;></i></div>';">` :
+                    `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
+                }
                     ${esReadonly ? `<div class="program-owner">${autorPrograma}</div>` : ''}
                 </div>
                 
@@ -1542,7 +2139,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="program-traveler">
                             <i class="fas fa-user"></i>
-                            ${programa.nombre_viajero} ${programa.apellido_viajero}
+                            ${programa.nombre} ${programa.apellido}
                         </div>
                     </div>
                     
@@ -1553,7 +2150,7 @@ function crearDesdeCeroRapido() {
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Viajeros</div>
-                            <div class="detail-value">${programa.numero_pasajeros}</div>
+                            <div class="detail-value">${(parseInt(programa.cantidad_adultos) || 0) + (parseInt(programa.cantidad_ninos) || 0) || programa.numero_pasajeros || 0}</div>
                         </div>
                     </div>
                     
@@ -1564,6 +2161,7 @@ function crearDesdeCeroRapido() {
                                 <i class="fas fa-eye"></i>
                                 Ver
                             </button>
+                            
                             <button onclick="event.stopPropagation(); copiarPrograma(${programa.id})" class="btn-sm btn-primary-sm">
                                 <i class="fas fa-copy"></i>
                                 Copiar
@@ -1576,7 +2174,7 @@ function crearDesdeCeroRapido() {
                                 </button>
                             ` : ''}
                         ` : `
-                            <!-- MIS PROGRAMAS (editar, ver y ELIMINAR) ✅ -->
+                            <!-- MIS PROGRAMAS (editar, ver y eliminar) -->
                             <a href="<?= APP_URL ?>/programa?id=${programa.id}" class="btn-sm btn-primary-sm">
                                 <i class="fas fa-edit"></i>
                                 Editar
@@ -1585,6 +2183,7 @@ function crearDesdeCeroRapido() {
                                 <i class="fas fa-eye"></i>
                                 Ver
                             </button>
+                    
                             <button onclick="event.stopPropagation(); confirmarEliminacion(${programa.id}, '${(programa.titulo_programa || `Viaje a ${programa.destino}`).replace(/'/g, "\\\'")}')" class="btn-sm btn-danger-sm" title="Eliminar mi programa">
                                 <i class="fas fa-trash"></i>
                                 Eliminar
@@ -1593,7 +2192,7 @@ function crearDesdeCeroRapido() {
                     </div>
                 </div>
             `;
-            
+
             return card;
         }
 
@@ -1603,7 +2202,7 @@ function crearDesdeCeroRapido() {
                 title: '¿Eliminar programa?',
                 message: `¿Estás seguro de eliminar el programa "${programaTitulo}"?`,
                 details: 'Esta acción eliminará TODA la información: días del itinerario, servicios, precios y todo el programa. Esto NO se puede deshacer.',
-                icon: '🗑️',
+                icon: 'delete',
                 confirmText: 'Eliminar programa',
                 cancelText: 'Cancelar'
             });
@@ -1616,23 +2215,23 @@ function crearDesdeCeroRapido() {
         async function eliminarPrograma(programaId) {
             try {
                 const formData = new FormData();
-                formData.append('action', esAdmin ? 'delete_programa_admin' : 'delete_programa'); // ✅ CAMBIO
+                formData.append('action', esAdmin ? 'delete_programa_admin' : 'delete_programa'); // CAMBIO
                 formData.append('programa_id', programaId);
-                
+
                 const response = await fetch('<?= APP_URL ?>/programa/api', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    showNotification('✅ Programa eliminado exitosamente', 'success');
+                    showNotification('Programa eliminado exitosamente', 'success');
                     cargarProgramas();
                 } else {
                     showNotification('Error: ' + result.error, 'error');
                 }
-                
+
             } catch (error) {
                 showNotification('Error eliminando programa: ' + error.message, 'error');
             }
@@ -1641,27 +2240,27 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE ESTADÍSTICAS
         // ============================================================
-        
+
         function actualizarEstadisticas() {
             const total = allProgramas.length;
             const mios = misProgramasFiltrados.length;
             const otros = otrosProgramasFiltrados.length;
-            
+
             animateCounter('totalProgramas', total);
             animateCounter('misProgramas', mios);
             animateCounter('otrosProgramas', otros);
-            
+
             // Actualizar badges
             document.getElementById('misProgramasBadge').textContent = mios;
             document.getElementById('otrosProgramasBadge').textContent = otros;
         }
-        
+
         function animateCounter(elementId, targetValue) {
             const element = document.getElementById(elementId);
             const startValue = 0;
             const duration = 1000;
             const increment = targetValue / (duration / 16);
-            
+
             let currentValue = startValue;
             const timer = setInterval(() => {
                 currentValue += increment;
@@ -1676,119 +2275,175 @@ function crearDesdeCeroRapido() {
         // ============================================================
         // FUNCIONES DE FILTRADO Y BÚSQUEDA
         // ============================================================
-        
+
         function filtrarProgramas(tipo) {
             if (tipo === 'mios') {
                 const searchTerm = document.getElementById('searchInputMios').value.toLowerCase().trim();
-                
+
                 const programasBase = allProgramas.filter(p => p.user_id == CURRENT_USER_ID);
-                
+
                 misProgramasFiltrados = programasBase.filter(programa => {
                     if (!searchTerm) return true;
-                    
+                    const search_term = searchTerm.split(" ").filter(term => term !== ''); 
                     const searchFields = [
                         programa.destino,
-                        programa.nombre_viajero,
-                        programa.apellido_viajero,
+                        programa.nombre,
+                        programa.apellido,
                         programa.titulo_programa,
                         programa.id_solicitud,
-                        `${programa.nombre_viajero} ${programa.apellido_viajero}`, // Nombre completo
+                        programa.numero_documento,
+                        `${programa.nombre} ${programa.apellido}`, // Nombre completo
                         `Viaje a ${programa.destino}` // Título por defecto
                     ];
-                    
-                    return searchFields.some(field => 
-                        field && field.toString().toLowerCase().includes(searchTerm)
+
+                    return search_term.every(term =>
+                        searchFields.some(field => 
+                            field && field.toString().toLowerCase().includes(term)
+                        )
                     );
                 });
-                
+
                 mostrarProgramasSeccion('mios', misProgramasFiltrados);
                 actualizarPlaceholderBusqueda('mios');
             } else if (tipo === 'otros') {
                 const searchTerm = document.getElementById('searchInputOtros').value.toLowerCase().trim();
                 const authorFilter = document.getElementById('filterAuthor').value;
-                
+
                 const programasBase = allProgramas.filter(p => p.user_id != CURRENT_USER_ID);
-                
+
                 otrosProgramasFiltrados = programasBase.filter(programa => {
                     // Filtro de búsqueda
+                    const search_term = searchTerm.split(" ").filter(term => term !== ''); 
+
                     const matchesSearch = !searchTerm || (() => {
                         const searchFields = [
                             programa.destino,
-                            programa.nombre_viajero,
-                            programa.apellido_viajero,
+                            programa.nombre,
+                            programa.apellido,
                             programa.titulo_programa,
                             programa.id_solicitud,
                             programa.created_by_name,
-                            `${programa.nombre_viajero} ${programa.apellido_viajero}`,
+                            programa.numero_documento,
+                            `${programa.nombre} ${programa.apellido}`,
                             `Viaje a ${programa.destino}`
                         ];
-                        
-                        return searchFields.some(field => 
-                            field && field.toString().toLowerCase().includes(searchTerm)
-                        );
+
+                        return search_term.every(term =>
+                            searchFields.some(field => 
+                                field && field.toString().toLowerCase().includes(term)
+                            )
+                        );  
                     })();
-                    
+
                     // Filtro de autor
                     const matchesAuthor = !authorFilter || programa.created_by_name === authorFilter;
-                    
+
                     return matchesSearch && matchesAuthor;
                 });
-                
+
                 mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
                 actualizarPlaceholderBusqueda('otros');
-}
-            
+            }else if (tipo === 'plantillas') {
+                const searchTerm = document.getElementById('searchInputPlantillas').value.toLowerCase().trim();
+
+                const programasBase = allProgramas.filter(p => p.plantilla == 1);
+
+                plantillas = programasBase.filter(programa => {
+                    if (!searchTerm) return true;
+                    const search_term = searchTerm.split(" ").filter(term => term !== ''); 
+                    const searchFields = [
+                        programa.destino,
+                        programa.nombre,
+                        programa.apellido,
+                        programa.titulo_programa,
+                        programa.id_solicitud,
+                        programa.numero_documento,
+                        `${programa.nombre} ${programa.apellido}`, // Nombre completo
+                        `Viaje a ${programa.destino}` // Título por defecto
+                    ];
+
+                    return search_term.every(term =>
+                        searchFields.some(field => 
+                            field && field.toString().toLowerCase().includes(term)
+                        )
+                    );
+                });
+
+                mostrarProgramasSeccion('plantillas', plantillas);
+                actualizarPlaceholderBusqueda('plantillas');
+            }
+
             actualizarEstadisticas();
-            console.log(`🔍 Filtrado ${tipo}: ${tipo === 'mios' ? misProgramasFiltrados.length : otrosProgramasFiltrados.length} programas`);
+            
+            let countLog = 0;
+            if (tipo === 'mios') countLog = misProgramasFiltrados.length;
+            else if (tipo === 'otros') countLog = otrosProgramasFiltrados.length;
+            else if (tipo === 'plantillas') countLog = plantillas.length;
+            
+            console.log(`Filtrado ${tipo}: ${countLog} programas`);
         }
 
         function actualizarPlaceholderBusqueda(tipo) {
-    const inputId = tipo === 'mios' ? 'searchInputMios' : 'searchInputOtros';
-    const input = document.getElementById(inputId);
-    const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
-    const searchTerm = input.value.trim();
-    
-    if (searchTerm) {
-        input.setAttribute('data-results', `${programas.length} resultados`);
-    } else {
-        input.removeAttribute('data-results');
-    }
-}
+            let inputId = '';
+            let programas = [];
+            
+            if (tipo === 'mios') {
+                inputId = 'searchInputMios';
+                programas = misProgramasFiltrados;
+            } else if (tipo === 'otros') {
+                inputId = 'searchInputOtros';
+                programas = otrosProgramasFiltrados;
+            } else if (tipo === 'plantillas') {
+                inputId = 'searchInputPlantillas';
+                programas = plantillas; 
+            }
+
+            const input = document.getElementById(inputId);
+            if (!input) return; // Evitar errores si el input no existe en la vista actual
+            
+            const searchTerm = input.value.trim();
+
+            if (searchTerm) {
+                input.setAttribute('data-results', `${programas.length} resultados`);
+            } else {
+                input.removeAttribute('data-results');
+            }
+        }
 
         // ============================================================
         // FUNCIONES DEL MODAL DE CREACIÓN
         // ============================================================
-        
+
         function mostrarModalCreacion() {
             const modal = document.getElementById('modalCreacion');
             modal.classList.add('show');
-            
+
             // Reset estado
             opcionSeleccionada = null;
             document.getElementById('opcion-desde-cero').classList.remove('selected');
             document.getElementById('opcion-desde-existente').classList.remove('selected');
             document.getElementById('formSeleccionPrograma').classList.remove('show');
             document.getElementById('btnProceder').disabled = true;
-            
-            console.log('📝 Modal de creación mostrado');
+
+            console.log('Modal de creación mostrado');
         }
-        
+
         function cerrarModalCreacion() {
             const modal = document.getElementById('modalCreacion');
             modal.classList.remove('show');
         }
-        
+
         function seleccionarOpcion(opcion) {
             opcionSeleccionada = opcion;
-            
+
             // Reset visual
             document.getElementById('opcion-desde-cero').classList.remove('selected');
             document.getElementById('opcion-desde-existente').classList.remove('selected');
             document.getElementById('formSeleccionPrograma').classList.remove('show');
-            
+
             // Marcar seleccionado
             document.getElementById(`opcion-${opcion}`).classList.add('selected');
-            
+
             if (opcion === 'desde-existente') {
                 cargarProgramasParaSeleccion();
                 document.getElementById('formSeleccionPrograma').classList.add('show');
@@ -1796,66 +2451,66 @@ function crearDesdeCeroRapido() {
             } else {
                 document.getElementById('btnProceder').disabled = false;
             }
-            
-            console.log(`📋 Opción seleccionada: ${opcion}`);
+
+            console.log(`Opción seleccionada: ${opcion}`);
         }
 
         async function procederCreacion() {
-    if (!opcionSeleccionada) {
-        showNotification('Por favor selecciona una opción', 'error');
-        return;
-    }
-    
-    if (opcionSeleccionada === 'desde-cero') {
-        window.location.href = '<?= APP_URL ?>/programa';
-    } else if (opcionSeleccionada === 'desde-existente') {
-        const programaBaseId = document.getElementById('programaBase').value;
-        if (!programaBaseId) {
-            showNotification('Por favor selecciona un programa base', 'error');
-            return;
-        }
-        
-        // Crear copia automáticamente
-        const btnProceder = document.getElementById('btnProceder');
-        btnProceder.disabled = true;
-        btnProceder.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando copia...';
-        
-        try {
-            const formData = new FormData();
-            formData.append('action', 'duplicate_programa');
-            formData.append('programa_id', programaBaseId);
-            
-            const response = await fetch('<?= APP_URL ?>/programa/api', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                cerrarModalCreacion();
-                showNotification('✅ Programa duplicado exitosamente', 'success');
-                await cargarProgramas();
-                
-                // Ir al editor del nuevo programa
-                setTimeout(() => {
-                    window.location.href = `<?= APP_URL ?>/programa?id=${result.new_programa_id}`;
-                }, 1500);
-            } else {
-                throw new Error(result.error || 'Error al duplicar');
+            if (!opcionSeleccionada) {
+                showNotification('Por favor selecciona una opción', 'error');
+                return;
             }
-        } catch (error) {
-            showNotification('Error: ' + error.message, 'error');
-            btnProceder.disabled = false;
-            btnProceder.innerHTML = 'Proceder';
+
+            if (opcionSeleccionada === 'desde-cero') {
+                window.location.href = '<?= APP_URL ?>/programa';
+            } else if (opcionSeleccionada === 'desde-existente') {
+                const programaBaseId = document.getElementById('programaBase').value;
+                if (!programaBaseId) {
+                    showNotification('Por favor selecciona un programa base', 'error');
+                    return;
+                }
+
+                // Crear copia automáticamente
+                const btnProceder = document.getElementById('btnProceder');
+                btnProceder.disabled = true;
+                btnProceder.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando copia...';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'duplicate_programa');
+                    formData.append('programa_id', programaBaseId);
+
+                    const response = await fetch('<?= APP_URL ?>/programa/api', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        cerrarModalCreacion();
+                        showNotification('Programa duplicado exitosamente', 'success');
+                        await cargarProgramas();
+
+                        // Ir al editor del nuevo programa
+                        setTimeout(() => {
+                            window.location.href = `<?= APP_URL ?>/programa?id=${result.new_programa_id}`;
+                        }, 1500);
+                    } else {
+                        throw new Error(result.error || 'Error al duplicar');
+                    }
+                } catch (error) {
+                    showNotification('Error: ' + error.message, 'error');
+                    btnProceder.disabled = false;
+                    btnProceder.innerHTML = 'Proceder';
+                }
+            }
         }
-    }
-}
-        
+
         function cargarProgramasParaSeleccion() {
             const select = document.getElementById('programaBase');
             select.innerHTML = '<option value="">Selecciona un programa base...</option>';
-            
+
             // Agregar todos los programas (míos y otros)
             allProgramas.forEach(programa => {
                 const option = document.createElement('option');
@@ -1866,20 +2521,20 @@ function crearDesdeCeroRapido() {
                 option.dataset.programa = JSON.stringify(programa);
                 select.appendChild(option);
             });
-            
+
             // Listener para vista previa
-            select.addEventListener('change', function() {
+            select.addEventListener('change', function () {
                 const selectedOption = this.options[this.selectedIndex];
                 const preview = document.getElementById('previstaPrograma');
-                
+
                 if (selectedOption.value) {
                     const programa = JSON.parse(selectedOption.dataset.programa);
                     preview.innerHTML = `
                         <strong>${programa.titulo_programa || `Viaje a ${programa.destino}`}</strong><br>
-                        📍 ${programa.destino}<br>
-                        👤 ${programa.nombre_viajero} ${programa.apellido_viajero}<br>
-                        👥 ${programa.numero_pasajeros} viajeros<br>
-                        👨‍💼 Creado por: ${programa.user_id == CURRENT_USER_ID ? 'Ti' : programa.created_by_name}
+                        Destino: ${programa.destino}<br>
+                        Viajero: ${programa.nombre_viajero} ${programa.apellido_viajero}<br>
+                        Viajeros: ${programa.numero_pasajeros}<br>
+                        Creado por: ${programa.user_id == CURRENT_USER_ID ? 'Ti' : programa.created_by_name}
                     `;
                     document.getElementById('btnProceder').disabled = false;
                 } else {
@@ -1888,59 +2543,59 @@ function crearDesdeCeroRapido() {
                 }
             });
         }
-        
+
 
         // ============================================================
         // FUNCIONES DE INTERACCIÓN
         // ============================================================
-        
+
         function editarPrograma(id) {
-            console.log(`✏️ Editando programa ${id}`);
+            console.log(`Editando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?id=${id}`;
         }
-        
+
         function verDetalles(id) {
-    console.log(`👁️ Viendo detalles del programa ${id}`);
-    
-    // Abrir en nueva ventana la página de itinerario (preview)
-    const url = `<?= APP_URL ?>/itinerary?id=${id}`;
-    
-    // Abrir en nueva pestaña con características específicas
-    const ventana = window.open(
-        url, 
-        `programa_preview_${id}`,
-        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no'
-    );
-    
-    // Verificar si se abrió correctamente
-    if (!ventana) {
-        // Si hay bloqueador de popups, mostrar alternativa
-        showNotification('Por favor, permite ventanas emergentes y vuelve a intentar', 'info');
-        
-        // Como alternativa, redirigir en la misma ventana
-        setTimeout(() => {
-            if (confirm('¿Quieres ver el programa en esta ventana?')) {
-                window.location.href = url;
+            console.log(`Viendo detalles del programa ${id}`);
+
+            // Abrir en nueva ventana la página de itinerario (preview)
+            const url = `<?= APP_URL ?>/itinerary?id=${id}`;
+
+            // Abrir en nueva pestaña con características específicas
+            const ventana = window.open(
+                url,
+                `programa_preview_${id}`,
+                'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no'
+            );
+
+            // Verificar si se abrió correctamente
+            if (!ventana) {
+                // Si hay bloqueador de popups, mostrar alternativa
+                showNotification('Por favor, permite ventanas emergentes y vuelve a intentar', 'info');
+
+                // Como alternativa, redirigir en la misma ventana
+                setTimeout(() => {
+                    if (confirm('¿Quieres ver el programa en esta ventana?')) {
+                        window.location.href = url;
+                    }
+                }, 2000);
+            } else {
+                // Enfocar la nueva ventana
+                ventana.focus();
+
+                // Mostrar mensaje de éxito
+                showNotification('Abriendo vista previa del programa...', 'success');
             }
-        }, 2000);
-    } else {
-        // Enfocar la nueva ventana
-        ventana.focus();
-        
-        // Mostrar mensaje de éxito
-        showNotification('📖 Abriendo vista previa del programa...', 'success');
-    }
-}
+        }
 
-// ============================================================
-// FUNCIÓN ALTERNATIVA PARA MODAL (OPCIONAL)
-// ============================================================
+        // ============================================================
+        // FUNCIÓN ALTERNATIVA PARA MODAL (OPCIONAL)
+        // ============================================================
 
-function verDetallesModal(id) {
-    console.log(`👁️ Viendo detalles del programa ${id} en modal`);
-    
-    // Crear modal con iframe para mostrar el itinerario
-    const modalHtml = `
+        function verDetallesModal(id) {
+            console.log(`Viendo detalles del programa ${id} en modal`);
+
+            // Crear modal con iframe para mostrar el itinerario
+            const modalHtml = `
         <div class="modal-overlay" id="modalVistaPrevia" style="display: block; z-index: 2000;">
             <div class="modal" style="max-width: 95vw; width: 1200px; height: 90vh; padding: 0; border-radius: 12px; overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--primary-gradient); color: white;">
@@ -1985,45 +2640,45 @@ function verDetallesModal(id) {
             </div>
         </div>
     `;
-    
-    // Agregar al DOM
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Ocultar loading después de un tiempo
-    setTimeout(() => {
-        const loading = document.getElementById('loadingPreview');
-        if (loading) {
-            loading.style.display = 'none';
+
+            // Agregar al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Ocultar loading después de un tiempo
+            setTimeout(() => {
+                const loading = document.getElementById('loadingPreview');
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }, 2000);
         }
-    }, 2000);
-}
 
-function cerrarModalVistaPrevia() {
-    const modal = document.getElementById('modalVistaPrevia');
-    if (modal) {
-        modal.remove();
-    }
-}
+        function cerrarModalVistaPrevia() {
+            const modal = document.getElementById('modalVistaPrevia');
+            if (modal) {
+                modal.remove();
+            }
+        }
 
-function abrirEnNuevaVentana(id) {
-    const url = `<?= APP_URL ?>/itinerary?id=${id}`;
-    window.open(url, `programa_preview_${id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes');
-    cerrarModalVistaPrevia();
-}
-        
+        function abrirEnNuevaVentana(id) {
+            const url = `<?= APP_URL ?>/itinerary?id=${id}`;
+            window.open(url, `programa_preview_${id}`, 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            cerrarModalVistaPrevia();
+        }
+
         function copiarPrograma(id) {
-            console.log(`📋 Copiando programa ${id}`);
+            console.log(`Copiando programa ${id}`);
             window.location.href = `<?= APP_URL ?>/programa?copy_from=${id}`;
         }
 
         // ============================================================
         // ESTADOS DE LA INTERFAZ
         // ============================================================
-        
+
         function showLoadingState(tipo) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
             const tipoText = tipo === 'mios' ? 'mis programas' : 'otros programas';
-            
+
             document.getElementById(containerId).innerHTML = `
                 <div class="loading-state">
                     <i class="fas fa-spinner state-icon"></i>
@@ -2032,41 +2687,41 @@ function abrirEnNuevaVentana(id) {
                 </div>
             `;
         }
-        
+
         function showEmptyState(tipo) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
             const programas = tipo === 'mios' ? misProgramasFiltrados : otrosProgramasFiltrados;
-            const programasBase = tipo === 'mios' ? 
-                allProgramas.filter(p => p.user_id == CURRENT_USER_ID) : 
+            const programasBase = tipo === 'mios' ?
+                allProgramas.filter(p => p.user_id == CURRENT_USER_ID) :
                 allProgramas.filter(p => p.user_id != CURRENT_USER_ID);
-            
+
             const isFiltered = programas.length !== programasBase.length;
-            
+
             document.getElementById(containerId).innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-${tipo === 'mios' ? 'user-edit' : 'users'} state-icon"></i>
                     <h3 class="state-title">${isFiltered ? 'No se encontraron programas' : tipo === 'mios' ? 'No tienes programas' : 'No hay otros programas'}</h3>
                     <p class="state-description">
-                        ${isFiltered ? 
-                            'No se encontraron programas que coincidan con los filtros aplicados.' :
-                            tipo === 'mios' ? 
-                                '¡Comienza creando tu primer programa de viaje personalizado!' :
-                                'Aún no hay programas creados por otros usuarios.'
-                        }
+                        ${isFiltered ?
+                    'No se encontraron programas que coincidan con los filtros aplicados.' :
+                    tipo === 'mios' ?
+                        '¡Comienza creando tu primer programa de viaje personalizado!' :
+                        'Aún no hay programas creados por otros usuarios.'
+                }
                     </p>
-                    ${isFiltered ? 
-                        `<button onclick="limpiarFiltros('${tipo}')" class="action-btn">Limpiar Filtros</button>` :
-                        tipo === 'mios' ? 
-                            '<button onclick="mostrarModalCreacion()" class="action-btn"><i class="fas fa-plus"></i> Crear Nuevo Programa</button>' :
-                            ''
-                    }
+                    ${isFiltered ?
+                    `<button onclick="limpiarFiltros('${tipo}')" class="action-btn">Limpiar Filtros</button>` :
+                    tipo === 'mios' ?
+                        '<button onclick="mostrarModalCreacion()" class="action-btn"><i class="fas fa-plus"></i> Crear Nuevo Programa</button>' :
+                        ''
+                }
                 </div>
             `;
         }
-        
+
         function showErrorState(tipo, message) {
             const containerId = tipo === 'mios' ? 'misProgramasContainer' : 'otrosProgramasContainer';
-            
+
             document.getElementById(containerId).innerHTML = `
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle state-icon"></i>
@@ -2083,7 +2738,7 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // FUNCIONES AUXILIARES
         // ============================================================
-        
+
         function limpiarFiltros(tipo) {
             if (tipo === 'mios') {
                 document.getElementById('searchInputMios').value = '';
@@ -2095,26 +2750,24 @@ function abrirEnNuevaVentana(id) {
             }
             filtrarProgramas(tipo);
         }
-        
+
         function showNotification(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            const iconClass = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
             toast.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 20px;">${icon}</span>
+                <div class="toast-content">
+                    <span class="toast-icon"><i class="fas ${iconClass}"></i></span>
                     <span>${message}</span>
                 </div>
             `;
-            
             document.body.appendChild(toast);
-            
             setTimeout(() => toast.classList.add('show'), 100);
-            
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 300);
+                setTimeout(() => {
+                    if (toast.parentNode) document.body.removeChild(toast);
+                }, 300);
             }, 4000);
         }
 
@@ -2137,10 +2790,10 @@ function abrirEnNuevaVentana(id) {
             }
 
             function loadSavedLanguage() {
-                const saved = sessionStorage.getItem('language') || 
-                             localStorage.getItem('preferredLanguage') || 
-                             DEFAULT_LANGUAGE;
-                
+                const saved = sessionStorage.getItem('language') ||
+                    localStorage.getItem('preferredLanguage') ||
+                    DEFAULT_LANGUAGE;
+
                 if (saved && saved !== DEFAULT_LANGUAGE) {
                     const select = document.querySelector('.goog-te-combo');
                     if (select) {
@@ -2157,10 +2810,10 @@ function abrirEnNuevaVentana(id) {
                 document.head.appendChild(script);
             }
 
-            setTimeout(function() {
+            setTimeout(function () {
                 const select = document.querySelector('.goog-te-combo');
                 if (select) {
-                    select.addEventListener('change', function() {
+                    select.addEventListener('change', function () {
                         if (this.value) saveLanguage(this.value);
                     });
                 }
@@ -2170,15 +2823,15 @@ function abrirEnNuevaVentana(id) {
         // ============================================================
         // FUNCIONES DE EXPORTACIÓN Y UTILIDADES
         // ============================================================
-        
+
         function exportarProgramas() {
-            console.log('📤 Exportando programas...');
-            
+            console.log('Exportando programas...');
+
             if (allProgramas.length === 0) {
                 showNotification('No hay programas para exportar', 'error');
                 return;
             }
-            
+
             const headers = ['ID', 'Título', 'Destino', 'Viajero', 'Fechas', 'Pasajeros', 'Estado', 'Creado por'];
             const csvData = allProgramas.map(programa => [
                 programa.id_solicitud || programa.id,
@@ -2186,15 +2839,15 @@ function abrirEnNuevaVentana(id) {
                 programa.destino,
                 `${programa.nombre_viajero} ${programa.apellido_viajero}`,
                 formatDateRange(programa.fecha_llegada, programa.fecha_salida),
-                programa.numero_pasajeros,
+                (parseInt(programa.cantidad_adultos) || 0) + (parseInt(programa.cantidad_ninos) || 0) || programa.numero_pasajeros || 0,
                 programa.estado || 'borrador',
                 programa.created_by_name || 'N/A'
             ]);
-            
+
             const csvContent = [headers, ...csvData]
                 .map(row => row.map(cell => `"${cell}"`).join(','))
                 .join('\n');
-            
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -2204,13 +2857,13 @@ function abrirEnNuevaVentana(id) {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            showNotification('✅ Programas exportados exitosamente', 'success');
+
+            showNotification('Programas exportados exitosamente', 'success');
         }
 
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
-            
+
             const date = new Date(dateString);
             return date.toLocaleDateString('es-ES', {
                 day: 'numeric',
@@ -2218,23 +2871,23 @@ function abrirEnNuevaVentana(id) {
                 year: 'numeric'
             });
         }
-        
+
         function formatDateRange(startDate, endDate) {
             if (!startDate || !endDate) return 'Fechas no definidas';
-            
+
             const start = formatDate(startDate);
             const end = formatDate(endDate);
-            
+
             return `${start} - ${end}`;
         }
 
         // ============================================================
         // FUNCIONES ADICIONALES PARA LA API
         // ============================================================
-        
+
         // Esta función debe ser agregada al API de programa para obtener todos los programas
         // Incluye información del creador para distinguir entre "mis programas" y "otros programas"
-        
+
         /*
         NOTA PARA EL DESARROLLADOR:
         
@@ -2288,16 +2941,27 @@ function abrirEnNuevaVentana(id) {
         window.toggleSidebar = toggleSidebar;
         window.closeSidebar = closeSidebar;
         window.toggleUserMenu = toggleUserMenu;
-        
+
         // Cerrar modal al hacer clic fuera
-        document.getElementById('modalCreacion').addEventListener('click', function(e) {
+        document.getElementById('modalCreacion').addEventListener('click', function (e) {
             if (e.target === this) {
                 cerrarModalCreacion();
             }
         });
-        
-        console.log('✅ Script de itinerarios mejorado cargado completamente');
-        
+
+        console.log('Script de itinerarios mejorado cargado completamente');
+
+
+        function abrirBonoReserva(programaId) {
+            if (!programaId) {
+                alert('No se encontró el ID del programa.');
+                return;
+            }
+
+            window.open(`<?= APP_URL ?>/modules/bonos/preview.php?programa_id=${programaId}`, '_blank');
+        }
+
     </script>
 </body>
+
 </html>

@@ -24,12 +24,15 @@ database/travel_agency*.sql
 
 # Dependencias
 node_modules/
-vendor/
+#vendor/
 
 # Configuración local (NUNCA commitear credenciales)
 .env
 .htaccess
 
 # Uploads (imágenes subidas por usuarios — no van en Git)
-assets/uploads/
+assets/uploads/agencia_1
 
+#Archivos viejos, guardados solo como respaldo en local
+pages/old
+.claude/

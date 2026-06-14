@@ -104,7 +104,7 @@ class UIComponents {
                     <h3 class="company-name">' . htmlspecialchars($companyName) . '</h3>
                     <div class="role-indicator">
                         <span class="role-badge-sidebar ' . $user['role'] . '">
-                            ' . ($user['role'] === 'admin' ? '👑 Administrador' : '✈️ Agente de Viajes') . '
+                            ' . ($user['role'] === 'admin' ? 'Administrador' : 'Agente de Viajes') . '
                         </span>
                     </div>
                 </div>
@@ -134,16 +134,29 @@ class UIComponents {
      * @param string $currentPage - Página actual
      * @return string HTML de los elementos del menú
      */
+
+    private static function renderSidebarIcon($icon) {
+        $icons = [
+            'dashboard' => '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="3" width="7" height="7" rx="2"></rect><rect x="14" y="14" width="7" height="7" rx="2"></rect><rect x="3" y="14" width="7" height="7" rx="2"></rect></svg>',
+            'users' => '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+            'settings' => '<svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06A2 2 0 1 1 7.03 3.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.2.37.5.7.9.9.3.2.7.3 1.1.3H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"></path></svg>',
+            'library' => '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path></svg>',
+            'map' => '<svg viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path></svg>',
+            'profile' => '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>',
+            'logout' => '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>'
+        ];
+
+        return $icons[$icon] ?? $icons['dashboard'];
+    }
     private static function renderMenuItems($role, $currentPage) {
         $menuItems = [];
         
         // Dashboard siempre presente para ambos roles
         $menuItems[] = [
             'url' => '/dashboard',
-            'icon' => '🏠',
+            'icon' => 'dashboard',
             'title' => 'Dashboard',
-            'description' => 'Panel principal del sistema',
-            'gradient' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            'description' => 'Panel principal del sistema'
         ];
         
         if ($role === 'admin') {
@@ -151,33 +164,29 @@ class UIComponents {
             $menuItems = array_merge($menuItems, [
                 [
                     'url' => '/administrador',
-                    'icon' => '👥',
+                    'icon' => 'users',
                     'title' => 'Sistema de Usuarios',
                     'description' => 'Gestión completa de usuarios',
-                    'gradient' => 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                     'badge' => 'Admin'
                 ],
                 [
                     'url' => '/administrador/configuracion',
-                    'icon' => '⚙️',
+                    'icon' => 'settings',
                     'title' => 'Configuración de Sistema',
                     'description' => 'Ajustes y personalización global',
-                    'gradient' => 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                     'badge' => 'Config'
                 ],
                 [
                     'url' => '/biblioteca',
-                    'icon' => '📚',
+                    'icon' => 'library',
                     'title' => 'Supervisar Biblioteca',
-                    'description' => 'Administrar recursos globales',
-                    'gradient' => 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+                    'description' => 'Administrar recursos globales'
                 ],
                 [
                     'url' => '/itinerarios',
-                    'icon' => '🗺️',
+                    'icon' => 'map',
                     'title' => 'Gestión de Itinerarios',
-                    'description' => 'Administrar todos los itinerarios',
-                    'gradient' => 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+                    'description' => 'Administrar todos los itinerarios'
                 ]
             ]);
         } else {
@@ -185,24 +194,21 @@ class UIComponents {
             $menuItems = array_merge($menuItems, [
                 [
                     'url' => '/itinerarios',
-                    'icon' => '🗺️',
+                    'icon' => 'map',
                     'title' => 'Mis Itinerarios',
-                    'description' => 'Crear y gestionar mis itinerarios',
-                    'gradient' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                    'description' => 'Crear y gestionar mis itinerarios'
                 ],
                 [
                     'url' => '/biblioteca',
-                    'icon' => '📚',
+                    'icon' => 'library',
                     'title' => 'Biblioteca',
-                    'description' => 'Mis recursos y materiales',
-                    'gradient' => 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                    'description' => 'Mis recursos y materiales'
                 ],
                 [
                     'url' => '/perfil',
-                    'icon' => '👤',
+                    'icon' => 'profile',
                     'title' => 'Mi Perfil',
-                    'description' => 'Configuración personal',
-                    'gradient' => 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+                    'description' => 'Configuración personal'
                 ]
             ]);
         }
@@ -210,10 +216,9 @@ class UIComponents {
         // Agregar logout al final para ambos roles
         $menuItems[] = [
             'url' => '/auth/logout',
-            'icon' => '🚪',
+            'icon' => 'logout',
             'title' => 'Cerrar Sesión',
             'description' => 'Salir del sistema',
-            'gradient' => 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
             'special' => 'logout'
         ];
         
@@ -225,8 +230,8 @@ class UIComponents {
             
             $menuHtml .= '
             <a href="' . APP_URL . $item['url'] . '" class="menu-item-enhanced ' . $activeClass . ' ' . $specialClass . '">
-                <div class="menu-item-icon" style="background: ' . $item['gradient'] . ';">
-                    ' . $item['icon'] . '
+                <div class="menu-item-icon">
+                    ' . self::renderSidebarIcon($item['icon']) . '
                 </div>
                 <div class="menu-item-content">
                     <div class="menu-item-title">' . $item['title'] . '</div>
@@ -645,6 +650,93 @@ class UIComponents {
                 padding: 12px 15px;
             }
         }
+
+        .enhanced-sidebar {
+        background: #ffffff !important;
+        border-right: 1px solid #e5e7eb !important;
+        box-shadow: 10px 0 30px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .sidebar-header-enhanced {
+        background: linear-gradient(
+            180deg,
+            rgba(var(--primary-color-rgb), 0.06),
+            #ffffff
+        ) !important;
+    }
+
+    .menu-item-enhanced {
+        min-height: 72px !important;
+        padding: 13px 16px !important;
+        margin: 0 14px 8px 14px !important;
+        border-radius: 18px !important;
+        border: 1px solid transparent !important;
+        background: transparent !important;
+        gap: 14px !important;
+    }
+
+    .menu-item-enhanced:hover {
+        background: rgba(var(--primary-color-rgb), 0.06) !important;
+        border-color: rgba(var(--primary-color-rgb), 0.10) !important;
+        transform: translateX(3px) !important;
+    }
+
+    .menu-item-enhanced.active {
+        background: rgba(var(--primary-color-rgb), 0.09) !important;
+        border-color: rgba(var(--primary-color-rgb), 0.16) !important;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .menu-item-icon {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 15px !important;
+        background: rgba(var(--primary-color-rgb), 0.10) !important;
+        color: var(--primary-color) !important;
+        box-shadow: 0 10px 22px rgba(var(--primary-color-rgb), 0.12) !important;
+        flex-shrink: 0 !important;
+    }
+
+    .menu-item-icon svg {
+        width: 21px !important;
+        height: 21px !important;
+        fill: none !important;
+        stroke: currentColor !important;
+        stroke-width: 2.1 !important;
+        stroke-linecap: round !important;
+        stroke-linejoin: round !important;
+    }
+
+    .menu-item-enhanced.active .menu-item-icon {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        color: #ffffff !important;
+    }
+
+    .menu-item-title {
+        color: #1f2937 !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+    }
+
+    .menu-item-description {
+        color: #64748b !important;
+        font-size: 11.5px !important;
+        font-weight: 500 !important;
+    }
+
+    .menu-item-enhanced.active .menu-item-title {
+        color: var(--primary-color) !important;
+    }
+
+    .menu-item-badge {
+        background: rgba(var(--primary-color-rgb), 0.12) !important;
+        color: var(--primary-color) !important;
+        border: 1px solid rgba(var(--primary-color-rgb), 0.18) !important;
+    }
+
+    .active-indicator {
+        background: var(--primary-color) !important;
+    }
         </style>
 
         <script>
@@ -800,18 +892,6 @@ class UIComponents {
                 </div>
             </div>
         </div>
-        <script>
-        (function() {
-            setInterval(async function() {
-                try {
-                    const res = await fetch("' . APP_URL . '/auth/ping");
-                    if (res.status === 401) {
-                        alert("Tu sesión ha expirado. Serás redirigido al login.");
-                        window.location.href = "' . APP_URL . '/login";
-                    }
-                } catch(e) {}
-            }, 4 * 60 * 1000);
-        })();
-        </script>';
+';
     }
 }

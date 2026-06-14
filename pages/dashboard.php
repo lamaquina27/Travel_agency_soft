@@ -47,6 +47,19 @@ try {
 } catch(Exception $e) {
     $db = null;
 }
+
+
+function dashboardIcon($name) {
+    $icons = [
+        'users' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5 1.34 3.5 3 3.5Zm-8 0c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11Zm0 2c-2.67 0-6 1.34-6 4v1.2c0 .44.36.8.8.8h10.4c.44 0 .8-.36.8-.8V17c0-2.66-3.33-4-6-4Zm8 0c-.33 0-.7.02-1.08.07 1.26.92 2.08 2.18 2.08 3.93v2h4.2c.44 0 .8-.36.8-.8V17c0-2.66-3.33-4-6-4Z"/></svg>',
+        'settings' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.28 7.28 0 0 0-1.69-.98L14.5 2.42A.49.49 0 0 0 14.01 2h-4a.49.49 0 0 0-.49.42L9.14 5.07c-.61.24-1.18.56-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.13.22.39.31.61.22l2.49-1c.51.4 1.08.74 1.69.98l.38 2.65c.04.24.25.42.49.42h4c.24 0 .45-.18.49-.42l.38-2.65c.61-.24 1.18-.56 1.69-.98l2.49 1c.23.08.48 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"/></svg>',
+        'library' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C4 4.67 4.67 4 5.5 4H20v14.5c0 .83-.67 1.5-1.5 1.5H5.75A2.75 2.75 0 0 1 3 17.25V6.5c0-.55.45-1 1-1Zm2 0v11.75c0 .41.34.75.75.75H18V6H6v-.5Zm2 3h8v1.6H8V8.5Zm0 3h8v1.6H8v-1.6Zm0 3h5v1.6H8v-1.6Z"/></svg>',
+        'plane' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2L13 9V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5Z"/></svg>',
+        'map' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20.5 3-.16.03L15 5.1 9 3 3.36 4.9A.5.5 0 0 0 3 5.38V20.5c0 .35.35.6.68.47L9 18.9l6 2.1 5.64-1.9a.5.5 0 0 0 .36-.48V3.5c0-.28-.22-.5-.5-.5ZM10 5.47l4 1.4v11.66l-4-1.4V5.47Zm-5 1.08 3-1.01v11.92l-3 1.1V6.55Zm14 11.9-3 1.01V7.54l3-1.1v12.01Z"/></svg>',
+        'profile' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-2.02 4-4.5S14.21 3 12 3 8 5.02 8 7.5s1.79 4.5 4 4.5Zm0 2c-3.33 0-7 1.7-7 4.25V20c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-1.75C19 15.7 15.33 14 12 14Z"/></svg>',
+    ];
+    return $icons[$name] ?? $icons['plane'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
@@ -630,6 +643,186 @@ try {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(180deg); }
         }
+
+
+        /* ===== Rediseño seguro del dashboard: conserva header, sidebar y funciones ===== */
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(var(--primary-color-rgb), 0.07), transparent 34rem),
+                radial-gradient(circle at bottom right, rgba(var(--secondary-color-rgb), 0.07), transparent 30rem),
+                #f7f8fb;
+            color: #172033;
+        }
+        .background-particles { display: none; }
+        .main-content { padding: 32px; }
+        .welcome-section,
+        .stats-section,
+        .action-card {
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(23,32,51,0.09);
+            box-shadow: 0 14px 36px rgba(15,23,42,0.07);
+            backdrop-filter: blur(12px);
+        }
+        .welcome-section { border-radius: 26px; padding: 34px; margin-bottom: 24px; }
+        .welcome-title {
+            color: #172033;
+            background: none;
+            -webkit-text-fill-color: initial;
+            font-size: clamp(30px, 4vw, 42px);
+            letter-spacing: -0.04em;
+        }
+        .welcome-subtitle { color: #667085; max-width: 850px; font-size: 15px; }
+        .role-badge {
+            background: rgba(var(--primary-color-rgb), 0.09);
+            color: var(--primary-color);
+            border: 1px solid rgba(var(--primary-color-rgb), 0.16);
+            box-shadow: none;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+        .role-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(var(--primary-color-rgb), 0.12);
+        }
+        .quick-actions { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 24px; }
+        .action-card { border-radius: 22px; padding: 24px; }
+        .action-card::before { height: 3px; transform: scaleX(1); opacity: .9; }
+        .action-card:hover { transform: translateY(-4px); box-shadow: 0 18px 42px rgba(15,23,42,.10); }
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            background: rgba(var(--primary-color-rgb), 0.10);
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+        .action-icon svg { width: 23px; height: 23px; fill: currentColor; display: block; }
+        .action-title { color: #172033; font-size: 18px; margin-bottom: 8px; }
+        .action-description { color: #667085; font-size: 14px; line-height: 1.55; }
+        .stats-section { border-radius: 24px; padding: 28px; }
+        .stats-title { color: #172033; font-size: 22px; margin-bottom: 20px; }
+        .stats-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+        .stat-item {
+            background: #fff;
+            border: 1px solid rgba(23,32,51,0.08);
+            box-shadow: none;
+            border-radius: 18px;
+            padding: 22px 16px;
+        }
+        .stat-item:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(15,23,42,.07); }
+        .stat-number {
+            background: none;
+            -webkit-text-fill-color: initial;
+            color: var(--primary-color);
+            font-size: 30px;
+        }
+        .stat-label { color: #667085; }
+        @media (max-width: 768px) {
+            .main-content { padding: 18px; }
+            .welcome-section, .action-card, .stats-section { padding: 22px; }
+            .quick-actions { grid-template-columns: 1fr; }
+        }
+
+
+/* ===== Sidebar limpia y profesional ===== */
+
+.sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #e5e7eb !important;
+    box-shadow: 8px 0 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+.sidebar-header,
+.sidebar .logo-section {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--primary-color-rgb), 0.08),
+        rgba(var(--secondary-color-rgb), 0.06)
+    ) !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 24px 22px !important;
+}
+
+.sidebar h2,
+.sidebar .logo-text,
+.sidebar .brand-name {
+    color: #111827 !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+}
+
+.sidebar-menu,
+.sidebar nav {
+    padding: 18px 14px !important;
+}
+
+.sidebar a,
+.sidebar .menu-item,
+.sidebar .nav-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 46px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 6px !important;
+    border-radius: 14px !important;
+    color: #475569 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.sidebar a:hover,
+.sidebar .menu-item:hover,
+.sidebar .nav-item:hover {
+    background: rgba(var(--primary-color-rgb), 0.08) !important;
+    color: var(--primary-color) !important;
+    border-color: rgba(var(--primary-color-rgb), 0.12) !important;
+    transform: translateX(3px) !important;
+}
+
+.sidebar a.active,
+.sidebar .menu-item.active,
+.sidebar .nav-item.active {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--primary-color-rgb), 0.14),
+        rgba(var(--secondary-color-rgb), 0.10)
+    ) !important;
+    color: var(--primary-color) !important;
+    border-color: rgba(var(--primary-color-rgb), 0.20) !important;
+    box-shadow: 0 8px 20px rgba(var(--primary-color-rgb), 0.12) !important;
+}
+
+.sidebar svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+    fill: currentColor !important;
+    color: currentColor !important;
+}
+
+.sidebar-footer {
+    border-top: 1px solid #e5e7eb !important;
+    padding: 16px 14px !important;
+    background: #f8fafc !important;
+}
+
+.overlay {
+    background: rgba(15, 23, 42, 0.35) !important;
+    backdrop-filter: blur(2px) !important;
+}
+        
     </style>
 </head>
 <body>
@@ -649,7 +842,7 @@ try {
         <!-- Welcome Section -->
         <div class="welcome-section animate-in">
             <div class="role-badge">
-                <?= $user['role'] === 'admin' ? '👑 Administrador del Sistema' : '✈️ Agente de Viajes' ?>
+                <?= $user['role'] === 'admin' ? 'Administrador del Sistema' : 'Agente de Viajes' ?>
             </div>
             <h1 class="welcome-title">¡Bienvenido<?= $user['role'] === 'admin' ? '' : '' ?>, <?= htmlspecialchars($user['name']) ?>!</h1>
             
@@ -668,12 +861,12 @@ try {
                 border: 1px solid #e2e8f0;
             ">
                 <div style="flex: 1; min-width: 200px;">
-                    <div style="font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🏢 Agencia</div>
+                    <div style="font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Agencia</div>
                     <div style="font-size: 20px; font-weight: 700; color: #1a202c;"><?= htmlspecialchars($agenciaData['nombre']) ?></div>
                 </div>
                 
                 <div style="flex: 1; min-width: 200px;">
-                    <div style="font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">📅 Suscripción</div>
+                    <div style="font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Suscripción</div>
                     <div style="font-size: 16px; font-weight: 600; color: #2d3748;">
                         <?= date('d/m/Y', strtotime($agenciaData['fecha_inicio_suscripcion'])) ?> - 
                         <?= date('d/m/Y', strtotime($agenciaData['fecha_fin_suscripcion'])) ?>
@@ -682,16 +875,16 @@ try {
                         <?php 
                         $diasRestantes = ceil((strtotime($agenciaData['fecha_fin_suscripcion']) - time()) / 86400);
                         if ($diasRestantes > 0) {
-                            echo "⏱️ " . $diasRestantes . " días restantes";
+                            echo $diasRestantes . " días restantes";
                         } else {
-                            echo "<span style='color: #e53e3e;'>⚠️ Suscripción vencida</span>";
+                            echo "<span style='color: #e53e3e;'>Suscripción vencida</span>";
                         }
                         ?>
                     </div>
                 </div>
                 
                 <div style="flex: 1; min-width: 150px;">
-                    <div style="font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">👥 Usuarios</div>
+                    <div style="font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Usuarios</div>
                     <div style="font-size: 20px; font-weight: 700; color: #1a202c;">
                         <?= $agenciaData['usuarios_actuales'] ?> / <?= $agenciaData['max_usuarios'] ?>
                     </div>
@@ -716,25 +909,25 @@ try {
             <?php if ($user['role'] === 'admin'): ?>
             <!-- Acciones para Administrador -->
             <div class="action-card animate-in" onclick="goTo('/administrador')" style="animation-delay: 0.1s;">
-                <div class="action-icon">👥</div>
+                <div class="action-icon"><?= dashboardIcon('users') ?></div>
                 <h3 class="action-title">Gestión de Usuarios</h3>
                 <p class="action-description">Administra todos los usuarios del sistema, crea nuevos agentes, gestiona permisos y supervisa la actividad completa de la plataforma.</p>
             </div>
 
             <div class="action-card animate-in" onclick="goTo('/administrador/configuracion')" style="animation-delay: 0.2s;">
-                <div class="action-icon">⚙️</div>
+                <div class="action-icon"><?= dashboardIcon('settings') ?></div>
                 <h3 class="action-title">Configuración del Sistema</h3>
                 <p class="action-description">Personaliza colores, logos, integraciones, políticas de seguridad y todos los parámetros generales del sistema.</p>
             </div>
 
             <div class="action-card animate-in" onclick="goTo('/biblioteca')" style="animation-delay: 0.3s;">
-                <div class="action-icon">📚</div>
+                <div class="action-icon"><?= dashboardIcon('library') ?></div>
                 <h3 class="action-title">Supervisar Biblioteca</h3>
                 <p class="action-description">Supervisa y administra todos los recursos globales: días, alojamientos, actividades y transportes de todos los agentes.</p>
             </div>
 
             <div class="action-card animate-in" onclick="goTo('/itinerarios')" style="animation-delay: 0.4s;">
-                <div class="action-icon">✈️</div>
+                <div class="action-icon"><?= dashboardIcon('plane') ?></div>
                 <h3 class="action-title">Supervisar Programas</h3>
                 <p class="action-description">Revisa y supervisa todos los programas de viaje y solicitudes creadas por los agentes del sistema.</p>
             </div>
@@ -742,19 +935,19 @@ try {
             <?php else: ?>
             <!-- Acciones para Agente - LIMITADAS según especificación -->
             <div class="action-card animate-in" onclick="goTo('/itinerarios')" style="animation-delay: 0.1s;">
-                <div class="action-icon">🗺️</div>
+                <div class="action-icon"><?= dashboardIcon('map') ?></div>
                 <h3 class="action-title">Mis Itinerarios</h3>
                 <p class="action-description">Crea y gestiona itinerarios detallados para tus clientes con rutas personalizadas y experiencias únicas.</p>
             </div>
 
             <div class="action-card animate-in" onclick="goTo('/biblioteca')" style="animation-delay: 0.2s;">
-                <div class="action-icon">📚</div>
+                <div class="action-icon"><?= dashboardIcon('library') ?></div>
                 <h3 class="action-title">Mi Biblioteca de Recursos</h3>
                 <p class="action-description">Administra tus recursos personales: días, alojamientos, actividades y transportes para usar en tus itinerarios.</p>
             </div>
 
             <div class="action-card animate-in" onclick="goTo('/perfil')" style="animation-delay: 0.3s;">
-                <div class="action-icon">👤</div>
+                <div class="action-icon"><?= dashboardIcon('profile') ?></div>
                 <h3 class="action-title">Mi Perfil</h3>
                 <p class="action-description">Configura tu información personal, preferencias y ajustes de tu cuenta de agente de viajes.</p>
             </div>
@@ -765,7 +958,7 @@ try {
         <!-- Stats Section diferenciada por rol -->
         <div class="stats-section animate-in" style="animation-delay: 0.5s;">
             <h2 class="stats-title">
-                <?= $user['role'] === 'admin' ? '📊 Estadísticas del Sistema' : '📈 Resumen de Mi Actividad' ?>
+                <?= $user['role'] === 'admin' ? 'Estadísticas del Sistema' : 'Resumen de Mi Actividad' ?>
             </h2>
             <div class="stats-grid">
                 <?php if ($user['role'] === 'admin'): ?>

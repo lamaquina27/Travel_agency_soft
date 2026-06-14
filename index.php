@@ -13,7 +13,7 @@ $path = parse_url($request, PHP_URL_PATH);
 
 // ✅ CORRECCIÓN LÍNEA 16: Verificar que parse_url no sea null
 $appUrlPath = parse_url(APP_URL, PHP_URL_PATH);
-$path = str_replace(rtrim($appUrlPath ?: '', '/'), '', $path);
+$path = str_ireplace(rtrim($appUrlPath ?: '', '/'), '', $path);
 $path = $path ?: '/';
 
 // Limpiar path de múltiples slashes
@@ -197,6 +197,23 @@ switch($path) {
         App::redirect('/biblioteca');
         break;
         
+    case '/gmail/oauth':
+        require_once 'modules/gmail/oauth.php';
+        break;
+
+    case '/gmail/api':
+        require_once 'modules/gmail/api.php';
+        break;
+
+    case '/gmail/worker':
+        require_once 'modules/gmail/worker.php';
+        break;
+
+    case '/gmail/chat':
+    case '/gmail/chat/send':
+        require_once 'modules/gmail/chat_api.php';
+        break;
+
     default:
         http_response_code(404);
         include 'pages/404.php';

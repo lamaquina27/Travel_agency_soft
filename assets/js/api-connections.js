@@ -1,8 +1,4 @@
-<?php
-// =====================================
-// ARCHIVO: assets/js/api-connections.js - Conexiones API Reales
-// =====================================
-?>
+    
 // Archivo para centralizar todas las conexiones API del sistema
 class TravelAgencyAPI {
     constructor() {
@@ -232,6 +228,57 @@ class TravelAgencyAPI {
     async getStatistics() {
         return this.request('/admin/api?action=statistics');
     }
+    // API de Bonos
+    async getBonoDatos(programa_id) {
+        const params = new URLSearchParams({
+            action: 'get',
+            'programa_id':programa_id
+        });
+        
+        return this.request(`/modules/bonos/api?${params}`);
+    }
+
+    // API de Vuelos
+    async previewVuelo(codigo_vuelo, programa_dias_id) {
+        return this.request('/modules/vuelos/api.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'preview',
+                codigo_vuelo,
+                programa_dias_id
+            })
+        });
+    }
+
+    async saveVuelo(codigo_vuelo, programa_dias_id) {
+        return this.request('/modules/vuelos/api.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'save',
+                codigo_vuelo,
+                programa_dias_id
+            })
+        });
+    }
+
+    async getVuelos(programa_dias_id) {
+        const params = new URLSearchParams({
+            action: 'get',
+            programa_dias_id
+        });
+
+        return this.request(`/modules/vuelos/api.php?${params}`);
+    }
+
+    async deleteVuelo(vuelo_dia_id) {
+        return this.request('/modules/vuelos/api.php', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'delete',
+                vuelo_dia_id
+            })
+        });
+    }
 }
 
 // Instancia global de la API
@@ -265,7 +312,7 @@ class UIHelpers {
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
-            z-index: 10000;
+            z-index: 999999;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transform: translateX(100%);
             transition: transform 0.3s ease;

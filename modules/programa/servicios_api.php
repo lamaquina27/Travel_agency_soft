@@ -17,6 +17,7 @@ error_reporting(E_ALL);
 
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
+require_once __DIR__ . '/upload_images.php';
 
 App::init();
 App::requireLogin();
@@ -54,7 +55,8 @@ class ProgramaServiciosAPI {
                     $result = $this->addService(
                         $_POST['dia_id'] ?? null,
                         $_POST['tipo_servicio'] ?? null,
-                        $_POST['biblioteca_item_id'] ?? null
+                        $_POST['biblioteca_item_id'] ?? null,
+                        $_POST['acomodacion_id'] ?? null
                     );
                     break;
                 case 'add_alternative':
@@ -97,7 +99,7 @@ class ProgramaServiciosAPI {
     // ================================================================
     // FUNCIÓN PRINCIPAL: AGREGAR SERVICIO CON AISLAMIENTO TOTAL
     // ================================================================
-    private function addService($diaId, $tipoServicio, $bibliotecaItemId) {
+    private function addService($diaId, $tipoServicio, $bibliotecaItemId, $acomodacionId = null) {
         if (!$diaId || !$tipoServicio || !$bibliotecaItemId) {
             throw new Exception('Día, tipo de servicio e item de biblioteca requeridos');
         }
@@ -130,6 +132,25 @@ class ProgramaServiciosAPI {
             if (!$bibliotecaItem) {
                 throw new Exception('Item de biblioteca no encontrado');
             }
+
+            $acomodacionId = !empty($acomodacionId) ? (int)$acomodacionId : null;
+
+            if ($tipoServicio === 'alojamiento' && $acomodacionId) {
+                $acomodacion = $this->db->fetch(
+                    "SELECT a.id
+                    FROM acomodaciones a
+                    INNER JOIN biblioteca_alojamientos h ON a.hotel_id = h.id
+                    WHERE a.id = ?
+                    AND h.id = ?
+                    AND h.agencia_id = ?
+                    LIMIT 1",
+                    [$acomodacionId, $bibliotecaItemId, $agencia_id]
+                );
+
+                if (!$acomodacion) {
+                    throw new Exception('La acomodación no pertenece al alojamiento seleccionado');
+                }
+            }
             
             // Obtener el siguiente orden
             $lastOrder = $this->db->fetch(
@@ -145,6 +166,7 @@ class ProgramaServiciosAPI {
             
             // ⭐ MANTENER biblioteca_item_id SOLO COMO REFERENCIA HISTÓRICA
             $servicioData['biblioteca_item_id'] = $bibliotecaItemId;
+            $servicioData['acomodacion_id'] = ($tipoServicio === 'alojamiento') ? $acomodacionId : null;
             
             error_log("📝 Datos del servicio AISLADO a insertar: " . json_encode($servicioData, JSON_PRETTY_PRINT));
             
@@ -403,11 +425,30 @@ class ProgramaServiciosAPI {
             
             // Si es servicio principal, eliminar también sus alternativas
             if ($servicio['es_alternativa'] == 0) {
+                // Fetch alternativas para borrar sus imágenes
+                $alternativas = $this->db->fetchAll(
+                    "SELECT actividad_imagen1, actividad_imagen2, actividad_imagen3, alojamiento_imagen 
+                     FROM programa_dias_servicios WHERE servicio_principal_id = ?", 
+                    [$servicioId]
+                );
+                foreach ($alternativas as $alt) {
+                    if (!empty($alt['actividad_imagen1'])) ProgramaImageUploader::deletePhysicalImage($alt['actividad_imagen1']);
+                    if (!empty($alt['actividad_imagen2'])) ProgramaImageUploader::deletePhysicalImage($alt['actividad_imagen2']);
+                    if (!empty($alt['actividad_imagen3'])) ProgramaImageUploader::deletePhysicalImage($alt['actividad_imagen3']);
+                    if (!empty($alt['alojamiento_imagen'])) ProgramaImageUploader::deletePhysicalImage($alt['alojamiento_imagen']);
+                }
+
                 $stmt = $this->db->query(
                     "DELETE FROM programa_dias_servicios WHERE servicio_principal_id = ?", 
                     [$servicioId]
                 );
             }
+            
+            // Eliminar imágenes del servicio principal
+            if (!empty($servicio['actividad_imagen1'])) ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen1']);
+            if (!empty($servicio['actividad_imagen2'])) ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen2']);
+            if (!empty($servicio['actividad_imagen3'])) ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen3']);
+            if (!empty($servicio['alojamiento_imagen'])) ProgramaImageUploader::deletePhysicalImage($servicio['alojamiento_imagen']);
             
             // Eliminar el servicio
             $deleted = $this->db->delete('programa_dias_servicios', 'id = ?', [$servicioId]);
@@ -482,9 +523,14 @@ private function listServices($diaId) {
                 -- Campos de alojamiento
                 pds.alojamiento_tipo as tipo,
                 pds.alojamiento_categoria as categoria,
-                pds.alojamiento_imagen as imagen
+                pds.alojamiento_imagen as imagen,
+                pds.acomodacion_id,
+                a.tipo_acomodacion AS acomodacion_nombre,
+                a.descripcion AS acomodacion_descripcion,
+                a.acomodacion AS acomodacion_capacidad
                 
             FROM programa_dias_servicios pds
+            LEFT JOIN acomodaciones a ON pds.acomodacion_id = a.id
             WHERE pds.programa_dia_id = ?
             ORDER BY pds.orden ASC, pds.es_alternativa ASC, pds.orden_alternativa ASC", 
             [$diaId]
@@ -574,8 +620,13 @@ private function updateService($servicioId, $data) {
         }
         
         // ⭐ SOLO PERMITIR EDITAR ACTIVIDADES
-        if ($servicio['tipo_servicio'] !== 'actividad') {
-            throw new Exception('Solo se pueden editar actividades');
+        //if ($servicio['tipo_servicio'] !== 'actividad') {
+         //   throw new Exception('Solo se pueden editar actividades');
+        //}
+
+        //Ahora si se editan hoteles
+        if (!in_array($servicio['tipo_servicio'], ['actividad', 'alojamiento'])) {
+            throw new Exception('Solo se pueden editar actividades y alojamientos');
         }
         
         // ⭐ VALIDACIONES
@@ -588,17 +639,56 @@ private function updateService($servicioId, $data) {
         }
         
         // Validar al menos 1 imagen
-        $hasImage = false;
-        for ($i = 1; $i <= 3; $i++) {
-            $imageKey = 'actividad_imagen' . $i;
-            if (!empty($data[$imageKey]) || !empty($servicio[$imageKey])) {
-                $hasImage = true;
-                break;
+    //    $hasImage = false;
+    //    for ($i = 1; $i <= 3; $i++) {
+    //        $imageKey = 'actividad_imagen' . $i;
+    //        if (!empty($data[$imageKey]) || !empty($servicio[$imageKey])) {
+    //            $hasImage = true;
+    //            break;
+    //        }
+    //    }
+
+    // Validar imágenes solo para actividades
+        if ($servicio['tipo_servicio'] === 'actividad') {
+            $hasImage = false;
+
+            for ($i = 1; $i <= 3; $i++) {
+                $imageKey = 'actividad_imagen' . $i;
+
+                if (!empty($data[$imageKey]) || !empty($servicio[$imageKey])) {
+                    $hasImage = true;
+                    break;
+                }
+            }
+
+            if (!$hasImage) {
+                throw new Exception('Debe tener al menos 1 imagen');
             }
         }
         
-        if (!$hasImage) {
-            throw new Exception('Debe tener al menos 1 imagen');
+
+
+        if ($servicio['tipo_servicio'] === 'alojamiento' && isset($data['acomodacion_id'])) {
+            $acomodacionId = !empty($data['acomodacion_id']) ? (int)$data['acomodacion_id'] : null;
+
+            if ($acomodacionId) {
+                $acomodacion = $this->db->fetch(
+                    "SELECT a.id
+                    FROM acomodaciones a
+                    INNER JOIN biblioteca_alojamientos h ON a.hotel_id = h.id
+                    WHERE a.id = ?
+                    AND h.id = ?
+                    AND h.agencia_id = ?
+                    LIMIT 1",
+                    [$acomodacionId, $servicio['biblioteca_item_id'], $agencia_id]
+                );
+
+                if (!$acomodacion) {
+                    throw new Exception('La acomodación no pertenece al alojamiento seleccionado');
+                }
+            }
+
+            $data['acomodacion_id'] = $acomodacionId;
         }
         
         // ⭐ PREPARAR DATOS PARA ACTUALIZAR
@@ -611,7 +701,8 @@ private function updateService($servicioId, $data) {
             'longitud',
             'actividad_imagen1',
             'actividad_imagen2',
-            'actividad_imagen3'
+            'actividad_imagen3',
+            'acomodacion_id'
         ];
         
         foreach ($allowedFields as $field) {
@@ -632,13 +723,32 @@ private function updateService($servicioId, $data) {
             [$servicioId]
         );
         
+        if ($rowsAffected) {
+            // Eliminar imágenes físicas reemplazadas o eliminadas
+            if (array_key_exists('actividad_imagen1', $updateData) && $updateData['actividad_imagen1'] !== $servicio['actividad_imagen1'] && !empty($servicio['actividad_imagen1'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen1']);
+            }
+            if (array_key_exists('actividad_imagen2', $updateData) && $updateData['actividad_imagen2'] !== $servicio['actividad_imagen2'] && !empty($servicio['actividad_imagen2'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen2']);
+            }
+            if (array_key_exists('actividad_imagen3', $updateData) && $updateData['actividad_imagen3'] !== $servicio['actividad_imagen3'] && !empty($servicio['actividad_imagen3'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['actividad_imagen3']);
+            }
+            if (array_key_exists('alojamiento_imagen', $updateData) && $updateData['alojamiento_imagen'] !== $servicio['alojamiento_imagen'] && !empty($servicio['alojamiento_imagen'])) {
+                ProgramaImageUploader::deletePhysicalImage($servicio['alojamiento_imagen']);
+            }
+        }
+        
         error_log("✅ Servicio (actividad) $servicioId actualizado: $rowsAffected filas");
         
         return [
             'success' => true,
-            'message' => 'Actividad actualizada exitosamente',
+            'message' => $servicio['tipo_servicio'] === 'alojamiento'
+                ? 'Acomodación actualizada correctamente'
+                : 'Actividad actualizada exitosamente',
             'servicio_id' => $servicioId
         ];
+
         
     } catch(Exception $e) {
         error_log("❌ Error en updateService: " . $e->getMessage());
