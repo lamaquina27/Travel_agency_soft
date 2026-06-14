@@ -7,10 +7,6 @@ App::requireLogin();
 
 // Solo permitir acceso a agentes
 $user = App::getUser();
-if ($user['role'] !== 'agent') {
-    App::redirect('/dashboard');
-    exit;
-}
 
 // Incluir constantes necesarias
 require_once __DIR__ . '/../config/constants.php';
@@ -27,34 +23,43 @@ $defaultLanguage = App::getDefaultLanguage();
 try {
     $db = Database::getInstance();
     $userInfo = $db->fetch(
-        "SELECT id, username, email, full_name, role, active, last_login, created_at, updated_at 
-         FROM users WHERE id = ? AND role = 'agent'",
+        "SELECT id, username, email, full_name, role, active, last_login, created_at, updated_at
+         FROM users WHERE id = ?",
         [$user['id']]
     );
-    
+
     if (!$userInfo) {
         throw new Exception('Usuario no encontrado');
     }
-} catch(Exception $e) {
+
+    $gmailAccount = $db->fetch(
+        "SELECT id, email, status FROM email_accounts WHERE user_id = ? AND provider = 'gmail' ORDER BY id DESC LIMIT 1",
+        [$user['id']]
+    );
+} catch (Exception $e) {
     App::redirect('/dashboard');
     exit;
 }
+
+$flashSuccess = $_SESSION['flash_success'] ?? null; unset($_SESSION['flash_success']);
+$flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error']);
 ?>
 <!DOCTYPE html>
 <html lang="<?= $defaultLanguage ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil - <?= htmlspecialchars($companyName) ?></title>
-    
+
     <!-- Incluir estilos de componentes UI (igual que dashboard) -->
     <?= UIComponents::getComponentStyles() ?>
-    
+
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         /*iframe{
@@ -65,13 +70,17 @@ try {
             display: none !important;
             top: 0;
         }
-        
+
         :root {
-            --primary-color: <?= $userColors['primary'] ?>;
-            --secondary-color: <?= $userColors['secondary'] ?>;
+            --primary-color:
+                <?= $userColors['primary'] ?>
+            ;
+            --secondary-color:
+                <?= $userColors['secondary'] ?>
+            ;
             --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -275,12 +284,12 @@ try {
             font-weight: 600 !important;
         }
 
-        .goog-te-banner-frame.skiptranslate { 
-            display: none !important; 
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
         }
 
-        body { 
-            top: 0px !important; 
+        body {
+            top: 0px !important;
         }
 
         .goog-te-gadget img {
@@ -615,6 +624,7 @@ try {
         }
     </style>
 </head>
+
 <body>
     <!-- Header usando UIComponents (igual que dashboard) -->
     <?= UIComponents::renderHeader($user) ?>
@@ -627,6 +637,18 @@ try {
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
+        <!-- Mensajes flash (OAuth redirect) -->
+        <?php if ($flashSuccess): ?>
+        <div style="background:#dcfce7;border:1px solid #86efac;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+            <?= htmlspecialchars($flashSuccess) ?>
+        </div>
+        <?php endif; ?>
+        <?php if ($flashError): ?>
+        <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500;">
+            <?= htmlspecialchars($flashError) ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Mensajes de respuesta -->
         <div id="messageContainer"></div>
 
@@ -634,11 +656,12 @@ try {
             <!-- Información Personal -->
             <div class="card">
                 <h2>📋 Información Personal</h2>
-                
+
                 <div class="info-note">
-                    💡 <strong>Información de solo lectura:</strong> Esta información no puede ser modificada. Para cambios, contacte al administrador.
+                    💡 <strong>Información de solo lectura:</strong> Esta información no puede ser modificada. Para
+                    cambios, contacte al administrador.
                 </div>
-                
+
                 <div class="info-grid">
                     <div class="info-field">
                         <div class="info-label">👤 Nombre de Usuario</div>
@@ -692,23 +715,25 @@ try {
             <!-- Cambio de Contraseña -->
             <div class="card">
                 <h2>🔒 Cambiar Contraseña</h2>
-                
+
                 <form id="passwordForm">
                     <div class="form-group">
                         <label for="current_password">🔐 Contraseña Actual *</label>
                         <div class="password-container">
-                            <input type="password" id="current_password" name="current_password" required 
-                                   placeholder="Ingrese su contraseña actual">
-                            <button type="button" class="password-toggle" onclick="togglePassword('current_password')">👁️</button>
+                            <input type="password" id="current_password" name="current_password" required
+                                placeholder="Ingrese su contraseña actual">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('current_password')">👁️</button>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="new_password">🆕 Nueva Contraseña *</label>
                         <div class="password-container">
-                            <input type="password" id="new_password" name="new_password" required 
-                                   placeholder="Ingrese su nueva contraseña">
-                            <button type="button" class="password-toggle" onclick="togglePassword('new_password')">👁️</button>
+                            <input type="password" id="new_password" name="new_password" required
+                                placeholder="Ingrese su nueva contraseña">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('new_password')">👁️</button>
                         </div>
                         <div class="password-help">
                             <div class="requirement invalid" id="req-length">Mínimo 8 caracteres</div>
@@ -722,9 +747,10 @@ try {
                     <div class="form-group">
                         <label for="confirm_password">✅ Confirmar Nueva Contraseña *</label>
                         <div class="password-container">
-                            <input type="password" id="confirm_password" name="confirm_password" required 
-                                   placeholder="Confirme su nueva contraseña">
-                            <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">👁️</button>
+                            <input type="password" id="confirm_password" name="confirm_password" required
+                                placeholder="Confirme su nueva contraseña">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('confirm_password')">👁️</button>
                         </div>
                     </div>
 
@@ -732,6 +758,46 @@ try {
                         🔒 Cambiar Contraseña
                     </button>
                 </form>
+            </div>
+
+            <!-- Cuenta Gmail -->
+            <div class="card">
+                <h2>✉️ Cuenta Gmail</h2>
+                <p style="font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6;">
+                    Conecta tu cuenta de Gmail para enviar correos directamente desde el pipeline de ventas. Cada asesor conecta su propia cuenta.
+                </p>
+
+                <?php if ($gmailAccount && $gmailAccount['status'] === 'active'): ?>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">✉️</div>
+                        <div>
+                            <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
+                            <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?></div>
+                        </div>
+                    </div>
+                    <a href="<?= APP_URL ?>/gmail/oauth?action=disconnect"
+                       onclick="return confirm('¿Desconectar esta cuenta de Gmail?')"
+                       style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;transition:background .15s;"
+                       onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                        Desconectar
+                    </a>
+                </div>
+                <?php else: ?>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">✉️</div>
+                        <div>
+                            <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
+                            <div style="font-size:13px;color:#94a3b8;">Conecta tu cuenta para enviar correos desde el pipeline</div>
+                        </div>
+                    </div>
+                    <a href="<?= APP_URL ?>/gmail/oauth?action=connect"
+                       style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--primary-gradient);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+                        Conectar Gmail
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -741,7 +807,7 @@ try {
         let sidebarOpen = false;
 
         // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('Perfil cargado con UIComponents');
             initializePasswordValidation();
             initializeGoogleTranslate();
@@ -752,9 +818,9 @@ try {
             const sidebar = document.querySelector('.enhanced-sidebar');
             const overlay = document.getElementById('overlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             sidebarOpen = !sidebarOpen;
-            
+
             if (sidebarOpen) {
                 sidebar.classList.add('open');
                 overlay.classList.add('show');
@@ -784,7 +850,7 @@ try {
         function initializePasswordValidation() {
             const newPasswordInput = document.getElementById('new_password');
             if (newPasswordInput) {
-                newPasswordInput.addEventListener('input', function() {
+                newPasswordInput.addEventListener('input', function () {
                     validatePasswordRealTime(this.value);
                 });
             }
@@ -805,21 +871,21 @@ try {
                 'req-number': /[0-9]/.test(password),
                 'req-special': /[!@#$%^&*(),.?":{}|<>]/.test(password)
             };
-            
+
             Object.keys(requirements).forEach(reqId => {
                 const element = document.getElementById(reqId);
                 if (element) {
                     element.className = requirements[reqId] ? 'requirement valid' : 'requirement invalid';
                 }
             });
-            
+
             return Object.values(requirements).every(req => req);
         }
 
         // Manejar cambio de contraseña
         async function handlePasswordChange(e) {
             e.preventDefault();
-            
+
             const currentPassword = document.getElementById('current_password').value;
             const newPassword = document.getElementById('new_password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
@@ -898,7 +964,7 @@ try {
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             const button = input.parentNode.querySelector('.password-toggle');
-            
+
             if (input.type === 'password') {
                 input.type = 'text';
                 button.innerHTML = '🙈';
@@ -911,21 +977,21 @@ try {
         // Mostrar mensajes
         function showMessage(message, type) {
             const container = document.getElementById('messageContainer');
-            
+
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
             alert.innerHTML = message;
-            
+
             container.innerHTML = '';
             container.appendChild(alert);
-            
+
             // Auto-remove after 5 seconds
             setTimeout(() => {
                 if (alert.parentNode) {
                     alert.remove();
                 }
             }, 5000);
-            
+
             // Scroll to top to show message
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -950,4 +1016,5 @@ try {
         }
     </script>
 </body>
+
 </html>

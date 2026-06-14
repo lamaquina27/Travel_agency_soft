@@ -905,6 +905,47 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             transform: translateY(-1px);
         }
 
+        /* Botón flotante "Agregar día": vive dentro de #dia-a-dia, por lo que
+           solo se muestra cuando esa pestaña está activa. */
+        .fab-add-day {
+            position: fixed;
+            left: 24px;
+            bottom: 28px;
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 22px;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .fab-add-day:hover {
+            background: #234a3a;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+        }
+
+        .fab-add-day i {
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .fab-add-day {
+                left: 16px;
+                bottom: 20px;
+                padding: 12px 18px;
+                font-size: 13px;
+            }
+        }
+
         .days-list {
             flex: 1;
             overflow-y: auto;
@@ -3241,6 +3282,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .programa-no-guardado .tab-item[data-tab="dia-a-dia"],
         .programa-no-guardado .tab-item[data-tab="precio"],
         .programa-no-guardado .tab-item[data-tab="viajeros"],
+        .tab-item[data-tab="adjuntos"],
         .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"],
         .programa-no-guardado .nav-button[onclick*="compartirEnlace"],
         .programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"] {
@@ -3252,6 +3294,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .programa-no-guardado .tab-item[data-tab="dia-a-dia"]::after,
         .programa-no-guardado .tab-item[data-tab="precio"]::after,
         .programa-no-guardado .tab-item[data-tab="viajeros"]::after,
+        .tab-item[data-tab="adjuntos"]::after,
         .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"]::after,
         .programa-no-guardado .nav-button[onclick*="compartirEnlace"]::after,
         .programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"]::after {
@@ -4887,6 +4930,232 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             color: var(--text-primary) !important;
         }
 
+
+        /* ====== ADJUNTOS: zona de añadir ====== */
+        .adj-add-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 28px;
+            margin-bottom: 36px;
+        }
+
+        @media (max-width: 900px) {
+            .adj-add-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Dropzone (arrastrar o clic) */
+        .adj-dropzone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 180px;
+            padding: 28px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .adj-dropzone:hover {
+            border-color: var(--primary-color);
+            background: #fff;
+        }
+
+        /* Estado activo al arrastrar encima (toggle con JS: classList 'is-dragover') */
+        .adj-dropzone.is-dragover {
+            border-color: var(--primary-color);
+            background: rgba(45, 90, 74, 0.06);
+            transform: scale(1.01);
+        }
+
+        .adj-dropzone i {
+            font-size: 44px;
+            color: var(--primary-color);
+        }
+
+        .adj-dz-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .adj-dz-sub {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Caja de enlace */
+        .adj-link-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 24px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            justify-content: center;
+        }
+
+        .adj-link-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .adj-link-label i {
+            color: var(--primary-color);
+        }
+
+        .adj-link-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .adj-link-input {
+            flex: 1;
+            font-size: 15px;
+            padding: 12px 14px;
+        }
+
+        .adj-link-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .adj-link-btn:hover {
+            opacity: 0.92;
+        }
+
+        .adj-link-btn:active {
+            transform: scale(0.97);
+        }
+
+        .adj-link-hint {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* ====== ADJUNTOS: lista ====== */
+        .adj-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .adj-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            border: 1px solid #eef0f3;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .adj-item:hover {
+            border-color: #d7dce3;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .adj-item-icon {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .adj-icon-file {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        }
+
+        .adj-icon-link {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .adj-item-info {
+            flex: 1;
+            min-width: 0;
+            /* permite el truncado */
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .adj-item-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .adj-item-name:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .adj-item-meta {
+            font-size: 12.5px;
+            color: #9ca3af;
+        }
+
+        .adj-item-action {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #4b5563;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .adj-item-action:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .adj-item-delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 18px 14px 36px !important;
@@ -4953,6 +5222,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             <a href="#" class="tab-item" data-tab="dia-a-dia">Día a día</a>
             <a href="#" class="tab-item" data-tab="precio">Precio</a>
             <a href="#" class="tab-item" data-tab="viajeros">Viajeros</a>
+            <a href="#" class="tab-item" data-tab="informacion">Informacion Adicional</a>
             <a href="#" class="tab-item" onclick="abrirVistaPrevia()">
                 <i class="fas fa-eye"></i> Vista previa
             </a>
@@ -4978,7 +5248,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             <!-- Contenido de la pestaña Mi Programa -->
             <div id="mi-programa" class="tab-content active">
                 <form id="programa-form" method="POST" enctype="multipart/form-data" novalidate>
-
+                    <input type="hidden" name="pipeline_id" value="<?php echo $_GET['pipeline_id'] ?? ''; ?>">
                     <!-- Campos ocultos -->
                     <?php if ($is_editing): ?>
                         <input type="hidden" id="programa-id-hidden" name="programa_id" value="<?= $programa_id ?>">
@@ -5147,6 +5417,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                         <span class="slider"></span>
                                     </label>
                                 </div>
+                                <script>window.ORIG_COMPRADO = <?= (!empty($form_data['comprado']) && $form_data['comprado'] == 1) ? 1 : 0 ?>;</script>
                             </div>
                         </div>
                     </div>
@@ -5175,6 +5446,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
             <!-- Contenido de la pestaña Día a día -->
             <div id="dia-a-dia" class="tab-content">
+                <!-- Botón flotante siempre accesible al hacer scroll -->
+                <button type="button" class="fab-add-day" onclick="agregarDia()" title="Agregar un nuevo día">
+                    <i class="fas fa-plus"></i>
+                    Agregar día
+                </button>
                 <div class="section-card">
                     <div class="section-header">
                         <div class="section-title">
@@ -5532,6 +5808,24 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                             <div class="char-counter" id="info_seguros-counter">0/3000</div>
                                         </div>
                                     </div>
+                                    <?php foreach ([
+                                        ['visados_entrada', 'Visados y requisitos de entrada', 'Documentación y trámites de entrada al país...'],
+                                        ['requisitos_sanitarios', 'Requisitos sanitarios', 'Vacunas, certificados sanitarios...'],
+                                        ['llegada_punto_encuentro', 'Llegada y punto de encuentro', 'Dónde y cómo es el encuentro a la llegada...'],
+                                        ['asistencia_emergencia', 'Asistencia y emergencias', 'Contactos y protocolo de emergencias...'],
+                                        ['info_hoteles_servicios', 'Información de hoteles y servicios', 'Datos de hoteles y servicios incluidos...'],
+                                        ['informacion_practica', 'Información práctica', 'Moneda, clima, enchufes, recomendaciones...'],
+                                    ] as $sf): ?>
+                                        <div class="form-group">
+                                            <label class="form-label"><?= $sf[1] ?></label>
+                                            <div class="textarea-with-counter">
+                                                <textarea class="form-control" name="<?= $sf[0] ?>" rows="3"
+                                                    placeholder="<?= $sf[2] ?>" maxlength="3000"
+                                                    data-max-chars="3000"></textarea>
+                                                <div class="char-counter" id="<?= $sf[0] ?>-counter">0/3000</div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
@@ -5611,6 +5905,61 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             </div>
         </div>
 
+
+
+        <!-- Contenido de la pestaña Informacion adicional -->
+        <div id="informacion" class="tab-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-users"></i>
+                        Informacion adicional
+                    </div>
+                </div>
+
+                <div class="section-body">
+
+                    <!-- ZONA DE AÑADIR: archivo (izq) + enlace (der) -->
+                    <div class="adj-add-grid">
+                        <!-- Dropzone: arrastrar O clic -->
+                        <label class="adj-dropzone" for="adj-file-input">
+                            <input type="file" id="adj-file-input" multiple hidden>
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span class="adj-dz-title">Arrastra tus archivos aquí</span>
+                            <span class="adj-dz-sub">o haz clic para buscar · PDF, imágenes, Word, Excel</span>
+                        </label>
+
+                        <!-- Enlace: pegar + Enter / botón -->
+                        <div class="adj-link-box">
+                            <span class="adj-link-label"><i class="fas fa-link"></i> Añadir un enlace</span>
+                            <div class="adj-link-row">
+                                <input type="url" id="adj-link-input" class="form-control adj-link-input"
+                                    placeholder="https://… y presiona Enter">
+                                <button type="button" class="adj-link-btn">
+                                    <i class="fas fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                            <span class="adj-link-hint">Reservas, vuelos, documentos compartidos…</span>
+                        </div>
+                    </div>
+
+                    <!-- LISTA DE ADJUNTOS -->
+                    <div class="adj-list" id="adj-list">
+
+
+
+                    </div>
+
+                    <!-- ESTADO VACÍO (mostrar solo si no hay adjuntos) -->
+                    <div class="empty-state adj-empty" id="adj-empty" style="display:none;">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>Aún no hay archivos ni enlaces</h3>
+                        <p>Arrastra un archivo o pega un enlace para empezar.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
         <!-- Modal para crear/seleccionar viajeros -->
         <div id="modal-viajero" class="modal" style="display: none;">
             <div class="modal-content modal-viajero-content">
@@ -5919,6 +6268,234 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             </div>
         </div>
 
+        <!-- Modal inline para crear un TRANSPORTE nuevo y asignarlo al día -->
+        <div id="crearTransporteModalPrograma" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 900px; max-height: 95vh; overflow-y: auto;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+                    <h3><i class="fas fa-car"></i> Crear Nuevo Transporte</h3>
+                    <button class="close-modal" onclick="cerrarCrearTransportePrograma()"
+                        style="background: rgba(255,255,255,0.2);">&times;</button>
+                </div>
+
+                <div class="modal-body" style="padding: 30px;">
+                    <form id="formCrearTransporteEnPrograma">
+                        <div class="form-group">
+                            <label>🚗 Medio de Transporte <span style="color: var(--primary-color);">*</span></label>
+                            <select id="medio-crear-transporte" class="form-control" required>
+                                <option value="">Seleccionar medio</option>
+                                <option value="bus">Bus</option>
+                                <option value="avion">Avión</option>
+                                <option value="coche">Coche</option>
+                                <option value="barco">Barco</option>
+                                <option value="tren">Tren</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📝 Título <span style="color: var(--primary-color);">*</span></label>
+                            <input type="text" id="titulo-crear-transporte" class="form-control" required
+                                placeholder="Ej: Vuelo París-Roma" maxlength="250">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📍 Lugar de Salida <span style="color: var(--primary-color);">*</span></label>
+                            <div style="position: relative;">
+                                <input type="text" id="lugar-salida-crear-transporte" class="form-control" required
+                                    placeholder="🔍 Buscar aeropuerto, estación, ciudad..." autocomplete="off">
+                                <input type="hidden" id="lat-salida-crear-transporte">
+                                <input type="hidden" id="lng-salida-crear-transporte">
+                                <div id="preview-salida-crear-transporte"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📍 Lugar de Llegada <span style="color: var(--primary-color);">*</span></label>
+                            <div style="position: relative;">
+                                <input type="text" id="lugar-llegada-crear-transporte" class="form-control" required
+                                    placeholder="🔍 Buscar aeropuerto, estación, ciudad..." autocomplete="off">
+                                <input type="hidden" id="lat-llegada-crear-transporte">
+                                <input type="hidden" id="lng-llegada-crear-transporte">
+                                <div id="preview-llegada-crear-transporte"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>⏱️ Duración</label>
+                            <input type="text" id="duracion-crear-transporte" class="form-control"
+                                placeholder="Ej: 2 horas 30 minutos">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📏 Distancia (km)</label>
+                            <input type="number" id="distancia-crear-transporte" class="form-control" step="0.01"
+                                placeholder="Distancia en kilómetros">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📄 Descripción</label>
+                            <textarea id="descripcion-crear-transporte" rows="4" class="form-control"
+                                placeholder="Detalles adicionales del transporte..." maxlength="3000"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer"
+                    style="padding: 20px 30px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarCrearTransportePrograma()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="guardarTransporteEnPrograma()"
+                        style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none;">
+                        <i class="fas fa-save"></i> Crear y Asignar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal inline para crear una ACTIVIDAD nueva y asignarla al día -->
+        <div id="crearActividadModalPrograma" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 900px; max-height: 95vh; overflow-y: auto;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+                    <h3><i class="fas fa-hiking"></i> Crear Nueva Actividad</h3>
+                    <button class="close-modal" onclick="cerrarCrearActividadPrograma()"
+                        style="background: rgba(255,255,255,0.2);">&times;</button>
+                </div>
+
+                <div class="modal-body" style="padding: 30px;">
+                    <form id="formCrearActividadEnPrograma">
+                        <div class="form-group">
+                            <label>📝 Nombre de la Actividad <span style="color: var(--primary-color);">*</span></label>
+                            <input type="text" id="nombre-crear-actividad" class="form-control" required
+                                placeholder="Ej: Tour Eiffel" maxlength="250">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📍 Ubicación <span style="color: var(--primary-color);">*</span></label>
+                            <div style="position: relative;">
+                                <input type="text" id="ubicacion-crear-actividad" class="form-control" required
+                                    placeholder="🔍 Buscar lugar, monumento, parque..." autocomplete="off">
+                                <input type="hidden" id="lat-crear-actividad">
+                                <input type="hidden" id="lng-crear-actividad">
+                                <div id="preview-ubicacion-crear-actividad"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📄 Descripción</label>
+                            <textarea id="descripcion-crear-actividad" rows="5" class="form-control"
+                                placeholder="Describe la actividad..." maxlength="3000"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📸 Imágenes (máximo 3, opcional)</label>
+                            <div id="imageUploadActividad"></div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer"
+                    style="padding: 20px 30px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarCrearActividadPrograma()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="guardarActividadEnPrograma()"
+                        style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none;">
+                        <i class="fas fa-save"></i> Crear y Asignar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal inline para crear un ALOJAMIENTO nuevo y asignarlo al día -->
+        <div id="crearAlojamientoModalPrograma" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 900px; max-height: 95vh; overflow-y: auto;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+                    <h3><i class="fas fa-bed"></i> Crear Nuevo Alojamiento</h3>
+                    <button class="close-modal" onclick="cerrarCrearAlojamientoPrograma()"
+                        style="background: rgba(255,255,255,0.2);">&times;</button>
+                </div>
+
+                <div class="modal-body" style="padding: 30px;">
+                    <form id="formCrearAlojamientoEnPrograma">
+                        <div class="form-group">
+                            <label>🏨 Nombre <span style="color: var(--primary-color);">*</span></label>
+                            <input type="text" id="nombre-crear-alojamiento" class="form-control" required
+                                placeholder="Ej: Hotel Le Marais" maxlength="250">
+                        </div>
+
+                        <div class="form-group">
+                            <label>🏷️ Tipo <span style="color: var(--primary-color);">*</span></label>
+                            <select id="tipo-crear-alojamiento" class="form-control" required
+                                onchange="toggleCategoriaAlojamiento()">
+                                <option value="hotel">Hotel</option>
+                                <option value="camping">Camping</option>
+                                <option value="casa_huespedes">Casa de huéspedes</option>
+                                <option value="crucero">Crucero</option>
+                                <option value="lodge">Lodge</option>
+                                <option value="atipico">Atípico</option>
+                                <option value="campamento">Campamento</option>
+                                <option value="camping_car">Camping car</option>
+                                <option value="tren">Tren</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="categoria-alojamiento-group">
+                            <label>⭐ Categoría (estrellas)</label>
+                            <select id="categoria-crear-alojamiento" class="form-control">
+                                <option value="">Sin categoría</option>
+                                <option value="1">1 estrella</option>
+                                <option value="2">2 estrellas</option>
+                                <option value="3">3 estrellas</option>
+                                <option value="4">4 estrellas</option>
+                                <option value="5">5 estrellas</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📍 Ubicación</label>
+                            <div style="position: relative;">
+                                <input type="text" id="ubicacion-crear-alojamiento" class="form-control"
+                                    placeholder="🔍 Buscar dirección, ciudad..." autocomplete="off">
+                                <input type="hidden" id="lat-crear-alojamiento">
+                                <input type="hidden" id="lng-crear-alojamiento">
+                                <div id="preview-ubicacion-crear-alojamiento"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🌐 Sitio web</label>
+                            <input type="text" id="sitio-web-crear-alojamiento" class="form-control"
+                                placeholder="https://...">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📄 Descripción <span style="color: var(--primary-color);">*</span></label>
+                            <textarea id="descripcion-crear-alojamiento" rows="5" class="form-control" required
+                                placeholder="Describe el alojamiento..." maxlength="3000"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📸 Imagen (opcional)</label>
+                            <div id="imageUploadAlojamiento"></div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer"
+                    style="padding: 20px 30px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarCrearAlojamientoPrograma()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="guardarAlojamientoEnPrograma()"
+                        style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); border: none;">
+                        <i class="fas fa-save"></i> Crear y Asignar
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal para agregar servicios (actividades, transporte, alojamiento) -->
         <div id="serviciosModal" class="modal" style="display: none;">
@@ -5962,6 +6539,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="crearNuevoServicioInline()" id="btn-crear-nuevo-servicio"
+                        style="margin-right:auto;">
+                        <i class="fas fa-plus-circle"></i> Crear nuevo
+                    </button>
                     <button class="btn btn-secondary" onclick="cerrarModalServicios()">
                         <i class="fas fa-times"></i> Cancelar
                     </button>
@@ -6627,6 +7208,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             document.addEventListener('DOMContentLoaded', async function () {
                 console.log('🚀 Iniciando programa.php...');
                 setupTabNavigation();
+                setupAdjuntos();
                 setupFormHandling();
                 setupCharacterCounters();
                 setupFileValidation();
@@ -6640,6 +7222,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     // ✅ IMPORTANTE: ESPERAR a que termine de cargar
                     await cargarDiasPrograma();
                     await cargarPreciosPrograma();
+                    cargarArchivos();   // ← carga adjuntos al recargar la página
 
                     // ✅ AHORA SÍ calcular la fecha de salida
                     actualizarFechaSalida();
@@ -6691,6 +7274,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                     cargarPreciosPrograma();
                                 }
                                 break;
+                            case 'adjuntos':
+                                if (isEditing && programaId) {
+                                    cargarArchivos();
+                                }
+                                break;
                         }
                     });
                 });
@@ -6716,7 +7304,40 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     });
                 }
             }
+            function setupAdjuntos() {
+                const fileInput = document.getElementById('adj-file-input');
+                const linkInput = document.getElementById('adj-link-input');
+                const linkBtn = document.querySelector('.adj-link-btn');
+                const dropzone = document.querySelector('.adj-dropzone');
+                if (!fileInput) return;   // el tab no está en el DOM, salir
 
+                // Elegir archivo desde el explorador → subir
+                fileInput.addEventListener('change', guardarArchivos);
+
+                // Botón "Añadir" enlace
+                linkBtn.addEventListener('click', guardarArchivos);
+
+                // Enter en el input de enlace
+                linkInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); guardarArchivos(); }
+                });
+
+                // Drag & drop sobre la dropzone
+                ['dragover', 'dragenter'].forEach(ev =>
+                    dropzone.addEventListener(ev, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.add('is-dragover');
+                    }));
+                ['dragleave', 'drop'].forEach(ev =>
+                    dropzone.addEventListener(ev, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.remove('is-dragover');
+                    }));
+                dropzone.addEventListener('drop', (e) => {
+                    fileInput.files = e.dataTransfer.files;   // pasa los archivos soltados
+                    guardarArchivos();
+                });
+            }
 
 
             // Configurar manejadores de comidas - VERSIÓN MEJORADA
@@ -7548,6 +8169,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 if (!form.checkValidity()) {
                     form.reportValidity();
                     return;
+                }
+
+                // Confirmación al DESMARCAR como vendido: sus traslados saldrán del Rooming
+                const vendidoToggle = document.getElementById('vendido-toggle');
+                if (window.ORIG_COMPRADO === 1 && vendidoToggle && !vendidoToggle.checked) {
+                    if (!confirm('Vas a marcar esta reserva como NO vendida. Sus traslados saldrán del Rooming List (no se borran; reaparecen si la vuelves a marcar como vendida). ¿Continuar?')) {
+                        return;
+                    }
                 }
 
                 try {
@@ -8792,6 +9421,531 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 abrirModalServicios(tipoServicio, 'Agregar ' + tipoServicio);
             }
 
+            // ============================================================
+            // CREAR RECURSO NUEVO INLINE Y ASIGNARLO AL DÍA
+            // (mismo patrón que "Crear Nuevo Día": crea en biblioteca y asigna,
+            //  sin salir de la página ni cambiar de pestaña)
+            // ============================================================
+            let _crearServicioDiaId = null;
+            let _crearServicioTipo = null;
+            let widgetSalidaTransporte = null;
+            let widgetLlegadaTransporte = null;
+
+            function crearNuevoServicioInline() {
+                if (isAddingAlternative) {
+                    showAlert('Para crear una alternativa, hazlo desde la biblioteca', 'warning');
+                    return;
+                }
+                if (!programaId) {
+                    showAlert('Guarda el programa antes de crear recursos nuevos', 'warning');
+                    return;
+                }
+                if (!currentDiaId || !currentTipoServicio) {
+                    showAlert('No se pudo determinar el día de destino', 'error');
+                    return;
+                }
+                // Capturar el contexto antes de abrir el modal de creación.
+                _crearServicioDiaId = currentDiaId;
+                _crearServicioTipo = currentTipoServicio;
+
+                if (currentTipoServicio === 'transporte') {
+                    abrirCrearTransportePrograma();
+                } else if (currentTipoServicio === 'actividad') {
+                    abrirCrearActividadPrograma();
+                } else if (currentTipoServicio === 'alojamiento') {
+                    abrirCrearAlojamientoPrograma();
+                } else {
+                    showAlert('Tipo de servicio no soportado', 'error');
+                }
+            }
+
+            function abrirCrearTransportePrograma() {
+                const modal = document.getElementById('crearTransporteModalPrograma');
+                const serv = document.getElementById('serviciosModal');
+                if (serv) serv.style.zIndex = '9998';
+
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.style.zIndex = '10001';
+                setTimeout(() => modal.classList.add('show'), 10);
+
+                const form = document.getElementById('formCrearTransporteEnPrograma');
+                if (form) form.reset();
+
+                setTimeout(() => inicializarWidgetsTransportePrograma(), 200);
+            }
+
+            function cerrarCrearTransportePrograma() {
+                const modal = document.getElementById('crearTransporteModalPrograma');
+                modal.classList.remove('show');
+
+                if (widgetSalidaTransporte) { widgetSalidaTransporte.destroy(); widgetSalidaTransporte = null; }
+                if (widgetLlegadaTransporte) { widgetLlegadaTransporte.destroy(); widgetLlegadaTransporte = null; }
+
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    const serv = document.getElementById('serviciosModal');
+                    if (serv) serv.style.zIndex = '';
+                }, 300);
+            }
+
+            function inicializarWidgetsTransportePrograma() {
+                if (typeof UbicacionSearchWidget === 'undefined') {
+                    console.error('❌ UbicacionSearchWidget no está cargado');
+                    return;
+                }
+                const baseURL = getBaseURL();
+                const apiUrl = `${baseURL}/modules/ubicaciones/ubicaciones_api.php`;
+
+                if (widgetSalidaTransporte) { widgetSalidaTransporte.destroy(); widgetSalidaTransporte = null; }
+                if (widgetLlegadaTransporte) { widgetLlegadaTransporte.destroy(); widgetLlegadaTransporte = null; }
+
+                const inS = document.getElementById('lugar-salida-crear-transporte');
+                const inL = document.getElementById('lugar-llegada-crear-transporte');
+
+                if (inS) {
+                    widgetSalidaTransporte = new UbicacionSearchWidget(inS, {
+                        apiUrl, latInputId: 'lat-salida-crear-transporte', lngInputId: 'lng-salida-crear-transporte',
+                        showPreview: true, previewContainerId: 'preview-salida-crear-transporte',
+                        autoSave: true, minChars: 3, debounceTime: 300
+                    });
+                }
+                if (inL) {
+                    widgetLlegadaTransporte = new UbicacionSearchWidget(inL, {
+                        apiUrl, latInputId: 'lat-llegada-crear-transporte', lngInputId: 'lng-llegada-crear-transporte',
+                        showPreview: true, previewContainerId: 'preview-llegada-crear-transporte',
+                        autoSave: true, minChars: 3, debounceTime: 300
+                    });
+                }
+            }
+
+            async function guardarTransporteEnPrograma() {
+                const btn = event.target;
+                const originalHTML = btn.innerHTML;
+                try {
+                    const medio = document.getElementById('medio-crear-transporte').value;
+                    const titulo = document.getElementById('titulo-crear-transporte').value.trim();
+                    const salida = document.getElementById('lugar-salida-crear-transporte').value.trim();
+                    const llegada = document.getElementById('lugar-llegada-crear-transporte').value.trim();
+
+                    if (!medio) { alert('Selecciona el medio de transporte'); return; }
+                    if (!titulo) { alert('Ingresa un título'); return; }
+                    if (!salida || !llegada) { alert('Indica lugar de salida y de llegada'); return; }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+                    const baseURL = getBaseURL();
+
+                    // 1. Crear el transporte en la biblioteca
+                    const formData = new FormData();
+                    formData.append('action', 'create');
+                    formData.append('type', 'transportes');
+                    formData.append('medio', medio);
+                    formData.append('titulo', titulo);
+                    formData.append('lugar_salida', salida);
+                    formData.append('lat_salida', document.getElementById('lat-salida-crear-transporte').value);
+                    formData.append('lng_salida', document.getElementById('lng-salida-crear-transporte').value);
+                    formData.append('lugar_llegada', llegada);
+                    formData.append('lat_llegada', document.getElementById('lat-llegada-crear-transporte').value);
+                    formData.append('lng_llegada', document.getElementById('lng-llegada-crear-transporte').value);
+                    formData.append('duracion', document.getElementById('duracion-crear-transporte').value);
+                    formData.append('distancia_km', document.getElementById('distancia-crear-transporte').value);
+                    formData.append('descripcion', document.getElementById('descripcion-crear-transporte').value);
+
+                    const response = await fetch(`${baseURL}/biblioteca/api`, { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error || 'Error al crear el transporte');
+                    const nuevoId = result.id;
+
+                    // 2. Asignarlo al día desde donde se accedió
+                    const diaId = parseInt(_crearServicioDiaId);
+                    const resp2 = await fetch(`${baseURL}/modules/programa/servicios_api.php`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'add_service',
+                            dia_id: diaId,
+                            tipo_servicio: 'transporte',
+                            biblioteca_item_id: parseInt(nuevoId)
+                        })
+                    });
+                    const result2 = await resp2.json();
+                    if (!result2.success) throw new Error(result2.message || 'Error al asignar al día');
+
+                    showAlert('✅ Transporte creado y asignado al día', 'success');
+                    cerrarCrearTransportePrograma();
+                    cerrarModalServicios();
+
+                    seleccionarDiaEnSidebar(diaId);
+                    await cargarServiciosDia(diaId);
+                    await cargarServiciosParaContador(diaId);
+
+                } catch (error) {
+                    console.error('❌ Error al crear/asignar transporte:', error);
+                    alert('Error: ' + error.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            }
+
+            // ── ACTIVIDAD ──────────────────────────────────────────────
+            let widgetUbicacionActividad = null;
+
+            function abrirCrearActividadPrograma() {
+                const modal = document.getElementById('crearActividadModalPrograma');
+                const serv = document.getElementById('serviciosModal');
+                if (serv) serv.style.zIndex = '9998';
+
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.style.zIndex = '10001';
+                setTimeout(() => modal.classList.add('show'), 10);
+
+                const form = document.getElementById('formCrearActividadEnPrograma');
+                if (form) form.reset();
+                initImgSelector('actividad', 'imageUploadActividad', 3);
+
+                setTimeout(() => {
+                    if (typeof UbicacionSearchWidget === 'undefined') return;
+                    const baseURL = getBaseURL();
+                    const inp = document.getElementById('ubicacion-crear-actividad');
+                    if (widgetUbicacionActividad) { widgetUbicacionActividad.destroy(); widgetUbicacionActividad = null; }
+                    if (inp) {
+                        widgetUbicacionActividad = new UbicacionSearchWidget(inp, {
+                            apiUrl: `${baseURL}/modules/ubicaciones/ubicaciones_api.php`,
+                            latInputId: 'lat-crear-actividad', lngInputId: 'lng-crear-actividad',
+                            showPreview: true, previewContainerId: 'preview-ubicacion-crear-actividad',
+                            autoSave: true, minChars: 3, debounceTime: 300
+                        });
+                    }
+                }, 200);
+            }
+
+            function cerrarCrearActividadPrograma() {
+                const modal = document.getElementById('crearActividadModalPrograma');
+                modal.classList.remove('show');
+                if (widgetUbicacionActividad) { widgetUbicacionActividad.destroy(); widgetUbicacionActividad = null; }
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    const serv = document.getElementById('serviciosModal');
+                    if (serv) serv.style.zIndex = '';
+                }, 300);
+            }
+
+            async function guardarActividadEnPrograma() {
+                const btn = event.target;
+                const originalHTML = btn.innerHTML;
+                try {
+                    const nombre = document.getElementById('nombre-crear-actividad').value.trim();
+                    const ubicacion = document.getElementById('ubicacion-crear-actividad').value.trim();
+                    if (!nombre) { alert('Ingresa el nombre de la actividad'); return; }
+                    if (!ubicacion) { alert('Selecciona una ubicación'); return; }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+                    const baseURL = getBaseURL();
+
+                    const formData = new FormData();
+                    formData.append('action', 'create');
+                    formData.append('type', 'actividades');
+                    formData.append('nombre', nombre);
+                    formData.append('ubicacion', ubicacion);
+                    formData.append('latitud', document.getElementById('lat-crear-actividad').value);
+                    formData.append('longitud', document.getElementById('lng-crear-actividad').value);
+                    formData.append('descripcion', document.getElementById('descripcion-crear-actividad').value);
+
+                    const files = getImgSelectorFiles('actividad');
+                    for (let i = 0; i < Math.min(files.length, 3); i++) {
+                        const comprimida = await _comprimirImagenParaSubida(files[i]);
+                        formData.append(`imagen${i + 1}`, comprimida);
+                    }
+
+                    const response = await fetch(`${baseURL}/biblioteca/api`, { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error || 'Error al crear la actividad');
+
+                    await _asignarServicioCreado(result.id, 'actividad');
+                    showAlert('✅ Actividad creada y asignada al día', 'success');
+                    cerrarCrearActividadPrograma();
+                    cerrarModalServicios();
+                    await _refrescarDiaCreado();
+
+                } catch (error) {
+                    console.error('❌ Error al crear/asignar actividad:', error);
+                    alert('Error: ' + error.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            }
+
+            // ── ALOJAMIENTO ────────────────────────────────────────────
+            let widgetUbicacionAlojamiento = null;
+
+            function toggleCategoriaAlojamiento() {
+                const tipo = document.getElementById('tipo-crear-alojamiento').value;
+                const group = document.getElementById('categoria-alojamiento-group');
+                if (group) group.style.display = (tipo === 'hotel') ? '' : 'none';
+            }
+
+            function abrirCrearAlojamientoPrograma() {
+                const modal = document.getElementById('crearAlojamientoModalPrograma');
+                const serv = document.getElementById('serviciosModal');
+                if (serv) serv.style.zIndex = '9998';
+
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.style.zIndex = '10001';
+                setTimeout(() => modal.classList.add('show'), 10);
+
+                const form = document.getElementById('formCrearAlojamientoEnPrograma');
+                if (form) form.reset();
+                toggleCategoriaAlojamiento();
+                initImgSelector('alojamiento', 'imageUploadAlojamiento', 1);
+
+                setTimeout(() => {
+                    if (typeof UbicacionSearchWidget === 'undefined') return;
+                    const baseURL = getBaseURL();
+                    const inp = document.getElementById('ubicacion-crear-alojamiento');
+                    if (widgetUbicacionAlojamiento) { widgetUbicacionAlojamiento.destroy(); widgetUbicacionAlojamiento = null; }
+                    if (inp) {
+                        widgetUbicacionAlojamiento = new UbicacionSearchWidget(inp, {
+                            apiUrl: `${baseURL}/modules/ubicaciones/ubicaciones_api.php`,
+                            latInputId: 'lat-crear-alojamiento', lngInputId: 'lng-crear-alojamiento',
+                            showPreview: true, previewContainerId: 'preview-ubicacion-crear-alojamiento',
+                            autoSave: true, minChars: 3, debounceTime: 300
+                        });
+                    }
+                }, 200);
+            }
+
+            function cerrarCrearAlojamientoPrograma() {
+                const modal = document.getElementById('crearAlojamientoModalPrograma');
+                modal.classList.remove('show');
+                if (widgetUbicacionAlojamiento) { widgetUbicacionAlojamiento.destroy(); widgetUbicacionAlojamiento = null; }
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    const serv = document.getElementById('serviciosModal');
+                    if (serv) serv.style.zIndex = '';
+                }, 300);
+            }
+
+            async function guardarAlojamientoEnPrograma() {
+                const btn = event.target;
+                const originalHTML = btn.innerHTML;
+                try {
+                    const nombre = document.getElementById('nombre-crear-alojamiento').value.trim();
+                    const tipo = document.getElementById('tipo-crear-alojamiento').value;
+                    const descripcion = document.getElementById('descripcion-crear-alojamiento').value.trim();
+                    if (!nombre) { alert('Ingresa el nombre del alojamiento'); return; }
+                    if (!tipo) { alert('Selecciona el tipo de alojamiento'); return; }
+                    if (!descripcion) { alert('Ingresa una descripción'); return; }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+                    const baseURL = getBaseURL();
+
+                    const formData = new FormData();
+                    formData.append('action', 'create');
+                    formData.append('type', 'alojamientos');
+                    formData.append('nombre', nombre);
+                    formData.append('tipo', tipo);
+                    formData.append('categoria', tipo === 'hotel' ? document.getElementById('categoria-crear-alojamiento').value : '');
+                    formData.append('ubicacion', document.getElementById('ubicacion-crear-alojamiento').value.trim());
+                    formData.append('latitud', document.getElementById('lat-crear-alojamiento').value);
+                    formData.append('longitud', document.getElementById('lng-crear-alojamiento').value);
+                    formData.append('sitio_web', document.getElementById('sitio-web-crear-alojamiento').value.trim());
+                    formData.append('descripcion', descripcion);
+
+                    const imgFile = getImgSelectorFiles('alojamiento')[0];
+                    if (imgFile) {
+                        const comprimida = await _comprimirImagenParaSubida(imgFile);
+                        formData.append('imagen', comprimida);
+                    }
+
+                    const response = await fetch(`${baseURL}/biblioteca/api`, { method: 'POST', body: formData });
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error || 'Error al crear el alojamiento');
+
+                    await _asignarServicioCreado(result.id, 'alojamiento');
+                    showAlert('✅ Alojamiento creado y asignado al día', 'success');
+                    cerrarCrearAlojamientoPrograma();
+                    cerrarModalServicios();
+                    await _refrescarDiaCreado();
+
+                } catch (error) {
+                    console.error('❌ Error al crear/asignar alojamiento:', error);
+                    alert('Error: ' + error.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            }
+
+            // Helpers compartidos: asignar el recurso recién creado al día y refrescar.
+            async function _asignarServicioCreado(itemId, tipoServicio) {
+                const baseURL = getBaseURL();
+                const diaId = parseInt(_crearServicioDiaId);
+                const resp = await fetch(`${baseURL}/modules/programa/servicios_api.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'add_service',
+                        dia_id: diaId,
+                        tipo_servicio: tipoServicio,
+                        biblioteca_item_id: parseInt(itemId)
+                    })
+                });
+                const r = await resp.json();
+                if (!r.success) throw new Error(r.message || 'Error al asignar al día');
+            }
+
+            async function _refrescarDiaCreado() {
+                const diaId = parseInt(_crearServicioDiaId);
+                if (!diaId) return;
+                seleccionarDiaEnSidebar(diaId);
+                await cargarServiciosDia(diaId);
+                await cargarServiciosParaContador(diaId);
+            }
+
+            // Redimensiona/comprime una imagen en el navegador antes de subirla,
+            // para no agotar la memoria de PHP al procesarla en el servidor.
+            // Si algo falla, devuelve el archivo original.
+            function _comprimirImagenParaSubida(file, maxDim = 1920, quality = 0.85) {
+                return new Promise((resolve) => {
+                    if (!file || !file.type || !file.type.startsWith('image/') || file.type === 'image/gif') {
+                        resolve(file);
+                        return;
+                    }
+                    const url = URL.createObjectURL(file);
+                    const img = new Image();
+                    img.onload = () => {
+                        let width = img.naturalWidth;
+                        let height = img.naturalHeight;
+                        if (width > maxDim || height > maxDim) {
+                            if (width >= height) {
+                                height = Math.round(height * maxDim / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round(width * maxDim / height);
+                                height = maxDim;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        URL.revokeObjectURL(url);
+                        canvas.toBlob((blob) => {
+                            if (!blob) { resolve(file); return; }
+                            const nombre = (file.name || 'imagen').replace(/\.[^.]+$/, '') + '.jpg';
+                            resolve(new File([blob], nombre, { type: 'image/jpeg' }));
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+                    img.src = url;
+                });
+            }
+
+            // ── SELECTOR DE IMÁGENES REUTILIZABLE (estilo "Crear Nuevo Día") ──
+            // Drag & drop + previsualización + eliminar, para N imágenes.
+            const _imgSelectores = {};
+
+            function initImgSelector(key, containerId, maxImages) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                _imgSelectores[key] = { files: [], max: maxImages, containerId };
+
+                container.innerHTML = `
+                    <div class="drop-zone-multiple"
+                         style="border: 2px dashed #cbd5e0; border-radius: 12px; padding: 28px; text-align: center; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%); cursor: pointer;">
+                        <div class="img-dz-content">
+                            <div style="font-size: 40px; margin-bottom: 10px;">📸</div>
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">
+                                ${maxImages > 1 ? 'Arrastra hasta ' + maxImages + ' imágenes aquí' : 'Arrastra una imagen aquí'}
+                            </div>
+                            <div style="font-size: 13px; color: #718096; margin-bottom: 12px;">o haz clic para seleccionar</div>
+                            <button type="button" class="img-dz-btn"
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                📂 Seleccionar
+                            </button>
+                        </div>
+                    </div>
+                    <input type="file" class="img-dz-input" accept="image/*" ${maxImages > 1 ? 'multiple' : ''} style="display:none;">
+                    <div class="img-dz-preview" style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;"></div>
+                `;
+
+                const dz = container.querySelector('.drop-zone-multiple');
+                const input = container.querySelector('.img-dz-input');
+
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e =>
+                    dz.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }));
+                ['dragenter', 'dragover'].forEach(e =>
+                    dz.addEventListener(e, () => { dz.style.borderColor = 'var(--primary-color)'; }));
+                ['dragleave', 'drop'].forEach(e =>
+                    dz.addEventListener(e, () => { dz.style.borderColor = '#cbd5e0'; }));
+                dz.addEventListener('drop', e => _imgSelectorAdd(key, Array.from(e.dataTransfer.files)));
+                dz.addEventListener('click', () => input.click());
+                input.addEventListener('change', function () { _imgSelectorAdd(key, Array.from(this.files)); this.value = ''; });
+
+                _imgSelectorRender(key);
+            }
+
+            function _imgSelectorAdd(key, files) {
+                const s = _imgSelectores[key];
+                if (!s) return;
+                const imgs = files.filter(f => f.type.startsWith('image/'));
+                if (!imgs.length) { alert('Solo se permiten archivos de imagen'); return; }
+                const libres = s.max - s.files.length;
+                if (libres <= 0) { alert('Ya alcanzaste el máximo de ' + s.max + ' imagen(es)'); return; }
+                imgs.slice(0, libres).forEach(f => {
+                    if (f.size > 20 * 1024 * 1024) { alert(`"${f.name}" es muy grande (máx. 20MB)`); return; }
+                    s.files.push(f);
+                });
+                _imgSelectorRender(key);
+            }
+
+            function _imgSelectorRender(key) {
+                const s = _imgSelectores[key];
+                if (!s) return;
+                const container = document.getElementById(s.containerId);
+                if (!container) return;
+                const preview = container.querySelector('.img-dz-preview');
+                preview.innerHTML = '';
+                s.files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'position: relative; border-radius: 10px; overflow: hidden; border: 2px solid #e2e8f0;';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" style="width: 100%; height: 120px; object-fit: cover;">
+                            <div style="position:absolute; top:6px; left:6px; background: rgba(16,185,129,0.9); color:white; padding:3px 7px; border-radius:6px; font-size:11px;">${index + 1}</div>
+                            <button type="button" onclick="quitarImgSelector('${key}', ${index})"
+                                style="position:absolute; top:6px; right:6px; background: var(--primary-color); color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer;">×</button>`;
+                        preview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function quitarImgSelector(key, index) {
+                const s = _imgSelectores[key];
+                if (!s) return;
+                s.files.splice(index, 1);
+                _imgSelectorRender(key);
+            }
+
+            function getImgSelectorFiles(key) {
+                return (_imgSelectores[key] && _imgSelectores[key].files) || [];
+            }
+
             async function abrirModalServicios(tipoServicio, titulo = null) {
                 const modal = document.getElementById('serviciosModal');
                 const titleElement = document.getElementById('servicios-modal-title');
@@ -9621,6 +10775,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                             form.querySelector('[name="condiciones_generales"]').value = data.condiciones_generales || '';
                             form.querySelector('[name="info_pasaporte"]').value = data.info_pasaporte || '';
                             form.querySelector('[name="info_seguros"]').value = data.info_seguros || '';
+                            // Solapas adicionales (migración 010)
+                            ['visados_entrada', 'requisitos_sanitarios', 'llegada_punto_encuentro', 'asistencia_emergencia', 'info_hoteles_servicios', 'informacion_practica'].forEach(function (f) {
+                                const el = form.querySelector('[name="' + f + '"]');
+                                if (el) { el.value = data[f] || ''; actualizarContadorTexto(f); }
+                            });
 
                             // ACTUALIZAR CONTADORES DE CARACTERES
                             actualizarContadorTexto('precio_incluye');
@@ -9766,6 +10925,133 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 }
             }
 
+            // ============================================================
+            // FUNCION PARA INFORMACION Adicional
+            // ============================================================
+
+            function cargarArchivos() {
+                if (!programaId) return;
+                fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=get&programa_id=${programaId}`)
+                    .then(r => r.json())
+                    .then(result => {
+                        const lista = document.getElementById('adj-list');
+                        const vacio = document.getElementById('adj-empty');
+                        lista.innerHTML = '';
+                        console.log("holaa");
+                        const items = (result.success && result.data) ? result.data : [];
+                        vacio.style.display = items.length ? 'none' : 'block';
+
+                        items.forEach(item => {
+                            lista.insertAdjacentHTML('beforeend', item.enlace
+                                ? renderEnlace(item)
+                                : renderArchivo(item));
+                        });
+                    })
+                    .catch(err => console.error('Error cargando adjuntos:', err));
+            }
+            function renderEnlace(item) {
+                const url = escapeHtml(item.enlace);
+                return `
+                    <div class="adj-item" data-id="${item.id}">
+                        <div class="adj-item-icon adj-icon-link"><i class="fas fa-link"></i></div>
+                        <div class="adj-item-info">
+                            <a href="${url}" class="adj-item-name" target="_blank" rel="noopener">${url}</a>
+                            <span class="adj-item-meta">Enlace</span>
+                        </div>
+                        <a href="${url}" class="adj-item-action" title="Descargar" target="_blank" rel="noopener">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button type="button" class="adj-item-action adj-item-delete"
+                                title="Eliminar" onclick="eliminarArchivos(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }
+            function renderArchivo(item) {
+                const url = escapeHtml(item.archivo);
+                const ext = (item.archivo.split('.').pop() || '').toLowerCase();
+                const nombre = escapeHtml(decodeURIComponent(item.archivo.split('/').pop() || item.archivo));
+                const icono = iconoPorExtension(ext);
+                return `
+                    <div class="adj-item" data-id="${item.id}">
+                        <div class="adj-item-icon adj-icon-file"><i class="fas ${icono}"></i></div>
+                        <div class="adj-item-info">
+                            <a href="${url}" class="adj-item-name" target="_blank" rel="noopener">${nombre}</a>
+                            <span class="adj-item-meta">Archivo · ${ext.toUpperCase()}</span>
+                        </div>
+                        <a href="${url}" class="adj-item-action" title="Descargar" download target="_blank" rel="noopener">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <button type="button" class="adj-item-action adj-item-delete"
+                                title="Eliminar" onclick="eliminarArchivos(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }
+            function iconoPorExtension(ext) {
+                const mapa = {
+                    pdf: 'fa-file-pdf',
+                    doc: 'fa-file-word', docx: 'fa-file-word',
+                    xls: 'fa-file-excel', xlsx: 'fa-file-excel', csv: 'fa-file-csv',
+                    ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint',
+                    jpg: 'fa-file-image', jpeg: 'fa-file-image', png: 'fa-file-image',
+                    webp: 'fa-file-image', gif: 'fa-file-image',
+                    zip: 'fa-file-archive', rar: 'fa-file-archive',
+                    txt: 'fa-file-lines'
+                };
+                return mapa[ext] || 'fa-file';
+            }
+
+            async function guardarArchivos() {
+                if (!programaId) return;
+
+                try {
+                    const archivos = document.getElementById('adj-file-input').files;
+                    const enlace = document.getElementById('adj-link-input').value.trim();
+                    const fd = new FormData();
+                    fd.append('programa_id', programaId);
+                    if (enlace) fd.append('enlace', enlace);
+                    for (const f of archivos) fd.append('archivos[]', f);   // multipart real
+
+                    if (!enlace && archivos.length === 0) {
+                        showAlert('Añade un archivo o un enlace', 'error');
+                        return;
+                    }
+                    const response = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=save&programa_id=${programaId}`, {
+                        method: 'POST',
+                        body: fd
+                    }
+                    );
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('adj-file-input').value = "";
+                        document.getElementById('adj-link-input').value = "";
+                        cargarArchivos();
+                    } else {
+                        showAlert(result.message || 'Error al guardar', 'error');
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+            async function eliminarArchivos(adjuntoId) {
+                if (!adjuntoId) return;
+                if (!confirm('¿Eliminar este adjunto?')) return;
+
+                const fd = new FormData();
+                fd.append('id', adjuntoId);
+
+                const resp = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=delete`, {
+                    method: 'POST',
+                    body: fd
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    cargarArchivos();
+                    showAlert('Adjunto eliminado', 'success');
+                }
+            }
 
             // ============================================================
             // FUNCIONES AUXILIARES
@@ -9950,6 +11236,46 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
             let sortableInstance = null;
 
+            // ── AUTOSCROLL MANUAL DURANTE EL DRAG DE DÍAS ──
+            // SortableJS no puede autoscrollear de forma fiable aquí porque el
+            // contenedor real que se desplaza es la ventana. Lo manejamos a mano.
+            let _diaAutoScrollRAF = null;
+            let _diaDragPointerY = 0;
+
+            function _diaTrackPointer(e) {
+                // dragover (mouse) y touchmove (táctil)
+                const y = e.touches ? (e.touches[0] && e.touches[0].clientY) : e.clientY;
+                if (typeof y === 'number') _diaDragPointerY = y;
+            }
+
+            function _iniciarAutoScrollDia() {
+                document.addEventListener('dragover', _diaTrackPointer, true);
+                document.addEventListener('touchmove', _diaTrackPointer, { capture: true, passive: true });
+
+                const EDGE = 100;       // distancia al borde (px) donde empieza el scroll
+                const MAX_SPEED = 165;   // velocidad máxima (px por frame)
+
+                const step = () => {
+                    const vh = window.innerHeight;
+                    let speed = 0;
+                    if (_diaDragPointerY < EDGE) {
+                        speed = -Math.ceil(((EDGE - _diaDragPointerY) / EDGE) * MAX_SPEED);
+                    } else if (_diaDragPointerY > vh - EDGE) {
+                        speed = Math.ceil(((_diaDragPointerY - (vh - EDGE)) / EDGE) * MAX_SPEED);
+                    }
+                    if (speed !== 0) window.scrollBy(0, speed);
+                    _diaAutoScrollRAF = requestAnimationFrame(step);
+                };
+                _diaAutoScrollRAF = requestAnimationFrame(step);
+            }
+
+            function _detenerAutoScrollDia() {
+                if (_diaAutoScrollRAF) cancelAnimationFrame(_diaAutoScrollRAF);
+                _diaAutoScrollRAF = null;
+                document.removeEventListener('dragover', _diaTrackPointer, true);
+                document.removeEventListener('touchmove', _diaTrackPointer, true);
+            }
+
             /**
              * Inicializar drag & drop para días
              */
@@ -9971,6 +11297,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     dragClass: 'sortable-drag',
                     handle: '.day-sidebar-item', // Todo el item es arrastrable
 
+                    // Desactivamos el autoscroll nativo de SortableJS (provoca
+                    // temblor con este layout) y usamos el manual de abajo.
+                    scroll: false,
+
                     // Prevenir drag en botones y controles
                     filter: '.day-actions-sidebar, .day-controls, .estancia-btn',
                     preventOnFilter: true,
@@ -9979,10 +11309,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     onStart: function (evt) {
                         console.log('🎯 Iniciando drag del día:', evt.oldIndex + 1);
                         mostrarMensajeAyuda('Arrastra para reordenar los días');
+                        _iniciarAutoScrollDia();
                     },
 
                     // Evento al soltar
                     onEnd: function (evt) {
+                        _detenerAutoScrollDia();
+
                         const oldIndex = evt.oldIndex;
                         const newIndex = evt.newIndex;
 
@@ -10793,7 +12126,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     { name: 'precio_no_incluye', max: 3000 },
                     { name: 'condiciones_generales', max: 3000 },
                     { name: 'info_pasaporte', max: 3000 },
-                    { name: 'info_seguros', max: 3000 }
+                    { name: 'info_seguros', max: 3000 },
+                    { name: 'visados_entrada', max: 3000 },
+                    { name: 'requisitos_sanitarios', max: 3000 },
+                    { name: 'llegada_punto_encuentro', max: 3000 },
+                    { name: 'asistencia_emergencia', max: 3000 },
+                    { name: 'info_hoteles_servicios', max: 3000 },
+                    { name: 'informacion_practica', max: 3000 }
                 ];
 
                 // Configurar inputs normales (tu código original)
@@ -11696,7 +13035,8 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                 // Redirigir a la página de biblioteca
                 setTimeout(() => {
-                    window.location.href = '<?= APP_URL ?>/biblioteca';
+                    window.open('<?= APP_URL ?>/biblioteca', '_blank')
+                    //window.location.href = '<?= APP_URL ?>/biblioteca';
                 }, 100);
             }
 
@@ -11958,7 +13298,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         showAlert('Día actualizado correctamente', 'success');
                         cerrarEdicionDia(diaId);
                         await cargarDiasPrograma();
-                        
+
                         // Refrescar la vista de detalle para reflejar los cambios (incluyendo el formulario limpio)
                         if (typeof selectedDayId !== 'undefined' && selectedDayId == diaId) {
                             seleccionarDiaEnSidebar(diaId);
@@ -12414,7 +13754,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     for (let i = 1; i <= 3; i++) {
                         const imgInput = document.getElementById(`edit-act-imagen${i}-${actividadId}`);
                         const existingImg = document.querySelector(`#edit-actividad-form-${actividadId} .image-preview-item[data-image-number="${i}"] .preview-img`);
-                        
+
                         if ((!imgInput || !imgInput.files || !imgInput.files[0]) && !existingImg) {
                             // Fue eliminada
                             dataToUpdate[`actividad_imagen${i}`] = '';

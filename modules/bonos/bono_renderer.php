@@ -102,6 +102,7 @@ class BonoRenderer
             LEFT JOIN acomodaciones a ON a.id = pds.acomodacion_id
             WHERE pd.solicitud_id = ?
             AND pds.tipo_servicio = 'alojamiento'
+            AND pds.es_alternativa = 0
             AND bv.agencia_id = ?
             ORDER BY pd.dia_numero ASC",
             [$this->programaId, $this->agenciaId]
@@ -115,6 +116,53 @@ class BonoRenderer
             $hotel['noches'] = $fecha['noches'] ?? (int)($hotel['noches'] ?? 1);
         }
         unset($hotel);
+
+        // Agrupar noches CONSECUTIVAS del mismo hotel en un solo voucher coherente.
+        // Se agrupa por identidad de hotel y por contigüidad de fechas (el check-in
+        // de la siguiente noche cae dentro/al final de la estancia anterior), aunque
+        // en el listado haya varios hoteles intercalados por día.
+        $agrupados = [];
+        $abiertos  = []; // identidad => índice del grupo "abierto" para esa identidad
+        foreach ($hoteles as $h) {
+            $key = mb_strtolower(trim(
+                ($h['hotel_nombre'] ?? '') . '|' . ($h['ubicacion'] ?? '') . '|' .
+                ($h['acomodacion'] ?? '') . '|' . ($h['tipo_acomodacion'] ?? '')
+            ));
+
+            if (isset($abiertos[$key])) {
+                $idx = $abiertos[$key];
+                $prevOut = $agrupados[$idx]['checkout'] ?? null;
+                // Contiguo si la nueva noche empieza en/antes del check-out anterior
+                if ($prevOut && !empty($h['checkin']) && $h['checkin'] <= $prevOut) {
+                    if (!empty($h['checkout'])) {
+                        $agrupados[$idx]['checkout'] = $h['checkout'];
+                    }
+                    $agrupados[$idx]['dia_fin'] = (int) $h['dia_numero'];
+                    foreach (['comidas_incluidas', 'desayuno', 'almuerzo', 'cena'] as $m) {
+                        if (!empty($h[$m])) {
+                            $agrupados[$idx][$m] = $h[$m];
+                        }
+                    }
+                    continue;
+                }
+            }
+
+            // Nueva estancia (primera vez o tras un hueco)
+            $h['_key'] = $key;
+            $h['dia_inicio'] = (int) $h['dia_numero'];
+            $h['dia_fin'] = (int) $h['dia_numero'];
+            $agrupados[] = $h;
+            $abiertos[$key] = count($agrupados) - 1;
+        }
+        // Recalcular noches de cada grupo según check-in / check-out.
+        foreach ($agrupados as &$g) {
+            if (!empty($g['checkin']) && !empty($g['checkout'])) {
+                $n = (int) round((strtotime($g['checkout']) - strtotime($g['checkin'])) / 86400);
+                $g['noches'] = max(1, $n);
+            }
+        }
+        unset($g);
+        $hoteles = $agrupados;
 
         $agencia = $this->db->fetch(
             "SELECT 
@@ -887,11 +935,6 @@ class BonoRenderer
 
                                 <div class="section-title">Included services</div>
                                 <div class="plain-box"><?= htmlspecialchars($this->getServiciosHotel($hotel)) ?></div>
-
-                                <div class="section-title notes-title">Important notes</div>
-                                <div class="important-note">
-                                    Check-in from 14:00. Check-out until 12:00. Bed distribution, adjoining rooms and connecting rooms are subject to hotel availability. The hotel may request a credit card or cash deposit as guarantee.
-                                </div>
                             </div>
                         <?php endforeach; ?>
 

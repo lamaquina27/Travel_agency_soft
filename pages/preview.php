@@ -24,6 +24,9 @@ if (!$programa_id) {
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
+$is_sub = isset($_GET['sub']) && $_GET['sub'] == '1'
+       && isset($_SESSION['subagencia_context'])
+       && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int)$programa_id;
 
 // --------------------------------------------------------------------
 // Helpers
@@ -184,11 +187,59 @@ try {
         "SELECT * FROM programa_precios WHERE solicitud_id = ?",
         [$programa_id]
     );
+
+    $sub_config  = null;
+    $sub_precios = null;
+
+    if ($is_sub) {
+        $subCtx = $_SESSION['subagencia_context'];
+        $sub_config = $db->fetch(
+            "SELECT nombre, logo_url, primary_color, secondary_color, divisa
+             FROM config_sub_agencias WHERE user_id = ?",
+            [(int)$subCtx['user_id']]
+        );
+        $sub_precios = $db->fetch(
+            "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
+            [(int)$subCtx['user_id'], (int)$programa_id]
+        );
+    }
+
 } catch (Exception $e) {
     error_log('Error cargando programa para preview: ' . $e->getMessage());
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
+
+if ($is_sub && $sub_config) {
+    if (!empty($sub_config['nombre']))
+        $company_name = $sub_config['nombre'];
+    if (!empty($sub_config['logo_url']))
+        $company_logo = preview_asset_url($sub_config['logo_url']);
+    if (!empty($sub_config['primary_color'])) {
+        $brand_primary   = preview_sanitize_hex($sub_config['primary_color']);
+        $brand_secondary = preview_sanitize_hex($sub_config['secondary_color'] ?? $brand_primary, $brand_primary);
+        $brand_text      = preview_readable_text($brand_primary);
+        [$brand_r, $brand_g, $brand_b]   = preview_hex_to_rgb($brand_primary);
+        [$brand2_r, $brand2_g, $brand2_b] = preview_hex_to_rgb($brand_secondary);
+    }
+}
+
+if ($is_sub && $sub_precios) {
+    $precios = array_merge($precios ?? [], [
+        'precio_adulto'         => $sub_precios['precio_adulto'],
+        'precio_nino'           => $sub_precios['precio_nino'],
+        'precio_total'          => $sub_precios['precio_total'],
+        'moneda'                => $sub_config['divisa']               ?? ($precios['moneda'] ?? ''),
+        'precio_incluye'        => $sub_precios['precio_incluye'],
+        'precio_no_incluye'     => $sub_precios['precio_no_incluye'],
+        'condiciones_generales' => $sub_precios['condiciones_generales'],
+        'movilidad_reducida'    => $sub_precios['movilidad_reducida'],
+        'info_pasaporte'        => $sub_precios['info_pasaporte'],
+        'info_seguros'          => $sub_precios['info_seguros'],
+        'mostrar_precio'        => 1,
+    ]);
+}
+
 $duracion_dias = 0;
 $num_noches = 0;
 foreach ($dias as $dia) {
@@ -329,7 +380,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .page {
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             display: grid;
             grid-template-columns: minmax(360px, 430px) 1fr;
             background:
@@ -338,15 +390,16 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .panel {
-            min-height: 100vh;
-            padding: 44px 44px 38px;
+            height: 100vh;
+            padding: 34px 38px;
             background: var(--surface);
             border-right: 1px solid var(--border-soft);
             box-shadow: var(--shadow-soft);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 36px;
+            gap: 18px;
+            overflow: hidden;
         }
 
         .brand {
@@ -386,7 +439,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
         .content {
             display: grid;
-            gap: 28px;
+            gap: 16px;
         }
 
         .eyebrow {
@@ -400,15 +453,15 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
 
         .title {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(44px, 5vw, 68px);
-            line-height: 0.96;
-            letter-spacing: -0.055em;
+            font-size: clamp(24px, 4vw, 35px);
+            line-height: 1;
+            letter-spacing: -0.05em;
             color: var(--text-main);
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
 
         .traveler {
-            font-size: 15px;
+            font-size: 25px;
             line-height: 1.5;
             color: var(--text-soft);
             font-weight: 600;
@@ -427,11 +480,12 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         .intro {
-            font-size: 17px;
-            line-height: 1.55;
-            color: var(--text-main);
-            font-weight: 700;
-            max-width: 310px;
+            font-size: 14.5px;
+            line-height: 1.5;
+            color: var(--text-soft);
+            font-weight: 600;
+            max-width: 320px;
+            margin: 0;
         }
 
         .facts {
@@ -443,9 +497,9 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 13px 14px;
+            padding: 10px 13px;
             border: 1px solid var(--border-soft);
-            border-radius: 18px;
+            border-radius: 14px;
             background: var(--surface-soft);
         }
 

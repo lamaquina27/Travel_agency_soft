@@ -187,85 +187,62 @@ public static function requireLogin() {
     }
 }
 
-public static function requireRole($role) {
-    // Primero verificar que esté logueado
+public static function requireRole($roles) {
     if (!self::isLoggedIn()) {
         self::redirect('/login');
     }
-    
-    // Obtener el rol del usuario en sesión
-    $userRole = $_SESSION['user_role'] ?? null;
-    
-    // Verificar que tenga el rol requerido
-    if ($userRole !== $role) {
-        // Si no tiene el rol, mostrar error 403
+
+    $userRole    = $_SESSION['user_role'] ?? null;
+    $rolesArray  = is_array($roles) ? $roles : [$roles];
+
+    if (!in_array($userRole, $rolesArray, true)) {
         http_response_code(403);
-        
+
+        $rolesLabel = implode(' o ', $rolesArray);
+
+        // Detectar si es una petición AJAX/API
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                  strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        $isApi  = str_contains($_SERVER['REQUEST_URI'] ?? '', '/api');
+
+        if ($isAjax || $isApi) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Acceso denegado. Se requiere rol: ' . $rolesLabel]);
+            exit;
+        }
+
         echo '<!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Acceso Denegado</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                }
-                .error-container {
-                    background: white;
-                    padding: 50px;
-                    border-radius: 20px;
-                    text-align: center;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                    max-width: 500px;
-                }
-                .error-icon {
-                    font-size: 80px;
-                    margin-bottom: 20px;
-                }
-                h1 {
-                    color: #1a202c;
-                    margin-bottom: 15px;
-                }
-                p {
-                    color: #718096;
-                    margin-bottom: 30px;
-                    line-height: 1.6;
-                }
-                .btn {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 12px 30px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    display: inline-block;
-                    font-weight: 600;
-                }
-                .btn:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-                }
-            </style>
-        </head>
-        <body>
-            <div class="error-container">
-                <div class="error-icon">🚫</div>
-                <h1>Acceso Denegado</h1>
-                <p>No tienes permisos para acceder a esta sección del sistema. Se requiere rol: <strong>' . htmlspecialchars($role) . '</strong></p>
-                <a href="' . APP_URL . '/dashboard" class="btn">Volver al Dashboard</a>
-            </div>
-        </body>
-        </html>';
-        
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso Denegado</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center;
+               align-items: center; height: 100vh; margin: 0;
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .box { background: white; padding: 50px; border-radius: 20px; text-align: center;
+               box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 500px; }
+        h1 { color: #1a202c; }
+        p  { color: #718096; line-height: 1.6; }
+        a  { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+             padding: 12px 30px; border-radius: 8px; text-decoration: none;
+             display: inline-block; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div style="font-size:80px">🚫</div>
+        <h1>Acceso Denegado</h1>
+        <p>No tienes permisos para esta sección.<br>
+           Se requiere rol: <strong>' . htmlspecialchars($rolesLabel) . '</strong></p>
+        <a href="' . APP_URL . '/dashboard">Volver al Dashboard</a>
+    </div>
+</body>
+</html>';
         exit;
     }
 }
+
 
 
     public static function isLoggedIn() {

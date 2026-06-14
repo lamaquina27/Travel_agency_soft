@@ -1,0 +1,2 @@
+ALTER TABLE pipeline_estados
+ADD COLUMN es_final TINYINT(1) NOT NULL DEFAULT 0 AFTER nombre;

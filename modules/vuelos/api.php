@@ -38,44 +38,65 @@ class VuelosAPI
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
 
-        $input  = json_decode(file_get_contents('php://input'), true) ?? [];
-        $action = $_GET['action'] ?? $_POST['action'] ?? $input['action'] ?? '';
+        // Leer php://input solo UNA vez
+        $rawInput = file_get_contents('php://input');
+        $input    = json_decode($rawInput, true) ?? [];
+        $action   = $_GET['action'] ?? $_POST['action'] ?? $input['action'] ?? '';
+
+        error_log('===== VuelosAPI handleRequest START =====');
+        error_log('Raw input: ' . $rawInput);
+        error_log('Decoded input: ' . json_encode($input));
+        error_log('Action: ' . $action);
+        error_log('REQUEST METHOD: ' . $_SERVER['REQUEST_METHOD']);
+        error_log('CONTENT_TYPE: ' . ($_SERVER['CONTENT_TYPE'] ?? 'NOT SET'));
 
         try {
+            if (empty($action)) {
+                throw new Exception('No action specified');
+            }
+
             switch ($action) {
                 case 'preview':
+                    $codigo_vuelo = $input['codigo_vuelo'] ?? '';
+                    $programa_dias_id = $input['programa_dias_id'] ?? null;
+                    error_log("VuelosAPI - Preview: codigo_vuelo='$codigo_vuelo', programa_dias_id='$programa_dias_id'");
                     $result = $this->previewVuelo(
-                        $input['codigo_vuelo']     ?? '',
-                        $input['programa_dias_id'] ?? null
+                        $codigo_vuelo,
+                        $programa_dias_id
                     );
                     break;
 
                 case 'save':
+                    $codigo_vuelo = $input['codigo_vuelo'] ?? '';
+                    $programa_dias_id = $input['programa_dias_id'] ?? null;
+                    error_log("VuelosAPI - Save: codigo_vuelo='$codigo_vuelo', programa_dias_id='$programa_dias_id'");
                     $result = $this->saveVuelo(
-                        $input['codigo_vuelo']     ?? '',
-                        $input['programa_dias_id'] ?? null
+                        $codigo_vuelo,
+                        $programa_dias_id
                     );
                     break;
 
                 case 'get':
-                    $result = $this->getVuelosDia(
-                        (int)($input['programa_dias_id'] ?? $_GET['programa_dias_id'] ?? 0)
-                    );
+                    $programa_dias_id = (int)($input['programa_dias_id'] ?? $_GET['programa_dias_id'] ?? 0);
+                    error_log("VuelosAPI - Get: programa_dias_id='$programa_dias_id'");
+                    $result = $this->getVuelosDia($programa_dias_id);
                     break;
 
                 case 'delete':
-                    $result = $this->deleteVuelo(
-                        (int)($input['vuelo_dia_id'] ?? 0)
-                    );
+                    $vuelo_dia_id = (int)($input['vuelo_dia_id'] ?? 0);
+                    error_log("VuelosAPI - Delete: vuelo_dia_id='$vuelo_dia_id'");
+                    $result = $this->deleteVuelo($vuelo_dia_id);
                     break;
 
                 default:
                     throw new Exception("Acción no reconocida: {$action}");
             }
 
+            error_log('Result: ' . json_encode($result));
             echo json_encode($result, JSON_UNESCAPED_UNICODE);
 
         } catch (Exception $e) {
+            error_log('Exception caught: ' . $e->getMessage());
             $this->sendError($e->getMessage());
         }
     }
@@ -83,26 +104,48 @@ class VuelosAPI
     // ----------------------------------------------------------------
     // SECCIÓN 2: Preview — consulta sin escribir en base de datos
     // ----------------------------------------------------------------
-    private function previewVuelo(string $codigoVuelo, ?int $programaDiasId): array
+    private function previewVuelo($codigoVuelo, $programaDiasId): array
     {
+        $codigoVuelo = trim((string)$codigoVuelo);
+        $programaDiasId = $programaDiasId ? (int)$programaDiasId : null;
+
         if (empty($codigoVuelo)) {
             throw new Exception('El código de vuelo es requerido.');
         }
 
         if (!$programaDiasId) {
-            throw new Exception('El ID del día de programa es requerido.');
+            error_log("VuelosAPI - Error: programa_dias_id es null/0/false. Recibido: " . var_export($programaDiasId, true));
+            throw new Exception('El ID del día de programa es requerido. Valor recibido: ' . var_export($programaDiasId, true));
         }
 
-        $fechaDia = $this->obtenerFechaRealDia((int)$programaDiasId);
+        error_log("DEBUG: previewVuelo - Obteniendo fecha del día $programaDiasId");
+        
+        try {
+            $fechaDia = $this->obtenerFechaRealDia((int)$programaDiasId);
+            error_log("DEBUG: previewVuelo - Fecha obtenida: $fechaDia");
+        } catch (Exception $e) {
+            error_log("ERROR en obtenerFechaRealDia: " . $e->getMessage());
+            throw $e;
+        }
 
-        $vuelo = AeroDataBox::fetchFlight($codigoVuelo, $fechaDia);
+        error_log("DEBUG: previewVuelo - Buscando vuelo $codigoVuelo para fecha $fechaDia");
+        
+        try {
+            $vuelo = AeroDataBox::fetchFlight($codigoVuelo, $fechaDia);
+            error_log("DEBUG: previewVuelo - Resultado de AeroDataBox: " . json_encode($vuelo));
+        } catch (Exception $e) {
+            error_log("ERROR en AeroDataBox::fetchFlight: " . $e->getMessage());
+            throw $e; // Re-lanzar la excepción con el mensaje de AeroDataBox
+        }
 
         if (!$vuelo) {
+            error_log("ERROR: No se encontró el vuelo $codigoVuelo para fecha $fechaDia");
             throw new Exception(
                 "No se encontró el vuelo {$codigoVuelo} para la fecha {$fechaDia}."
             );
         }
 
+        error_log("DEBUG: previewVuelo - Retornando resultado exitoso");
         return [
             'success'   => true,
             'fecha_dia' => $fechaDia,
@@ -113,8 +156,11 @@ class VuelosAPI
     // ----------------------------------------------------------------
     // SECCIÓN 3: Save — escribe en codigos_vuelos y vuelos_dias
     // ----------------------------------------------------------------
-    private function saveVuelo(string $codigoVuelo, ?int $programaDiasId): array
+    private function saveVuelo($codigoVuelo, $programaDiasId): array
     {
+        $codigoVuelo = trim((string)$codigoVuelo);
+        $programaDiasId = $programaDiasId ? (int)$programaDiasId : null;
+
         if (empty($codigoVuelo)) {
             throw new Exception('El código de vuelo es requerido.');
         }
@@ -317,6 +363,9 @@ class VuelosAPI
 
     private function obtenerFechaRealDia(int $programaDiasId): string
     {
+        error_log("DEBUG: obtenerFechaRealDia called with programaDiasId=$programaDiasId");
+        error_log("DEBUG: SESSION agencia_id=" . ($_SESSION['agencia_id'] ?? 'NULL'));
+        
         $dia = $this->db->fetch(
             "SELECT 
                 pd.id,
@@ -333,14 +382,20 @@ class VuelosAPI
             [$programaDiasId, $_SESSION['agencia_id']]
         );
 
+        error_log("DEBUG: First query result: " . json_encode($dia));
+
         if (!$dia) {
+            error_log("ERROR: Día no encontrado o sin permisos");
             throw new Exception('Día no encontrado o sin permisos.');
         }
 
         if (!empty($dia['fecha_dia'])) {
+            error_log("DEBUG: Usando fecha_dia del registro: " . $dia['fecha_dia']);
             return $dia['fecha_dia'];
         }
 
+        error_log("DEBUG: fecha_dia está vacía, calculando...");
+        
         $dias = $this->db->fetchAll(
             "SELECT 
                 id,
@@ -353,19 +408,26 @@ class VuelosAPI
             [$dia['solicitud_id']]
         );
 
+        error_log("DEBUG: Días del programa: " . count($dias));
+        error_log("DEBUG: fecha_llegada para cálculo: " . ($dia['fecha_llegada'] ?? 'NULL'));
+
         $diasCalculados = FechaCalculator::calcularFechasDias($dias, $dia['fecha_llegada']);
+
+        error_log("DEBUG: Días calculados: " . json_encode($diasCalculados));
 
         foreach ($diasCalculados as $diaCalculado) {
             if ((int)$diaCalculado['id'] === $programaDiasId) {
                 if (empty($diaCalculado['fecha_calculada'])) {
+                    error_log("ERROR: No se pudo calcular la fecha del día");
                     throw new Exception('No se pudo calcular la fecha del día.');
                 }
-
+                error_log("DEBUG: Fecha calculada encontrada: " . $diaCalculado['fecha_calculada']);
                 return $diaCalculado['fecha_calculada'];
             }
         }
 
-        throw new Exception('No se encontró la fecha calculada del día.');
+        error_log("ERROR: No se encontró el día en la lista calculada");
+        throw new Exception('No se pudo encontrar el día en los cálculos.');
     }
 }
 

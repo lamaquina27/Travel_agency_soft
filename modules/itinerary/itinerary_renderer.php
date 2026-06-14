@@ -9,104 +9,408 @@ class ItineraryRenderer
     private Database $db;
     private int $programaId;
     private array $data = [];
+    private string $rootPath;
 
     public function __construct(int $programaId)
     {
         $this->db = Database::getInstance();
         $this->programaId = $programaId;
+        $this->rootPath = dirname(__DIR__, 2);
     }
 
-    public function getData(): array
+    public function renderHtml(): string
     {
-        if (!empty($this->data)) {
-            return $this->data;
-        }
+        $data = $this->getData();
+        $programa = $data['programa'];
+        $dias = $data['dias'];
+        $precios = $data['precios'];
+        $agencia = $data['agencia'];
 
+        $primary = $this->normalizeColor($agencia['primary_color'] ?? '#0f766e');
+        $secondary = $this->normalizeColor($agencia['secondary_color'] ?? '#0f172a');
+        $dark = '#101828';
+        $mostrarPrecio = !isset($precios['mostrar_precio']) || (int)($precios['mostrar_precio']) === 1;
+
+        $titulo = $programa['titulo_programa'] ?: 'Travel itinerary';
+        $destino = $programa['destino'] ?? '';
+        $duracionDias = (int)($data['duracion_dias'] ?? count($dias));
+        $viajeros = (int)($programa['viajeros_count'] ?: ($programa['numero_pasajeros'] ?? 0));
+        $logo = $this->imageToDataUri($agencia['logo_url'] ?? '');
+        // Portada: thumb con la proporción de la caja vertical (≈108x145mm) para que NO se deforme
+        $cover = $this->thumbToDataUri($programa['foto_portada'] ?? '', 600, 800);
+        $fontRegular = $this->fontFileUri('NotoSansThai-Regular.ttf');
+        $fontBold = $this->fontFileUri('NotoSansThai-Bold.ttf');
+
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                <?php if ($fontRegular): ?>
+                @font-face { font-family: TravelPdf; src: url('<?= $fontRegular ?>') format('truetype'); font-weight: 400; }
+                <?php endif; ?>
+                <?php if ($fontBold): ?>
+                @font-face { font-family: TravelPdf; src: url('<?= $fontBold ?>') format('truetype'); font-weight: 700; }
+                <?php endif; ?>
+
+                @page { margin: 12mm 12mm 14mm 12mm; }
+                * { box-sizing: border-box; }
+                body { margin:0; font-family: TravelPdf, DejaVu Sans, Arial, sans-serif; color:#2f3747; font-size:12px; line-height:1.45; background:#fff; }
+                img { display:block; }
+
+                .cover {
+                    page-break-after: always;
+                    padding-bottom: 8mm;
+                }
+
+                .brand-row {
+                    width:100%;
+                    border-collapse:collapse;
+                    margin-bottom:12mm;
+                }
+
+                .brand-row td {
+                    vertical-align:middle;
+                }
+
+                .logo {
+                    max-width:95px;
+                    max-height:50px;
+                }
+
+                .agency {
+                    text-align:right;
+                    color:<?= $primary ?>;
+                    font-size:12px;
+                    font-weight:700;
+                    letter-spacing:2px;
+                    text-transform:uppercase;
+                }
+
+                .hero-card {
+                    width:100%;
+                    border-collapse:collapse;
+                    background:#111827;
+                    overflow:hidden;
+                }
+
+                .hero-card td {
+                    vertical-align:stretch;
+                }
+
+                .hero-left {
+                    width:42%;
+                    background:#0f172a;
+                    color:#fff;
+                    padding:18mm 10mm;
+                    border-top:6px solid <?= $primary ?>;
+                }
+
+                .hero-kicker {
+                    color:#cbd5e1;
+                    font-size:10px;
+                    text-transform:uppercase;
+                    letter-spacing:3px;
+                    margin-bottom:10mm;
+                }
+
+                .hero-title {
+                    font-size:30px;
+                    line-height:1.18;
+                    font-weight:700;
+                    color:#fff;
+                    margin-bottom:8mm;
+                }
+
+                .hero-subtitle {
+                    color:#d1d5db;
+                    font-size:12px;
+                    line-height:1.5;
+                }
+
+                .hero-right {
+                    width:58%;
+                    background:#e5e7eb;
+                }
+
+                .hero-image {
+                    width:100%;
+                    height:145mm;
+                    object-fit:cover;
+                }
+
+                .cover-stats {
+                    width:100%;
+                    border-collapse:collapse;
+                    margin-top:8mm;
+                }
+
+                .cover-stats td {
+                    width:33.33%;
+                    padding:7mm 6mm;
+                    border:1px solid #e5e7eb;
+                    background:#f8fafc;
+                }
+
+                .stat-label {
+                    font-size:9px;
+                    letter-spacing:1.5px;
+                    text-transform:uppercase;
+                    color:#94a3b8;
+                    font-weight:700;
+                    margin-bottom:4px;
+                }
+
+                .stat-value {
+                    font-size:13px;
+                    color:#111827;
+                    font-weight:700;
+                }
+
+                .summary-page { page-break-after: always; }
+                .summary-title { font-size:27px; color:<?= $primary ?>; font-weight:700; margin-bottom:18px; }
+                .summary-grid { width:100%; border-collapse:collapse; margin-bottom:18px; }
+                .summary-grid td { width:25%; padding:11px 12px; border:1px solid #e5e7eb; vertical-align:top; }
+                .summary-label { color:#7b8494; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; }
+                .summary-value { font-size:13px; color:#111827; font-weight:700; }
+                .stage-title { color:#111827; font-size:17px; font-weight:700; margin:14px 0 9px; }
+                .stage-row { font-size:12px; padding:5px 0; border-bottom:1px solid #eef0f4; }
+                .stage-day { color:<?= $primary ?>; font-weight:700; display:inline-block; width:48px; }
+
+                .day { margin-bottom:20px; page-break-inside:auto; }
+                .day-head { margin-bottom:8px; }
+                .day-number { color:<?= $primary ?>; font-size:22px; font-weight:700; display:inline; }
+                .day-date { color:#9aa3b2; font-size:11px; margin-left:6px; }
+                .day-title { color:#293241; font-size:23px; line-height:1.22; font-weight:700; margin:3px 0 6px; }
+                .chips { margin:4px 0 10px; }
+                .chip { display:inline-block; border:1px solid #ccd3dd; border-radius:4px; color:#8b95a5; padding:3px 7px; font-size:10px; margin-right:4px; margin-bottom:4px; }
+                .photo-grid { width:100%; border-collapse:collapse; margin:8px 0 9px; }
+                .photo-grid td { width:33.33%; padding-right:7px; vertical-align:top; }
+                .photo-grid td:last-child { padding-right:0; }
+                .photo-grid img { width:100%; height:35mm; }
+                .day-desc { font-size:12px; line-height:1.45; color:#3f4755; margin:8px 0 12px; }
+                .contains { font-size:13px; color:#293241; font-weight:700; margin:11px 0 7px; }
+                .meals { font-size:11px; color:<?= $primary ?>; font-weight:700; margin-bottom:9px; }
+                .empty-meals { color:#9aa3b2; }
+
+                .hotel { width:100%; border-collapse:collapse; margin:10px 0 12px; page-break-inside:avoid; }
+                .hotel-marker { width:28px; vertical-align:top; }
+                .dot { width:8px; height:8px; border:1px solid #9ca3af; border-radius:50%; margin-top:4px; }
+                .hotel-line { border-left:1px dotted #aeb6c2; padding-left:13px; }
+                .hotel-kind { color:<?= $primary ?>; font-size:12px; font-weight:700; margin-bottom:4px; }
+                .hotel-box { width:100%; border-collapse:collapse; }
+                .hotel-box td { vertical-align:top; }
+                .hotel-photo { width:74px; height:54px; }
+                .hotel-name { font-size:14px; color:#293241; font-weight:700; margin-bottom:4px; }
+                .hotel-info { color:#6b7280; font-size:10.5px; line-height:1.38; }
+                .room { color:#6b7280; font-size:10.5px; margin-top:4px; }
+
+                .activity { margin:8px 0 10px; page-break-inside:auto; }
+                .service-kind { color:<?= $primary ?>; font-size:11px; font-weight:700; margin-bottom:3px; }
+                .activity-title { font-size:14px; font-weight:700; color:#293241; margin-bottom:4px; }
+                .activity-desc { font-size:11px; line-height:1.42; color:#3f4755; }
+
+                .flight {
+                    border-left:3px solid <?= $primary ?>;
+                    background:#f8fafc;
+                    padding:7px 9px;
+                    margin:6px 0 8px;
+                    page-break-inside:avoid;
+                }
+                .flight-title {
+                    font-size:10.5px;
+                    font-weight:700;
+                    color:#293241;
+                    margin-bottom:4px;
+                }
+                .flight-table { width:100%; border-collapse:collapse; }
+                .flight-table td { vertical-align:middle; }
+                .airport-code {
+                    font-size:15px;
+                    font-weight:700;
+                    color:#111827;
+                }
+                .airport-city { font-size:8px; color:#7b8494; }
+                .flight-time { color:<?= $primary ?>; font-weight:700; font-size:9px; }
+                .flight-mid { text-align:center; font-size:8px; color:<?= $primary ?>; font-weight:700; }
+
+                .price-section { page-break-before:always; }
+                .section-title { font-size:23px; color:<?= $primary ?>; font-weight:700; margin:0 0 14px; }
+                .pricing-table { width:100%; border-collapse:collapse; }
+                .pricing-table td { border:1px solid #e5e7eb; padding:9px 10px; vertical-align:top; font-size:11px; line-height:1.45; }
+                .price-label { width:30%; background:#f8fafc; color:#111827; font-weight:700; }
+                .price-main { color:<?= $primary ?>; font-size:19px; font-weight:700; }
+                .footer { color:#7b8494; font-size:10px; text-align:right; margin-top:16px; border-top:1px solid #e5e7eb; padding-top:8px; }
+            </style>
+        </head>
+        <body>
+            <div class="cover">
+                <table class="brand-row">
+                    <tr>
+                        <td style="width:35%;"><?php if ($logo): ?><img class="logo" src="<?= $logo ?>" alt=""><?php endif; ?></td>
+                        <td style="width:65%;"><div class="agency"><?= htmlspecialchars($agencia['nombre'] ?? '') ?></div></td>
+                    </tr>
+                </table>
+
+                <table class="hero-card">
+                    <tr>
+                        <td class="hero-left">
+                            <div class="hero-kicker">Itinerario personalizado</div>
+
+                            <div class="hero-title">
+                                <?= htmlspecialchars($titulo) ?>
+                            </div>
+
+                            <div class="hero-subtitle">
+                                <?= htmlspecialchars($destino) ?>
+                            </div>
+                        </td>
+
+                        <td class="hero-right">
+                            <?php if ($cover): ?>
+                                <img class="hero-image" src="<?= $cover ?>" alt="">
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="cover-stats">
+                    <tr>
+                        <td><div class="stat-label">Duración</div><div class="stat-value"><?= $duracionDias ?> días</div></td>
+                        <td><div class="stat-label">Viajeros</div><div class="stat-value"><?= $viajeros ?></div></td>
+                        <td><div class="stat-label">Fechas</div><div class="stat-value"><?= htmlspecialchars($programa['fecha_llegada_formatted'] ?? '') ?> - <?= htmlspecialchars($programa['fecha_salida_formatted'] ?? '') ?></div></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="summary-page">
+                <div class="summary-title">Resumen del viaje</div>
+                <table class="summary-grid"><tr>
+                    <td><div class="summary-label">Agencia</div><div class="summary-value"><?= htmlspecialchars($agencia['nombre'] ?? '') ?></div></td>
+                    <td><div class="summary-label">Destino</div><div class="summary-value"><?= htmlspecialchars($destino) ?></div></td>
+                    <td><div class="summary-label">Inicio</div><div class="summary-value"><?= htmlspecialchars($programa['fecha_llegada_formatted'] ?? '') ?></div></td>
+                    <td><div class="summary-label">Duración</div><div class="summary-value"><?= $duracionDias ?> días</div></td>
+                </tr></table>
+                <div class="stage-title">Las principales etapas del viaje</div>
+                <?php foreach ($dias as $dia): ?>
+                    <div class="stage-row"><span class="stage-day">Día <?= htmlspecialchars($dia['dia_numero']) ?></span><?= htmlspecialchars($this->shortText($dia['titulo'] ?? '', 85)) ?></div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php foreach ($dias as $dia): ?>
+                <?php $dayImgs = $this->prepareDayImages($dia['imagenes'] ?? []); ?>
+                <div class="day">
+                    <div class="day-head">
+                        <span class="day-number">Día <?= htmlspecialchars($dia['dia_numero']) ?></span>
+                        <span class="day-date"><?= $this->formatDateRange($dia) ?></span>
+                        <div class="day-title"><?= htmlspecialchars($dia['titulo'] ?? '') ?></div>
+                        <?php if (!empty($dia['ubicacion'])): ?><div class="chips"><?php foreach ($this->splitLocations($dia['ubicacion']) as $loc): ?><span class="chip"><?= htmlspecialchars($loc) ?></span><?php endforeach; ?></div><?php endif; ?>
+                    </div>
+
+                    <?php if (!empty($dayImgs)): ?>
+                        <table class="photo-grid"><tr>
+                            <?php foreach ($dayImgs as $img): ?><td><img src="<?= $img ?>" alt=""></td><?php endforeach; ?>
+                        </tr></table>
+                    <?php endif; ?>
+
+                    <?php if (!empty($dia['descripcion'])): ?><div class="day-desc"><?= nl2br(htmlspecialchars($this->shortText($dia['descripcion'], 12000))) ?></div><?php endif; ?>
+
+                    <?php $meals = $this->getMealsSummary($dia['servicios'] ?? [], $dia['descripcion'] ?? ''); ?>
+                    <div class="contains">Comidas</div>
+                    <div class="meals <?= str_contains($meals, 'no están') ? 'empty-meals' : '' ?>"><?= htmlspecialchars($meals) ?></div>
+
+                    <?php foreach (($dia['vuelos'] ?? []) as $vuelo): ?>
+                        <div class="flight">
+                            <div class="flight-title"><?= htmlspecialchars($vuelo['codigo_vuelo']) ?> - <?= htmlspecialchars($vuelo['aerolinea']) ?></div>
+                            <table class="flight-table"><tr>
+                                <td style="width:35%;"><div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_origen']) ?></div><div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_origen']) ?></div><div class="flight-time"><?= htmlspecialchars(substr($vuelo['hora_salida'], 0, 5)) ?></div></td>
+                                <td style="width:30%;"><div class="flight-mid">Vuelo <?= (int)$vuelo['orden'] ?><br>→</div></td>
+                                <td style="width:35%; text-align:right;"><div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_destino']) ?></div><div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_destino']) ?></div><div class="flight-time"><?= htmlspecialchars(substr($vuelo['hora_llegada'], 0, 5)) ?></div></td>
+                            </tr></table>
+                        </div>
+                    <?php endforeach; ?>
+
+                    <?php foreach ($this->getVisibleServices($dia['servicios'] ?? []) as $servicio): ?>
+                        <?php $tipo = $servicio['tipo_servicio'] ?? ''; ?>
+                        <?php if ($tipo === 'alojamiento'): ?>
+                            <?php $hotelImg = $this->thumbToDataUri($servicio['alojamiento_imagen_principal'] ?? '', 140, 95); ?>
+                            <table class="hotel"><tr>
+                                <td class="hotel-marker"><div class="dot"></div></td>
+                                <td class="hotel-line"><div class="hotel-kind">Alojamiento</div>
+                                    <table class="hotel-box"><tr>
+                                        <?php if ($hotelImg): ?><td style="width:84px;"><img class="hotel-photo" src="<?= $hotelImg ?>" alt=""></td><?php endif; ?>
+                                        <td><div class="hotel-name"><?= htmlspecialchars($servicio['nombre'] ?? 'Hotel') ?></div>
+                                            <?php if (!empty($servicio['ubicacion'])): ?><div class="hotel-info"><?= htmlspecialchars($this->shortText($servicio['ubicacion'], 120)) ?></div><?php endif; ?>
+                                            <?php if (!empty($servicio['acomodacion_nombre']) || !empty($servicio['acomodacion_capacidad'])): ?><div class="room"><?= !empty($servicio['acomodacion_nombre']) ? 'Room: ' . htmlspecialchars($servicio['acomodacion_nombre']) : '' ?><?= !empty($servicio['acomodacion_capacidad']) ? ' · Pax: ' . htmlspecialchars($servicio['acomodacion_capacidad']) : '' ?></div><?php endif; ?>
+                                        </td>
+                                    </tr></table>
+                                </td>
+                            </tr></table>
+                        <?php elseif ($tipo !== 'comida'): ?>
+                            <div class="activity"><div class="service-kind"><?= htmlspecialchars($this->formatServiceType($tipo)) ?></div><div class="activity-title"><?= htmlspecialchars($servicio['nombre'] ?? 'Service') ?></div><?php if (!empty($servicio['descripcion'])): ?><div class="activity-desc"><?= nl2br(htmlspecialchars($this->shortText($servicio['descripcion'], 5000))) ?></div><?php endif; ?></div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+
+            <?php if (!empty($precios)): ?>
+                <div class="price-section">
+                    <h2 class="section-title">Precio y condiciones</h2>
+                    <table class="pricing-table">
+                        <?php if ($mostrarPrecio && !empty($precios['precio_total'])): ?><tr><td class="price-label">Precio total</td><td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></span></td></tr><?php endif; ?>
+                        <?php foreach ([['precio_incluye','Incluye'],['precio_no_incluye','No incluye'],['condiciones_generales','Condiciones generales'],['info_pasaporte','Pasaporte y visados'],['info_seguros','Seguros'],['visados_entrada','Visados y requisitos de entrada'],['requisitos_sanitarios','Requisitos sanitarios'],['llegada_punto_encuentro','Llegada y punto de encuentro'],['asistencia_emergencia','Asistencia y emergencias'],['info_hoteles_servicios','Información de hoteles y servicios'],['informacion_practica','Información práctica']] as $row): ?>
+                            <?php if (!empty($precios[$row[0]])): ?><tr><td class="price-label"><?= $row[1] ?></td><td><?= nl2br(htmlspecialchars($precios[$row[0]])) ?></td></tr><?php endif; ?>
+                        <?php endforeach; ?>
+                    </table>
+                </div>
+            <?php endif; ?>
+            <div class="footer"><?= htmlspecialchars($agencia['nombre'] ?? '') ?><?php if (!empty($agencia['telefono'])): ?> | <?= htmlspecialchars($agencia['telefono']) ?><?php endif; ?><?php if (!empty($agencia['email_contacto'])): ?> | <?= htmlspecialchars($agencia['email_contacto']) ?><?php endif; ?></div>
+        </body>
+        </html>
+        <?php
+        return ob_get_clean();
+    }
+
+    private function getData(): array
+    {
+        if (!empty($this->data)) { return $this->data; }
         ConfigManager::init();
 
         $programa = $this->db->fetch(
             "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
-                    DATE_FORMAT(ps.fecha_llegada, '%d/%m/%Y') as fecha_llegada_formatted,
-                    DATE_FORMAT(
-                        DATE_ADD(ps.fecha_llegada, INTERVAL COALESCE(
-                            (SELECT SUM(COALESCE(pd2.duracion_estancia, 1))
-                            FROM programa_dias pd2
-                            WHERE pd2.solicitud_id = ps.id),
-                            0
-                        ) DAY),
-                        '%d/%m/%Y'
-                    ) as fecha_salida_formatted,
-                    DATEDIFF(ps.fecha_salida, ps.fecha_llegada) as duracion_dias,
-                    (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) as viajeros_count
+                DATE_FORMAT(ps.fecha_llegada, '%d/%m/%Y') AS fecha_llegada_formatted,
+                DATE_FORMAT(DATE_ADD(ps.fecha_llegada, INTERVAL COALESCE((SELECT SUM(COALESCE(pd2.duracion_estancia, 1)) FROM programa_dias pd2 WHERE pd2.solicitud_id = ps.id),0) DAY),'%d/%m/%Y') AS fecha_salida_formatted,
+                (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) AS viajeros_count
              FROM programa_solicitudes ps
              LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
-             WHERE ps.id = ?
-             LIMIT 1",
+             WHERE ps.id = ? LIMIT 1",
             [$this->programaId]
         );
+        if (!$programa) { throw new Exception('Programa no encontrado.'); }
 
-        if (!$programa) {
-            throw new Exception('Programa no encontrado.');
-        }
-
-        $dias = $this->db->fetchAll(
-            "SELECT *, COALESCE(duracion_estancia, 1) as duracion_estancia
-             FROM programa_dias
-             WHERE solicitud_id = ?
-             ORDER BY dia_numero ASC",
-            [$this->programaId]
-        );
-
+        $dias = $this->db->fetchAll("SELECT *, COALESCE(duracion_estancia, 1) AS duracion_estancia FROM programa_dias WHERE solicitud_id = ? ORDER BY dia_numero ASC", [$this->programaId]);
         $fechaBase = !empty($programa['fecha_llegada']) ? new DateTime($programa['fecha_llegada']) : null;
         $diasAcumulados = 0;
 
         foreach ($dias as &$dia) {
             if ($fechaBase) {
                 $fechaDia = clone $fechaBase;
-
-                if ($diasAcumulados > 0) {
-                    $fechaDia->modify("+{$diasAcumulados} days");
-                }
-
+                if ($diasAcumulados > 0) { $fechaDia->modify("+{$diasAcumulados} days"); }
                 $dia['fecha_calculada'] = $fechaDia->format('Y-m-d');
-
                 $duracion = (int)($dia['duracion_estancia'] ?? 1);
                 $fechaFinDia = clone $fechaDia;
-
-                if ($duracion > 1) {
-                    $fechaFinDia->modify('+' . ($duracion - 1) . ' days');
-                }
-
+                if ($duracion > 1) { $fechaFinDia->modify('+' . ($duracion - 1) . ' days'); }
                 $dia['fecha_fin_calculada'] = $fechaFinDia->format('Y-m-d');
             }
-
             $diasAcumulados += (int)($dia['duracion_estancia'] ?? 1);
 
             $serviciosRaw = $this->db->fetchAll(
-                "SELECT 
-                    pds.*,
-                    pds.nombre_servicio as nombre,
-                    pds.descripcion_servicio as descripcion,
-                    pds.ubicacion_servicio as ubicacion,
-                    pds.latitud,
-                    pds.longitud,
-                    pds.actividad_imagen1 as imagen,
-                    pds.actividad_imagen2 as imagen2,
-                    pds.actividad_imagen3 as imagen3,
-                    pds.transporte_medio as medio_transporte,
-                    pds.transporte_titulo,
-                    pds.transporte_lugar_salida,
-                    pds.transporte_lugar_llegada,
-                    pds.transporte_duracion as duracion,
-                    pds.transporte_distancia_km,
-                    pds.alojamiento_tipo as tipo_alojamiento,
-                    pds.alojamiento_categoria as categoria_alojamiento,
-                    pds.alojamiento_imagen as alojamiento_imagen_principal,
-                    pds.alojamiento_sitio_web,
-                    pds.acomodacion_id,
-                    a.tipo_acomodacion AS acomodacion_nombre,
-                    a.descripcion AS acomodacion_descripcion,
-                    a.acomodacion AS acomodacion_capacidad
+                "SELECT pds.*, pds.nombre_servicio AS nombre, pds.descripcion_servicio AS descripcion, pds.ubicacion_servicio AS ubicacion,
+                    pds.actividad_imagen1 AS imagen, pds.actividad_imagen2 AS imagen2, pds.actividad_imagen3 AS imagen3,
+                    pds.alojamiento_imagen AS alojamiento_imagen_principal, pds.acomodacion_id,
+                    a.tipo_acomodacion AS acomodacion_nombre, a.descripcion AS acomodacion_descripcion, a.acomodacion AS acomodacion_capacidad
                  FROM programa_dias_servicios pds
                  LEFT JOIN acomodaciones a ON pds.acomodacion_id = a.id
                  WHERE pds.programa_dia_id = ?
@@ -116,925 +420,216 @@ class ItineraryRenderer
 
             $serviciosOrganizados = [];
             foreach ($serviciosRaw as $servicio) {
-                $orden = $servicio['orden'];
+                if ((int)($servicio['es_alternativa'] ?? 0) !== 0) { continue; }
+                $orden = $servicio['orden'] ?? count($serviciosOrganizados) + 1;
+                if (!isset($serviciosOrganizados[$orden])) { $serviciosOrganizados[$orden] = ['principal' => null, 'alternativas' => []]; }
+                $serviciosOrganizados[$orden]['principal'] = $servicio;
+            }
+            ksort($serviciosOrganizados);
+            $dia['servicios'] = $serviciosOrganizados;
 
-                if (!isset($serviciosOrganizados[$orden])) {
-                    $serviciosOrganizados[$orden] = [
-                        'principal' => null,
-                        'alternativas' => []
-                    ];
-                }
-
-                if ((int)$servicio['es_alternativa'] === 0) {
-                    $serviciosOrganizados[$orden]['principal'] = $servicio;
-                } else {
-                    $serviciosOrganizados[$orden]['alternativas'][] = $servicio;
+            $imagenesDia = [];
+            foreach (['imagen','imagen1','imagen2','imagen3','foto','foto_dia','imagen_principal','foto_portada','portada'] as $campoDia) {
+                if (!empty($dia[$campoDia])) { $imagenesDia[] = $dia[$campoDia]; }
+            }
+            foreach ($serviciosRaw as $servicioImagen) {
+                if (($servicioImagen['tipo_servicio'] ?? '') === 'alojamiento') { continue; }
+                foreach (['imagen', 'imagen2', 'imagen3'] as $campoImagen) {
+                    if (!empty($servicioImagen[$campoImagen])) { $imagenesDia[] = $servicioImagen[$campoImagen]; }
                 }
             }
+            $dia['imagenes'] = array_slice(array_values(array_unique(array_filter($imagenesDia))), 0, 3);
 
-            ksort($serviciosOrganizados);
-                $dia['servicios'] = $serviciosOrganizados;
-
-                $imagenesDia = [];
-
-                foreach ($serviciosRaw as $servicioImagen) {
-                    foreach (['imagen', 'imagen2', 'imagen3', 'alojamiento_imagen_principal'] as $campoImagen) {
-                        if (!empty($servicioImagen[$campoImagen])) {
-                            $imagenesDia[] = $servicioImagen[$campoImagen];
-                        }
-                    }
-                }
-
-                $imagenesDia = array_values(array_unique(array_filter($imagenesDia)));
-                $dia['imagenes'] = array_slice($imagenesDia, 0, 3);
             $dia['vuelos'] = $this->db->fetchAll(
-                "SELECT 
-                    vd.orden,
-                    cv.codigo_vuelo,
-                    cv.aerolinea,
-                    cv.ciudad_origen,
-                    cv.codigo_aeropuerto_origen,
-                    cv.aeropuerto_origen,
-                    cv.ciudad_destino,
-                    cv.codigo_aeropuerto_destino,
-                    cv.aeropuerto_destino,
-                    cv.terminal,
-                    cv.hora_salida,
-                    cv.hora_llegada
-                 FROM vuelos_dias vd
-                 INNER JOIN codigos_vuelos cv ON cv.id = vd.codigo_vuelo_id
-                 WHERE vd.programa_dias_id = ?
-                 ORDER BY vd.orden ASC",
+                "SELECT vd.orden, cv.codigo_vuelo, cv.aerolinea, cv.ciudad_origen, cv.codigo_aeropuerto_origen, cv.aeropuerto_origen, cv.ciudad_destino, cv.codigo_aeropuerto_destino, cv.aeropuerto_destino, cv.terminal, cv.hora_salida, cv.hora_llegada
+                 FROM vuelos_dias vd INNER JOIN codigos_vuelos cv ON cv.id = vd.codigo_vuelo_id
+                 WHERE vd.programa_dias_id = ? ORDER BY vd.orden ASC",
                 [$dia['id']]
             );
         }
         unset($dia);
 
-        $precios = $this->db->fetch(
-            "SELECT * FROM programa_precios WHERE solicitud_id = ?",
-            [$this->programaId]
-        );
-
-        $duracionDias = 0;
-        foreach ($dias as $dia) {
-            $duracionDias += (int)($dia['duracion_estancia'] ?? 1);
-        }
-
-        $agencia = $this->db->fetch(
-            "SELECT 
-                nombre,
-                logo_url,
-                email_contacto,
-                telefono,
-                agent_primary_color,
-                agent_secondary_color,
-                admin_primary_color,
-                admin_secondary_color
-             FROM agencias
-             WHERE id = ?
-             LIMIT 1",
-            [(int)$programa['agencia_id']]
-        );
+        $precios = $this->db->fetch("SELECT * FROM programa_precios WHERE solicitud_id = ?", [$this->programaId]);
+        $agencia = $this->db->fetch("SELECT nombre, logo_url, email_contacto, telefono, agent_primary_color, agent_secondary_color, admin_primary_color, admin_secondary_color FROM agencias WHERE id = ? LIMIT 1", [(int)$programa['agencia_id']]);
 
         $this->data = [
             'programa' => $programa,
             'dias' => $dias,
             'precios' => $precios ?: [],
-            'duracion_dias' => $duracionDias ?: count($dias),
+            'duracion_dias' => $diasAcumulados ?: count($dias),
             'agencia' => [
                 'nombre' => $agencia['nombre'] ?? ConfigManager::getCompanyName(),
                 'logo_url' => $agencia['logo_url'] ?? '',
                 'telefono' => $agencia['telefono'] ?? '',
                 'email_contacto' => $agencia['email_contacto'] ?? '',
-                'primary_color' => $agencia['agent_primary_color'] ?: ($agencia['admin_primary_color'] ?? '#667eea'),
-                'secondary_color' => $agencia['agent_secondary_color'] ?: ($agencia['admin_secondary_color'] ?? '#764ba2')
+                'primary_color' => $agencia['agent_primary_color'] ?: ($agencia['admin_primary_color'] ?? '#0f766e'),
+                'secondary_color' => $agencia['agent_secondary_color'] ?: ($agencia['admin_secondary_color'] ?? '#0f172a')
             ]
         ];
-
         return $this->data;
     }
 
-    public function renderHtml(): string
+    private function prepareDayImages(array $paths): array
     {
-        $data = $this->getData();
-
-        $programa = $data['programa'];
-        $dias = $data['dias'];
-        $precios = $data['precios'];
-        $agencia = $data['agencia'];
-        $duracionDias = $data['duracion_dias'];
-
-        $primary = $this->normalizeColor($agencia['primary_color']);
-        $secondary = $this->normalizeColor($agencia['secondary_color']);
-
-        $titulo = $programa['titulo_programa'] ?: ('Viaje a ' . ($programa['destino'] ?? ''));
-        $viajero = trim(($programa['nombre_viajero'] ?? '') . ' ' . ($programa['apellido_viajero'] ?? ''));
-        $logo = $this->resolveAsset($agencia['logo_url']);
-        $cover = $this->resolveAsset($programa['foto_portada'] ?? '');
-
-        ob_start();
-        ?>
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                @page {
-                    margin: 12mm 12mm 14mm 12mm;
-                }
-
-                * {
-                    box-sizing: border-box;
-                }
-
-                body {
-                    margin: 0;
-                    padding: 0;
-                    font-family: DejaVu Sans, Arial, sans-serif;
-                    color: #1f2937;
-                    font-size: 10.5px;
-                    line-height: 1.42;
-                    background: #ffffff;
-                }
-
-                .cover {
-                    position: relative;
-                    width: 100%;
-                    height: 247mm;
-                    overflow: hidden;
-                    page-break-after: always;
-                    background-image: <?= $cover ? "url('" . htmlspecialchars($cover) . "')" : 'none' ?>;
-                    background-position: center center;
-                    background-size: cover;
-                    background-repeat: no-repeat;
-                    background-color: <?= $primary ?>;
-                    color: white;
-                }
-
-                .cover-overlay {
-                    position: absolute;
-                    inset: 0;
-                    padding: 26mm 18mm 18mm;
-                    background: linear-gradient(135deg, rgba(0,0,0,.68), rgba(0,0,0,.35));
-                }
-
-                .brand-row {
-                    width: 100%;
-                    margin-bottom: 60mm;
-                }
-
-                .logo {
-                    max-width: 145px;
-                    max-height: 62px;
-                    background: rgba(255,255,255,.92);
-                    padding: 7px 10px;
-                    border-radius: 10px;
-                }
-
-                .agency-name {
-                    margin-top: 8px;
-                    font-size: 11px;
-                    letter-spacing: .8px;
-                    text-transform: uppercase;
-                    font-weight: 700;
-                }
-
-                .cover-kicker {
-                    font-size: 12px;
-                    letter-spacing: 2px;
-                    text-transform: uppercase;
-                    opacity: .88;
-                    margin-bottom: 10px;
-                }
-
-                .cover-title {
-                    font-size: 42px;
-                    line-height: 1.05;
-                    font-weight: 800;
-                    margin-bottom: 14px;
-                }
-
-                .cover-subtitle {
-                    font-size: 14px;
-                    opacity: .92;
-                    max-width: 620px;
-                }
-
-                .cover-stats {
-                    position: absolute;
-                    left: 18mm;
-                    right: 18mm;
-                    bottom: 16mm;
-                }
-
-                .stats-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-
-                .stats-table td {
-                    width: 33.33%;
-                    padding: 14px 16px;
-                    background: rgba(255,255,255,.16);
-                    border: 1px solid rgba(255,255,255,.28);
-                    color: white;
-                }
-
-                .stat-label {
-                    font-size: 9px;
-                    text-transform: uppercase;
-                    letter-spacing: .8px;
-                    opacity: .85;
-                    margin-bottom: 5px;
-                }
-
-                .stat-value {
-                    font-size: 16px;
-                    font-weight: 800;
-                }
-
-                .doc-header {
-                    border-top: 5px solid <?= $primary ?>;
-                    border-bottom: 1px solid #e5e7eb;
-                    padding: 10px 0 12px;
-                    margin-bottom: 14px;
-                }
-
-                .doc-header-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-
-                .doc-header-table td {
-                    vertical-align: middle;
-                }
-
-                .small-logo {
-                    max-width: 105px;
-                    max-height: 45px;
-                }
-
-                .doc-title {
-                    text-align: right;
-                    font-size: 18px;
-                    font-weight: 800;
-                    color: #111827;
-                }
-
-                .section {
-                    margin-bottom: 16px;
-                }
-
-                .section-title {
-                    font-size: 20px;
-                    font-weight: 800;
-                    color: #111827;
-                    margin: 0 0 18px;
-                    padding-left: 10px;
-                    border-left: 5px solid <?= $primary ?>;
-                }
-
-                .summary-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 14px;
-                }
-
-                .summary-table td {
-                    width: 25%;
-                    padding: 9px 10px;
-                    border: 1px solid #e5e7eb;
-                    background: #f9fafb;
-                    vertical-align: top;
-                }
-
-                .label {
-                    font-size: 8px;
-                    color: #6b7280;
-                    text-transform: uppercase;
-                    letter-spacing: .5px;
-                    font-weight: 800;
-                    margin-bottom: 3px;
-                }
-
-                .value {
-                    font-size: 10.5px;
-                    font-weight: 700;
-                    color: #111827;
-                }
-
-                .itinerary-timeline-pdf {
-                    width: 100%;
-                }
-
-                .day-card {
-                    position: relative;
-                    margin-bottom: 14px;
-                    padding-left: 54px;
-                    page-break-inside: auto;
-                }
-
-                .day-number-box {
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    width: 38px;
-                    height: 38px;
-                    border: 2px solid <?= $primary ?>;
-                    border-radius: 19px;
-                    text-align: center;
-                    background: #ffffff;
-                }
-
-                .day-number-main {
-                    font-size: 14px;
-                    font-weight: 900;
-                    line-height: 18px;
-                    color: <?= $primary ?>;
-                    margin-top: 5px;
-                }
-
-                .day-number-label {
-                    font-size: 5px;
-                    color: #6b7280;
-                    text-transform: uppercase;
-                    letter-spacing: .3px;
-                }
-
-                .day-content-box {
-                    border: 1px solid #e5e7eb;
-                    border-radius: 16px;
-                    background: #ffffff;
-                    overflow: hidden;
-                }
-
-                .day-head {
-                    width: 100%;
-                    border-collapse: collapse;
-                    border-bottom: 1px solid #e5e7eb;
-                }
-
-                .day-head td {
-                    padding: 12px 14px;
-                    vertical-align: top;
-                }
-
-                .day-title {
-                    font-size: 16px;
-                    font-weight: 900;
-                    color: #111827;
-                    margin-bottom: 3px;
-                }
-
-                .day-date {
-                    color: <?= $primary ?>;
-                    font-weight: 900;
-                    font-size: 9px;
-                    text-transform: uppercase;
-                    text-align: right;
-                }
-
-                .day-location {
-                    color: #6b7280;
-                    font-size: 9px;
-                }
-
-                .day-gallery {
-                    border-bottom: 1px solid #e5e7eb;
-                }
-
-                .day-gallery-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    table-layout: fixed;
-                }
-
-                .day-gallery-table td {
-                    padding: 0;
-                    border-right: 2px solid #ffffff;
-                    height: 36mm;
-                    overflow: hidden;
-                    vertical-align: middle;
-                }
-
-                .day-gallery-table td:last-child {
-                    border-right: 0;
-                }
-
-                .day-gallery img {
-                    width: 100%;
-                    height: 36mm;
-                    object-fit: cover;
-                    display: block;
-                }
-
-                .day-body {
-                    padding: 12px 14px 14px;
-                }
-
-                .day-description {
-                    color: #374151;
-                    margin: 0 0 10px;
-                    font-size: 9.4px;
-                    line-height: 1.42;
-                }
-
-                .flight-card {
-                    border: 1px solid #e5e7eb;
-                    border-radius: 12px;
-                    padding: 9px 11px;
-                    margin: 9px 0;
-                    background: #f9fafb;
-                    page-break-inside: avoid;
-                }
-
-                .flight-route-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-
-                .flight-route-table td {
-                    vertical-align: middle;
-                }
-
-                .airport-code {
-                    font-size: 20px;
-                    font-weight: 900;
-                    color: #111827;
-                    letter-spacing: .5px;
-                }
-
-                .airport-city {
-                    color: #6b7280;
-                    font-size: 8px;
-                }
-
-                .flight-time {
-                    color: <?= $primary ?>;
-                    font-size: 11px;
-                    font-weight: 900;
-                    margin-top: 3px;
-                }
-
-                .flight-line {
-                    text-align: center;
-                    color: <?= $primary ?>;
-                    font-weight: 900;
-                    font-size: 8px;
-                    text-transform: uppercase;
-                }
-
-                .flight-arrow {
-                    font-size: 12px;
-                    margin-top: 2px;
-                }
-
-                .service-card {
-                    border: 1px solid #e5e7eb;
-                    border-radius: 12px;
-                    padding: 10px 12px;
-                    margin-bottom: 9px;
-                    background: #ffffff;
-                    page-break-inside: auto;
-                }
-
-                .service-title {
-                    font-weight: 900;
-                    font-size: 11.2px;
-                    color: #111827;
-                    margin-bottom: 4px;
-                }
-
-                .service-meta {
-                    color: #6b7280;
-                    font-size: 8.4px;
-                    margin-bottom: 5px;
-                }
-
-                .service-type-pill {
-                    display: inline-block;
-                    background: #fff1f2;
-                    color: <?= $primary ?>;
-                    border-radius: 999px;
-                    padding: 2px 7px;
-                    font-size: 7px;
-                    font-weight: 900;
-                    text-transform: uppercase;
-                    letter-spacing: .3px;
-                    margin-right: 5px;
-                }
-
-                .service-description {
-                    color: #374151;
-                    font-size: 9px;
-                    line-height: 1.38;
-                    margin-top: 5px;
-                }
-
-                .info-box {
-                    border-radius: 12px;
-                    border: 1px dashed <?= $primary ?>;
-                    padding: 8px 10px;
-                    background: #f9fafb;
-                    margin: 6px 0 9px;
-                    color: #374151;
-                    font-size: 8.6px;
-                }
-
-                .pricing-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-
-                .pricing-table td {
-                    border: 1px solid #e5e7eb;
-                    padding: 8px 10px;
-                }
-
-                .price-main {
-                    font-size: 18px;
-                    font-weight: 800;
-                    color: <?= $primary ?>;
-                }
-
-                .footer {
-                    border-top: 1px solid #e5e7eb;
-                    padding-top: 10px;
-                    margin-top: 18px;
-                    color: #6b7280;
-                    font-size: 9px;
-                    text-align: center;
-                }
-            </style>
-        </head>
-
-        <body>
-            <div class="cover">
-                <div class="cover-overlay">
-                    <div class="brand-row">
-                        <?php if ($logo): ?>
-                            <img class="logo" src="<?= htmlspecialchars($logo) ?>" alt="Logo">
-                        <?php endif; ?>
-                        <div class="agency-name"><?= htmlspecialchars($agencia['nombre']) ?></div>
-                    </div>
-
-                    <div class="cover-kicker">Travel itinerary</div>
-                    <div class="cover-title"><?= htmlspecialchars($titulo) ?></div>
-                    <div class="cover-subtitle">
-                        <?= htmlspecialchars($programa['destino'] ?? '') ?>
-                        <?= $viajero ? ' - Prepared for ' . htmlspecialchars($viajero) : '' ?>
-                    </div>
-
-                    <div class="cover-stats">
-                        <table class="stats-table">
-                            <tr>
-                                <td>
-                                    <div class="stat-label">Duration</div>
-                                    <div class="stat-value"><?= (int)$duracionDias ?> days</div>
-                                </td>
-                                <td>
-                                    <div class="stat-label">Travelers</div>
-                                    <div class="stat-value"><?= (int)($programa['viajeros_count'] ?? $programa['numero_pasajeros'] ?? 0) ?></div>
-                                </td>
-                                <td>
-                                    <div class="stat-label">Dates</div>
-                                    <div class="stat-value">
-                                        <?= htmlspecialchars($programa['fecha_llegada_formatted'] ?? '') ?>
-                                        <?= !empty($programa['fecha_salida_formatted']) ? ' - ' . htmlspecialchars($programa['fecha_salida_formatted']) : '' ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            
-
-            <div class="section">
-                <h2 class="section-title">Day by day itinerary</h2>
-
-                <div class="itinerary-timeline-pdf">
-                    <?php foreach ($dias as $dia): ?>
-                        <div class="day-card">
-                            <div class="day-number-box">
-                                <div class="day-number-main"><?= htmlspecialchars($dia['dia_numero']) ?></div>
-                                <div class="day-number-label">Day</div>
-                            </div>
-
-                            <div class="day-content-box">
-                                <table class="day-head">
-                                    <tr>
-                                        <td style="width: 70%;">
-                                            <div class="day-title">
-                                                <?= htmlspecialchars($dia['titulo'] ?? '') ?>
-                                            </div>
-
-                                            <?php if (!empty($dia['ubicacion'])): ?>
-                                                <div class="day-location">
-                                                    <?= htmlspecialchars($dia['ubicacion']) ?>
-                                                </div>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <td style="width: 30%;">
-                                            <div class="day-date">
-                                                <?= $this->formatDateRange($dia) ?>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-
-                                <?php if (!empty($dia['imagenes'])): ?>
-                                    <div class="day-gallery">
-                                        <table class="day-gallery-table">
-                                            <tr>
-                                                <?php foreach ($dia['imagenes'] as $img): ?>
-                                                    <?php $imgUrl = $this->resolveAsset($img); ?>
-                                                    <?php if ($imgUrl): ?>
-                                                        <td style="width: <?= 100 / max(1, count($dia['imagenes'])) ?>%;">
-                                                            <img src="<?= htmlspecialchars($imgUrl) ?>" alt="">
-                                                        </td>
-                                                    <?php endif; ?>
-                                                <?php endforeach; ?>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                <?php endif; ?>
-
-                                <div class="day-body">
-                                    <?php if (!empty($dia['descripcion'])): ?>
-                                        <div class="day-description">
-                                            <?= nl2br(htmlspecialchars($dia['descripcion'])) ?>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <?php if (!empty($dia['vuelos'])): ?>
-                                        <?php foreach ($dia['vuelos'] as $vuelo): ?>
-                                            <div class="flight-card">
-                                                <div class="service-title">
-                                                    <?= htmlspecialchars($vuelo['codigo_vuelo']) ?> - <?= htmlspecialchars($vuelo['aerolinea']) ?>
-                                                </div>
-
-                                                <table class="flight-route-table">
-                                                    <tr>
-                                                        <td style="width: 35%;">
-                                                            <div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_origen']) ?></div>
-                                                            <div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_origen']) ?></div>
-                                                            <div class="flight-time"><?= htmlspecialchars(substr($vuelo['hora_salida'], 0, 5)) ?></div>
-                                                        </td>
-
-                                                        <td style="width: 30%;">
-                                                            <div class="flight-line">
-                                                                Flight <?= (int)$vuelo['orden'] ?>
-                                                                <div class="flight-arrow">→</div>
-                                                            </div>
-                                                        </td>
-
-                                                        <td style="width: 35%; text-align: right;">
-                                                            <div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_destino']) ?></div>
-                                                            <div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_destino']) ?></div>
-                                                            <div class="flight-time"><?= htmlspecialchars(substr($vuelo['hora_llegada'], 0, 5)) ?></div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-
-                                                <div class="service-meta">
-                                                    <?= htmlspecialchars($vuelo['aeropuerto_origen']) ?>
-                                                    -
-                                                    <?= htmlspecialchars($vuelo['aeropuerto_destino']) ?>
-                                                    <?= !empty($vuelo['terminal']) ? ' | Terminal ' . htmlspecialchars($vuelo['terminal']) : '' ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-
-                                    <?php foreach (($dia['servicios'] ?? []) as $grupo): ?>
-                                        <?php if (!empty($grupo['principal'])): ?>
-                                            <?php $servicio = $grupo['principal']; ?>
-
-                                            <div class="service-card">
-                                                <div class="service-title">
-                                                    <?= htmlspecialchars($servicio['nombre'] ?? 'Service') ?>
-                                                </div>
-
-                                                <div class="service-meta">
-                                                    <span class="service-type-pill">
-                                                        <?= htmlspecialchars($this->formatServiceType($servicio['tipo_servicio'] ?? '')) ?>
-                                                    </span>
-
-                                                    <?= !empty($servicio['ubicacion']) ? htmlspecialchars($servicio['ubicacion']) : '' ?>
-                                                </div>
-
-                                                <?php if (!empty($servicio['descripcion'])): ?>
-                                                    <div class="service-description">
-                                                        <?= nl2br(htmlspecialchars($servicio['descripcion'])) ?>
-                                                    </div>
-                                                <?php endif; ?>
-
-                                                <?php if (($servicio['tipo_servicio'] ?? '') === 'alojamiento'): ?>
-                                                    <div class="service-meta">
-                                                        <?= !empty($servicio['acomodacion_nombre']) ? 'Room: ' . htmlspecialchars($servicio['acomodacion_nombre']) : '' ?>
-                                                        <?= !empty($servicio['acomodacion_capacidad']) ? ' | Pax: ' . htmlspecialchars($servicio['acomodacion_capacidad']) : '' ?>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-
-                                            <?php if (!empty($grupo['alternativas'])): ?>
-                                                <div class="info-box">
-                                                    <strong>Alternatives:</strong>
-                                                    <?php foreach ($grupo['alternativas'] as $alt): ?>
-                                                        <br><?= htmlspecialchars($alt['nombre'] ?? 'Alternative') ?>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            <?php endif; ?>
-                                        <?php endif; ?>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <?php if (!empty($precios)): ?>
-                <div class="section">
-                    <h2 class="section-title">Investment and conditions</h2>
-
-                    <table class="pricing-table">
-                        <?php if (!empty($precios['precio_total'])): ?>
-                            <tr>
-                                <td style="width: 35%;"><strong>Total price</strong></td>
-                                <td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></span></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['incluye'])): ?>
-                            <tr>
-                                <td><strong>Includes</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['incluye'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['no_incluye'])): ?>
-                            <tr>
-                                <td><strong>Does not include</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['no_incluye'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['condiciones_generales'])): ?>
-                            <tr>
-                                <td><strong>General conditions</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['condiciones_generales'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['info_pasaporte'])): ?>
-                            <tr>
-                                <td><strong>Passport information</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['info_pasaporte'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['info_seguros'])): ?>
-                            <tr>
-                                <td><strong>Insurance information</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['info_seguros'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['visados_entrada'])): ?>
-                            <tr>
-                                <td><strong>Visa information</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['visados_entrada'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['requisitos_sanitarios'])): ?>
-                            <tr>
-                                <td><strong>Health requirements</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['requisitos_sanitarios'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['llegada_punto_encuentro'])): ?>
-                            <tr>
-                                <td><strong>Arrival & meeting point</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['llegada_punto_encuentro'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['asistencia_emergencia'])): ?>
-                            <tr>
-                                <td><strong>Emergency assistance</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['asistencia_emergencia'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['info_hoteles_servicios'])): ?>
-                            <tr>
-                                <td><strong>Hotels & services</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['info_hoteles_servicios'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <?php if (!empty($precios['informacion_practica'])): ?>
-                            <tr>
-                                <td><strong>Practical information</strong></td>
-                                <td><?= nl2br(htmlspecialchars($precios['informacion_practica'])) ?></td>
-                            </tr>
-                        <?php endif; ?>
-                    </table>
-                </div>
-            <?php endif; ?>
-
-            <div class="footer">
-                <?= htmlspecialchars($agencia['nombre']) ?>
-                <?php if (!empty($agencia['telefono'])): ?>
-                    | <?= htmlspecialchars($agencia['telefono']) ?>
-                <?php endif; ?>
-                <?php if (!empty($agencia['email_contacto'])): ?>
-                    | <?= htmlspecialchars($agencia['email_contacto']) ?>
-                <?php endif; ?>
-            </div>
-        </body>
-        </html>
-        <?php
-        return ob_get_clean();
+        $out = [];
+        foreach ($paths as $path) {
+            $src = $this->thumbToDataUri($path, 300, 180);
+            if ($src) { $out[] = $src; }
+            if (count($out) >= 3) { break; }
+        }
+        return $out;
     }
 
-    private function resolveAsset(?string $path): string
+    private function getVisibleServices(array $servicios): array
     {
-        if (!$path) {
-            return '';
+        $visible = [];
+        $hotelsSeen = [];
+        $hotelCount = 0;
+        foreach ($servicios as $grupo) {
+            if (empty($grupo['principal'])) { continue; }
+            $s = $grupo['principal'];
+            $tipo = $s['tipo_servicio'] ?? '';
+            if ($tipo === 'alojamiento') {
+                $key = mb_strtolower(trim((string)($s['nombre'] ?? '')), 'UTF-8');
+                if ($key && isset($hotelsSeen[$key])) { continue; }
+                $hotelsSeen[$key] = true;
+                $hotelCount++;
+                if ($hotelCount > 1) { continue; } // solo el alojamiento principal del día
+            }
+            $visible[] = $s;
+        }
+        return $visible;
+    }
+
+    private function thumbToDataUri(?string $path, int $targetW, int $targetH): string
+    {
+        $path = trim((string)$path);
+        if ($path === '') { return ''; }
+
+        // Caché en disco: evita re-descargar/re-procesar la misma imagen en cada PDF (clave: ruta+tamaño)
+        $cacheDir = $this->rootPath . '/tmp/pdf-thumbs';
+        if (!is_dir($cacheDir)) { @mkdir($cacheDir, 0775, true); }
+        $cacheFile = $cacheDir . '/' . md5($path . '|' . $targetW . 'x' . $targetH) . '.jpg';
+        if (is_file($cacheFile)) {
+            $cached = @file_get_contents($cacheFile);
+            if ($cached !== false && $cached !== '') {
+                return 'data:image/jpeg;base64,' . base64_encode($cached);
+            }
         }
 
-        if (preg_match('/^https?:\/\//', $path)) {
-            return $path;
+        $binary = $this->readImageBinary($path);
+        if (!$binary) { return ''; }
+
+        // Si GD no está disponible, devolver la imagen original sin redimensionar
+        if (!function_exists('imagecreatefromstring')) {
+            $info = @getimagesizefromstring($binary);
+            if (!$info || empty($info['mime'])) { return ''; }
+            return 'data:' . $info['mime'] . ';base64,' . base64_encode($binary);
         }
 
-        $path = str_replace('\\', '/', $path);
-        return rtrim(APP_URL, '/') . '/' . ltrim($path, '/');
+        $src = @imagecreatefromstring($binary);
+        if (!$src) { return ''; }
+        $w = imagesx($src); $h = imagesy($src);
+        if ($w <= 0 || $h <= 0) { imagedestroy($src); return ''; }
+        $srcRatio = $w / $h; $dstRatio = $targetW / $targetH;
+        if ($srcRatio > $dstRatio) { $newH = $h; $newW = (int)round($h * $dstRatio); $srcX = (int)(($w - $newW) / 2); $srcY = 0; }
+        else { $newW = $w; $newH = (int)round($w / $dstRatio); $srcX = 0; $srcY = (int)(($h - $newH) / 2); }
+        $dst = imagecreatetruecolor($targetW, $targetH);
+        imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, $targetW, $targetH, $newW, $newH);
+        ob_start(); imagejpeg($dst, null, 78); $jpg = ob_get_clean();
+        imagedestroy($src); imagedestroy($dst);
+        @file_put_contents($cacheFile, $jpg);
+        return 'data:image/jpeg;base64,' . base64_encode($jpg);
+    }
+
+    private function imageToDataUri(?string $path): string
+    {
+        $binary = $this->readImageBinary($path);
+        if (!$binary) { return ''; }
+        $info = @getimagesizefromstring($binary);
+        if (!$info || empty($info['mime'])) { return ''; }
+        return 'data:' . $info['mime'] . ';base64,' . base64_encode($binary);
+    }
+
+    private function readImageBinary(?string $path): ?string
+    {
+        $path = trim((string)$path);
+        if ($path === '') { return null; }
+        if (preg_match('/^https?:\/\//i', $path)) {
+            $context = stream_context_create(['http' => ['timeout' => 2, 'ignore_errors' => true, 'header' => "User-Agent: TravelSoftPDF/1.0\r\n"], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+            $binary = @file_get_contents($path, false, $context);
+            return $binary ?: null;
+        }
+        $cleanPath = str_replace('\\', '/', $path);
+        $cleanPath = preg_replace('/^\.\//', '', $cleanPath);
+        foreach ([$this->rootPath . '/' . ltrim($cleanPath, '/'), ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/' . ltrim($cleanPath, '/')] as $localPath) {
+            if ($localPath && is_file($localPath)) { return @file_get_contents($localPath) ?: null; }
+        }
+        return null;
+    }
+
+    private function fontFileUri(string $filename): string
+    {
+        $path = $this->rootPath . '/assets/fonts/' . $filename;
+        return is_file($path) ? 'file://' . $path : '';
     }
 
     private function normalizeColor(?string $color): string
     {
         $color = trim((string)$color);
-
-        if ($color === '') {
-            return '#667eea';
-        }
-
-        if ($color[0] !== '#') {
-            $color = '#' . $color;
-        }
-
-        return $color;
-    }
-
-    private function formatDateRange(array $dia): string
-    {
-        if (empty($dia['fecha_calculada'])) {
-            return '';
-        }
-
-        $inicio = date('d/m/Y', strtotime($dia['fecha_calculada']));
-
-        if (!empty($dia['fecha_fin_calculada']) && $dia['fecha_fin_calculada'] !== $dia['fecha_calculada']) {
-            $fin = date('d/m/Y', strtotime($dia['fecha_fin_calculada']));
-            return $inicio . ' - ' . $fin;
-        }
-
-        return $inicio;
-    }
-
-    private function formatServiceType(string $tipo): string
-    {
-        $tipos = [
-            'actividad' => 'Activity',
-            'transporte' => 'Transport',
-            'alojamiento' => 'Accommodation',
-            'comida' => 'Meal'
-        ];
-
-        return $tipos[$tipo] ?? ucfirst($tipo);
+        if ($color === '') { return '#0f766e'; }
+        if ($color[0] !== '#') { $color = '#' . $color; }
+        return preg_match('/^#[0-9a-fA-F]{6}$/', $color) ? $color : '#0f766e';
     }
 
     private function hexToRgba(string $hex, float $alpha = 0.1): string
     {
         $hex = str_replace('#', '', $hex);
+        if (strlen($hex) !== 6) { return "rgba(15,118,110,{$alpha})"; }
+        $r = hexdec(substr($hex, 0, 2)); $g = hexdec(substr($hex, 2, 2)); $b = hexdec(substr($hex, 4, 2));
+        return "rgba($r,$g,$b,$alpha)";
+    }
 
-        if (strlen($hex) === 3) {
-            $r = hexdec(str_repeat($hex[0], 2));
-            $g = hexdec(str_repeat($hex[1], 2));
-            $b = hexdec(str_repeat($hex[2], 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
+    private function formatDateRange(array $dia): string
+    {
+        if (empty($dia['fecha_calculada'])) { return ''; }
+        $inicio = date('d/m/Y', strtotime($dia['fecha_calculada']));
+        if (!empty($dia['fecha_fin_calculada']) && $dia['fecha_fin_calculada'] !== $dia['fecha_calculada']) { return $inicio . ' - ' . date('d/m/Y', strtotime($dia['fecha_fin_calculada'])); }
+        return $inicio;
+    }
+
+    private function formatServiceType(string $tipo): string
+    {
+        return ['actividad'=>'Actividad','transporte'=>'Transporte','alojamiento'=>'Alojamiento','comida'=>'Comida'][$tipo] ?? ucfirst($tipo);
+    }
+
+    private function shortText(?string $text, int $limit = 300): string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', strip_tags((string)$text)));
+        if ($text === '' || mb_strlen($text, 'UTF-8') <= $limit) { return $text; }
+        return rtrim(mb_substr($text, 0, $limit, 'UTF-8')) . '...';
+    }
+
+    private function splitLocations(?string $location): array
+    {
+        $location = trim((string)$location);
+        if ($location === '') { return []; }
+        $parts = preg_split('/[,|→-]+/u', $location);
+        $parts = array_values(array_filter(array_map('trim', $parts)));
+        return array_slice($parts, 0, 3);
+    }
+
+    private function getMealsSummary(array $servicios, string $diaDescripcion = ''): string
+    {
+        $source = mb_strtolower($diaDescripcion, 'UTF-8');
+        foreach ($servicios as $grupo) {
+            if (!empty($grupo['principal'])) { $source .= ' ' . mb_strtolower((string)($grupo['principal']['nombre'] ?? ''), 'UTF-8'); }
         }
-
-        return "rgba($r, $g, $b, $alpha)";
+        $meals = [];
+        if (str_contains($source, 'desayuno')) { $meals[] = 'Desayuno'; }
+        if (str_contains($source, 'almuerzo') || str_contains($source, 'comida')) { $meals[] = 'Almuerzo'; }
+        if (str_contains($source, 'cena')) { $meals[] = 'Cena'; }
+        $meals = array_values(array_unique($meals));
+        return empty($meals) ? 'Las comidas no están incluidas para este día' : '✓ ' . implode('   ✓ ', $meals);
     }
 }

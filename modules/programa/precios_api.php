@@ -46,6 +46,12 @@ class ProgramaPreciosAPI {
                 case 'delete':
                     $result = $this->deletePrecios($_POST['programa_id'] ?? null);
                     break;
+                case 'get_variaciones':
+                    $result = $this->getVariaciones($_GET['programa_id'] ?? null);
+                    break;
+                case 'recalculate':
+                    $result = $this->recalculate($_POST['programa_id'] ?? null);
+                    break;
                 default:
                     throw new Exception('Acción no válida: ' . $action);
             }
@@ -239,7 +245,161 @@ class ProgramaPreciosAPI {
             throw $e;
         }
     }
-    
+
+    private function getVariaciones($programaId) {
+        if (!$programaId) {
+            throw new Exception('ID de programa requerido');
+        }
+
+        $user_id    = $_SESSION['user_id'];
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $programa = $this->db->fetch(
+            "SELECT id FROM programa_solicitudes WHERE id = ? AND user_id = ? AND agencia_id = ?",
+            [$programaId, $user_id, $agencia_id]
+        );
+
+        if (!$programa) {
+            throw new Exception('Programa no encontrado o sin permisos');
+        }
+
+        // Obtener precios base
+        $precios = $this->db->fetch(
+            "SELECT precio_adulto, precio_nino, cantidad_adultos, cantidad_ninos
+            FROM programa_precios WHERE solicitud_id = ?",
+            [$programaId]
+        );
+
+        $precioBase = 0;
+        if ($precios) {
+            $precioBase = (floatval($precios['precio_adulto'] ?? 0) * intval($precios['cantidad_adultos'] ?? 0))
+                        + (floatval($precios['precio_nino']   ?? 0) * intval($precios['cantidad_ninos']   ?? 0));
+        }
+
+        // Obtener todos los servicios de alojamiento del programa (principales y alternativas)
+        $servicios = $this->db->fetchAll(
+            "SELECT pds.id, pds.nombre_servicio, pds.variacion_precio,
+                    pds.es_alternativa, pds.servicio_principal_id
+            FROM programa_dias_servicios pds
+            JOIN programa_dias pd ON pd.id = pds.programa_dia_id
+            WHERE pd.solicitud_id = ?
+            AND pds.tipo_servicio = 'alojamiento'
+            ORDER BY pds.orden ASC, pds.es_alternativa ASC, pds.orden_alternativa ASC",
+            [$programaId]
+        );
+
+        // Agrupar: principales con sus alternativas anidadas
+        $principales = [];
+        $altsPorPrincipal = [];
+
+        foreach ($servicios as $s) {
+            if ($s['es_alternativa'] == 0) {
+                $s['alternativas'] = [];
+                $principales[$s['id']] = $s;
+            } else {
+                $altsPorPrincipal[$s['servicio_principal_id']][] = $s;
+            }
+        }
+
+        foreach ($principales as $id => &$principal) {
+            $alts = $altsPorPrincipal[$id] ?? [];
+            $variacionPrincipal = floatval($principal['variacion_precio'] ?? 0);
+
+            foreach ($alts as &$alt) {
+                $alt['delta'] = floatval($alt['variacion_precio'] ?? 0) - $variacionPrincipal;
+            }
+            unset($alt);
+
+            $principal['alternativas'] = $alts;
+        }
+        unset($principal);
+
+        // Calcular precio total con variaciones activas (solo principales)
+        $totalVariaciones = array_sum(array_map(
+            fn($s) => floatval($s['variacion_precio'] ?? 0),
+            $principales
+        ));
+
+        return [
+            'success' => true,
+            'data'    => [
+                'precio_base'            => $precioBase,
+                'precio_total_calculado' => $precioBase + $totalVariaciones,
+                'servicios'              => array_values($principales),
+            ]
+        ];
+    }
+
+    private function recalculate($programaId) {
+        if (!$programaId) {
+            throw new Exception('ID de programa requerido');
+        }
+
+        $user_id    = $_SESSION['user_id'];
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $programa = $this->db->fetch(
+            "SELECT id FROM programa_solicitudes WHERE id = ? AND user_id = ? AND agencia_id = ?",
+            [$programaId, $user_id, $agencia_id]
+        );
+
+        if (!$programa) {
+            throw new Exception('Programa no encontrado o sin permisos');
+        }
+
+        // Verificar que existen precios base
+        $precios = $this->db->fetch(
+            "SELECT precio_adulto, precio_nino, cantidad_adultos, cantidad_ninos
+            FROM programa_precios WHERE solicitud_id = ?",
+            [$programaId]
+        );
+
+        if (!$precios) {
+            throw new Exception('El programa no tiene precios base configurados');
+        }
+
+        $precioBase = (floatval($precios['precio_adulto'] ?? 0) * intval($precios['cantidad_adultos'] ?? 0))
+                    + (floatval($precios['precio_nino']   ?? 0) * intval($precios['cantidad_ninos']   ?? 0));
+
+        // Sumar variaciones de todos los servicios principales del programa
+        $row = $this->db->fetch(
+            "SELECT COALESCE(SUM(pds.variacion_precio), 0) AS total_variaciones
+            FROM programa_dias_servicios pds
+            JOIN programa_dias pd ON pd.id = pds.programa_dia_id
+            WHERE pd.solicitud_id  = ?
+            AND pds.tipo_servicio = 'alojamiento'
+            AND pds.es_alternativa = 0",
+            [$programaId]
+        );
+
+        $totalVariaciones = floatval($row['total_variaciones'] ?? 0);
+        $nuevoTotal       = $precioBase + $totalVariaciones;
+
+        $this->db->update(
+            'programa_precios',
+            ['precio_total' => $nuevoTotal],
+            'solicitud_id = ?',
+            [$programaId]
+        );
+
+        return [
+            'success'            => true,
+            'precio_base'        => $precioBase,
+            'total_variaciones'  => $totalVariaciones,
+            'precio_total'       => $nuevoTotal,
+            'message'            => 'Precio total recalculado exitosamente'
+        ];
+    }
+
+
     private function deletePrecios($programaId) {
         if (!$programaId) {
             throw new Exception('ID de programa requerido');

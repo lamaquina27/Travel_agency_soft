@@ -744,6 +744,7 @@ $agenciaId = intval($_GET['agencia_id']);
                             <option value="">Seleccione un rol</option>
                             <option value="admin">Administrador</option>
                             <option value="agent">Agente</option>
+                            <option value="operador">Operador</option>
                         </select>
                     </div>
                 </div>
@@ -799,6 +800,7 @@ $agenciaId = intval($_GET['agencia_id']);
                         <select class="form-select" id="editar-role" name="role" required>
                             <option value="admin">Administrador</option>
                             <option value="agent">Agente</option>
+                            <option value="operador">Operador</option>
                         </select>
                     </div>
                     

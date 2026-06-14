@@ -9,12 +9,15 @@ error_reporting(E_ALL);
 
 require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
+require_once dirname(__DIR__, 2) . '/classes/FechaCalculator.php';
+require_once dirname(__DIR__, 2) . '/classes/RoomingModel.php';
 
 App::init();
 App::requireLogin();
 
-class ProgramaAPI{
-    
+class ProgramaAPI
+{
+
     private function togglePlantilla()
     {
         $programa_id = $_POST['programa_id'] ?? null;
@@ -23,20 +26,16 @@ class ProgramaAPI{
         }
 
         $agencia_id = $_SESSION['agencia_id'] ?? null;
-        $user_id    = $_SESSION['user_id'];
-        $user_role  = $_SESSION['user_role'] ?? 'agent';
+        $user_role = $_SESSION['user_role'] ?? 'agent';
 
-        // Solo el dueño o un admin pueden cambiar el flag
-        $where = $user_role === 'admin'
-            ? "id = ? AND agencia_id = ?"
-            : "id = ? AND user_id = ? AND agencia_id = ?";
-        $params = $user_role === 'admin'
-            ? [$programa_id, $agencia_id]
-            : [$programa_id, $user_id, $agencia_id];
+        // Solo los administradores pueden guardar/quitar plantillas
+        if ($user_role !== 'admin') {
+            throw new Exception('Solo los administradores pueden guardar plantillas');
+        }
 
         $programa = $this->db->fetch(
-            "SELECT id, plantilla FROM programa_solicitudes WHERE $where",
-            $params
+            "SELECT id, plantilla FROM programa_solicitudes WHERE id = ? AND agencia_id = ?",
+            [$programa_id, $agencia_id]
         );
 
         if (!$programa) {
@@ -53,9 +52,9 @@ class ProgramaAPI{
         );
 
         return [
-            'success'   => true,
+            'success' => true,
             'plantilla' => $nuevo_valor,
-            'message'   => $nuevo_valor ? 'Marcado como plantilla' : 'Desmarcado como plantilla'
+            'message' => $nuevo_valor ? 'Marcado como plantilla' : 'Desmarcado como plantilla'
         ];
     }
 
@@ -182,7 +181,14 @@ class ProgramaAPI{
                          WHERE pd.solicitud_id = ps.id) as total_dias_real,
                         (SELECT COUNT(*)
                          FROM viajeros_solicitud vs
-                         WHERE vs.solicitud_id = ps.id) as viajeros_count
+                         WHERE vs.solicitud_id = ps.id) as viajeros_count,
+                        (SELECT GROUP_CONCAT(it.tag_id)
+                         FROM itinerario_tags it
+                         WHERE it.solicitud_id = ps.id) as tag_ids,
+                        (SELECT GROUP_CONCAT(t.nombre SEPARATOR '||')
+                         FROM itinerario_tags it
+                         JOIN tags t ON t.id = it.tag_id
+                         WHERE it.solicitud_id = ps.id) as tag_nombres
                 FROM programa_solicitudes ps
                 LEFT JOIN users u ON ps.user_id = u.id
                 LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
@@ -392,11 +398,11 @@ class ProgramaAPI{
                 throw new Exception('Usuario sin agencia asignada');
             }
 
-            // Obtener programa original
+            // Obtener programa original incluyendo todos los campos de personalización
             $original = $this->db->fetch(
-                "SELECT ps.*, pp.titulo_programa 
-            FROM programa_solicitudes ps 
-            LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id 
+                "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado AS pp_idioma
+            FROM programa_solicitudes ps
+            LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
             WHERE ps.id = ? AND ps.agencia_id = ?",
                 [$programa_id, $agencia_id]
             );
@@ -417,7 +423,7 @@ class ProgramaAPI{
                 'apellido' => $original['apellido'],
                 'titular_id' => $original['titular_id'], // <- Hereda el titular
                 'comprado' => 0, // <- Las copias nacen sin comprar
-                'plantilla' => 0,                        
+                'plantilla' => 0,
                 'destino' => $original['destino'],
                 'fecha_llegada' => $original['fecha_llegada'],
                 'fecha_salida' => $original['fecha_salida'],
@@ -425,6 +431,7 @@ class ProgramaAPI{
                 'acompanamiento' => $original['acompanamiento'],
                 'user_id' => $user_id,
                 'agencia_id' => $agencia_id,
+                'public_token' => bin2hex(random_bytes(16)),       // ← Nuevo token público
                 'preview_token' => bin2hex(random_bytes(16)),    // ← Nuevo token preview
                 'itinerary_token' => bin2hex(random_bytes(16))   // ← Nuevo token itinerary
             ];
@@ -450,16 +457,21 @@ class ProgramaAPI{
             $this->db->update('programa_solicitudes', ['id_solicitud' => $nuevo_request_id], 'id = ?', [$nuevo_programa_id]);
             error_log("ID de solicitud generado: $nuevo_request_id");
 
-            // Crear personalización con nuevo título
+            // Crear personalización copiando todos los campos del original
             $this->db->insert('programa_personalizacion', [
-                'solicitud_id' => $nuevo_programa_id,
-                'titulo_programa' => $nuevo_titulo,
-                'idioma_predeterminado' => 'es'
+                'solicitud_id'          => $nuevo_programa_id,
+                'agencia_id'            => $agencia_id,
+                'titulo_programa'       => $nuevo_titulo,
+                'idioma_predeterminado' => $original['pp_idioma'] ?? 'es',
+                'foto_portada'          => $original['foto_portada'] ?? null,
             ]);
             error_log("Personalización creada");
 
-            // DUPLICAR DÍAS
-            $this->duplicarDias($programa_id, $nuevo_programa_id);
+            // DUPLICAR DÍAS — guarda el mapeo [id_viejo => id_nuevo] para los vuelos
+            $mapeo_dias = $this->duplicarDias($programa_id, $nuevo_programa_id);
+
+            // DUPLICAR VUELOS (usa el mapeo de días para reasignar programa_dias_id)
+            $this->duplicarVuelos($mapeo_dias);
 
             // DUPLICAR PRECIOS
             $this->duplicarPrecios($programa_id, $nuevo_programa_id);
@@ -482,13 +494,14 @@ class ProgramaAPI{
         }
     }
 
-    // Función para duplicar días (CORREGIDA - incluye ubicaciones secundarias)
-    private function duplicarDias($programa_original_id, $nuevo_programa_id)
+    // Función para duplicar días — retorna mapeo [id_original => id_nuevo] para usarlo en vuelos
+    private function duplicarDias($programa_original_id, $nuevo_programa_id): array
     {
+        $mapeo_dias = [];
+
         try {
             error_log("=== DUPLICANDO DÍAS ===");
 
-            // Obtener días originales
             $dias_originales = $this->db->fetchAll(
                 "SELECT * FROM programa_dias WHERE solicitud_id = ? ORDER BY dia_numero",
                 [$programa_original_id]
@@ -498,28 +511,30 @@ class ProgramaAPI{
 
             if (empty($dias_originales)) {
                 error_log("No hay días para duplicar");
-                return;
+                return $mapeo_dias;
             }
 
             foreach ($dias_originales as $dia_original) {
                 error_log("Duplicando día {$dia_original['dia_numero']}: {$dia_original['titulo']}");
 
-                // Crear nuevo día con TODOS los campos de la BD incluyendo comidas
                 $nuevo_dia_data = [
-                    'solicitud_id' => $nuevo_programa_id,
-                    'dia_numero' => $dia_original['dia_numero'],
-                    'titulo' => $dia_original['titulo'],
-                    'descripcion' => $dia_original['descripcion'],
-                    'ubicacion' => $dia_original['ubicacion'],
+                    'solicitud_id'      => $nuevo_programa_id,
+                    'dia_numero'        => $dia_original['dia_numero'],
+                    'titulo'            => $dia_original['titulo'],
+                    'descripcion'       => $dia_original['descripcion'],
+                    'ubicacion'         => $dia_original['ubicacion'],
+                    'latitud'           => $dia_original['latitud'],
+                    'longitud'          => $dia_original['longitud'],
                     'duracion_estancia' => $dia_original['duracion_estancia'] ?? 1,
-                    'fecha_dia' => $dia_original['fecha_dia'],
-                    'imagen1' => $dia_original['imagen1'],
-                    'imagen2' => $dia_original['imagen2'],
-                    'imagen3' => $dia_original['imagen3'],
+                    'biblioteca_dia_id' => $dia_original['biblioteca_dia_id'],
+                    'fecha_dia'         => $dia_original['fecha_dia'],
+                    'imagen1'           => $dia_original['imagen1'],
+                    'imagen2'           => $dia_original['imagen2'],
+                    'imagen3'           => $dia_original['imagen3'],
                     'comidas_incluidas' => $dia_original['comidas_incluidas'] ?? 0,
-                    'desayuno' => $dia_original['desayuno'] ?? 0,
-                    'almuerzo' => $dia_original['almuerzo'] ?? 0,
-                    'cena' => $dia_original['cena'] ?? 0
+                    'desayuno'          => $dia_original['desayuno'] ?? 0,
+                    'almuerzo'          => $dia_original['almuerzo'] ?? 0,
+                    'cena'              => $dia_original['cena'] ?? 0,
                 ];
 
                 $nuevo_dia_id = $this->db->insert('programa_dias', $nuevo_dia_data);
@@ -527,10 +542,10 @@ class ProgramaAPI{
                 if ($nuevo_dia_id) {
                     error_log("✅ Nuevo día creado con ID: $nuevo_dia_id");
 
-                    // ✅ COPIAR UBICACIONES SECUNDARIAS
-                    $this->duplicarUbicacionesSecundarias($dia_original['id'], $nuevo_dia_id);
+                    // Guardar mapeo para que duplicarVuelos pueda reasignar los vuelos
+                    $mapeo_dias[$dia_original['id']] = $nuevo_dia_id;
 
-                    // ✅ COPIAR SERVICIOS CON DATOS COMPLETOS
+                    $this->duplicarUbicacionesSecundarias($dia_original['id'], $nuevo_dia_id);
                     $this->duplicarServiciosDia($dia_original['id'], $nuevo_dia_id);
                 } else {
                     error_log("❌ Error creando día");
@@ -539,10 +554,15 @@ class ProgramaAPI{
 
             error_log("=== DÍAS DUPLICADOS ===");
 
+            // Recalcular fecha_dia de los días duplicados (no arrastrar fechas viejas)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $nuevo_programa_id);
+
         } catch (Exception $e) {
             error_log("❌ Error duplicando días: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
         }
+
+        return $mapeo_dias;
     }
 
     // ✅ NUEVA FUNCIÓN: Duplicar ubicaciones secundarias
@@ -632,29 +652,31 @@ class ProgramaAPI{
                     'longitud' => $servicio_original['longitud'],
 
                     // ✅ DATOS ESPECÍFICOS DE ACTIVIDAD
-                    'actividad_imagen1' => $servicio_original['actividad_imagen1'],
-                    'actividad_imagen2' => $servicio_original['actividad_imagen2'],
-                    'actividad_imagen3' => $servicio_original['actividad_imagen3'],
+                    'actividad_imagen1'  => $servicio_original['actividad_imagen1'],
+                    'actividad_imagen2'  => $servicio_original['actividad_imagen2'],
+                    'actividad_imagen3'  => $servicio_original['actividad_imagen3'],
+                    'actividad_idioma'   => $servicio_original['actividad_idioma'],
 
                     // ✅ DATOS ESPECÍFICOS DE TRANSPORTE
-                    'transporte_medio' => $servicio_original['transporte_medio'],
-                    'transporte_titulo' => $servicio_original['transporte_titulo'],
-                    'transporte_lugar_salida' => $servicio_original['transporte_lugar_salida'],
-                    'transporte_lugar_llegada' => $servicio_original['transporte_lugar_llegada'],
-                    'transporte_lat_salida' => $servicio_original['transporte_lat_salida'],
-                    'transporte_lng_salida' => $servicio_original['transporte_lng_salida'],
-                    'transporte_lat_llegada' => $servicio_original['transporte_lat_llegada'],
-                    'transporte_lng_llegada' => $servicio_original['transporte_lng_llegada'],
-                    'transporte_duracion' => $servicio_original['transporte_duracion'],
-                    'transporte_distancia_km' => $servicio_original['transporte_distancia_km'],
-                    'transporte_idioma' => $servicio_original['transporte_idioma'],
+                    'transporte_medio'          => $servicio_original['transporte_medio'],
+                    'transporte_titulo'         => $servicio_original['transporte_titulo'],
+                    'transporte_lugar_salida'   => $servicio_original['transporte_lugar_salida'],
+                    'transporte_lugar_llegada'  => $servicio_original['transporte_lugar_llegada'],
+                    'transporte_lat_salida'     => $servicio_original['transporte_lat_salida'],
+                    'transporte_lng_salida'     => $servicio_original['transporte_lng_salida'],
+                    'transporte_lat_llegada'    => $servicio_original['transporte_lat_llegada'],
+                    'transporte_lng_llegada'    => $servicio_original['transporte_lng_llegada'],
+                    'transporte_duracion'       => $servicio_original['transporte_duracion'],
+                    'transporte_distancia_km'   => $servicio_original['transporte_distancia_km'],
+                    'transporte_idioma'         => $servicio_original['transporte_idioma'],
 
                     // ✅ DATOS ESPECÍFICOS DE ALOJAMIENTO
-                    'alojamiento_tipo' => $servicio_original['alojamiento_tipo'],
+                    'acomodacion_id'        => $servicio_original['acomodacion_id'],
+                    'alojamiento_tipo'      => $servicio_original['alojamiento_tipo'],
                     'alojamiento_categoria' => $servicio_original['alojamiento_categoria'],
-                    'alojamiento_imagen' => $servicio_original['alojamiento_imagen'],
+                    'alojamiento_imagen'    => $servicio_original['alojamiento_imagen'],
                     'alojamiento_sitio_web' => $servicio_original['alojamiento_sitio_web'],
-                    'alojamiento_idioma' => $servicio_original['alojamiento_idioma']
+                    'alojamiento_idioma'    => $servicio_original['alojamiento_idioma'],
                 ];
 
                 // Si es alternativa, mapear el servicio_principal_id
@@ -691,7 +713,6 @@ class ProgramaAPI{
         }
     }
 
-    // Función para duplicar precios (ya está correcta)
     private function duplicarPrecios($programa_original_id, $nuevo_programa_id)
     {
         try {
@@ -707,22 +728,28 @@ class ProgramaAPI{
                 return;
             }
 
-            // Crear nuevos precios con TODOS los campos
             $nuevo_precio_data = [
-                'solicitud_id' => $nuevo_programa_id,
-                'moneda' => $precios_original['moneda'],
-                'precio_adulto' => $precios_original['precio_adulto'],
-                'precio_nino' => $precios_original['precio_nino'],
-                'cantidad_adultos' => $precios_original['cantidad_adultos'],
-                'cantidad_ninos' => $precios_original['cantidad_ninos'],
-                'precio_total' => $precios_original['precio_total'],
-                'noches_incluidas' => $precios_original['noches_incluidas'],
-                'precio_incluye' => $precios_original['precio_incluye'],
-                'precio_no_incluye' => $precios_original['precio_no_incluye'],
-                'condiciones_generales' => $precios_original['condiciones_generales'],
-                'movilidad_reducida' => $precios_original['movilidad_reducida'],
-                'info_pasaporte' => $precios_original['info_pasaporte'],
-                'info_seguros' => $precios_original['info_seguros']
+                'solicitud_id'            => $nuevo_programa_id,
+                'moneda'                  => $precios_original['moneda'],
+                'precio_adulto'           => $precios_original['precio_adulto'],
+                'precio_nino'             => $precios_original['precio_nino'],
+                'cantidad_adultos'        => $precios_original['cantidad_adultos'],
+                'cantidad_ninos'          => $precios_original['cantidad_ninos'],
+                'precio_total'            => $precios_original['precio_total'],
+                'noches_incluidas'        => $precios_original['noches_incluidas'],
+                'precio_incluye'          => $precios_original['precio_incluye'],
+                'precio_no_incluye'       => $precios_original['precio_no_incluye'],
+                'condiciones_generales'   => $precios_original['condiciones_generales'],
+                'movilidad_reducida'      => $precios_original['movilidad_reducida'],
+                'info_pasaporte'          => $precios_original['info_pasaporte'],
+                'info_seguros'            => $precios_original['info_seguros'],
+                'mostrar_precio'          => $precios_original['mostrar_precio'],
+                'visados_entrada'         => $precios_original['visados_entrada'],
+                'requisitos_sanitarios'   => $precios_original['requisitos_sanitarios'],
+                'llegada_punto_encuentro' => $precios_original['llegada_punto_encuentro'],
+                'asistencia_emergencia'   => $precios_original['asistencia_emergencia'],
+                'info_hoteles_servicios'  => $precios_original['info_hoteles_servicios'],
+                'informacion_practica'    => $precios_original['informacion_practica'],
             ];
 
             $nuevo_precio_id = $this->db->insert('programa_precios', $nuevo_precio_data);
@@ -736,6 +763,42 @@ class ProgramaAPI{
         }
     }
 
+
+    private function duplicarVuelos(array $mapeo_dias): void
+    {
+        if (empty($mapeo_dias)) {
+            error_log("No hay mapeo de días — omitiendo duplicación de vuelos");
+            return;
+        }
+
+        try {
+            error_log("=== DUPLICANDO VUELOS ===");
+
+            $total = 0;
+            foreach ($mapeo_dias as $dia_original_id => $nuevo_dia_id) {
+                $vuelos = $this->db->fetchAll(
+                    "SELECT codigo_vuelo_id, orden FROM vuelos_dias WHERE programa_dias_id = ? ORDER BY orden",
+                    [$dia_original_id]
+                );
+
+                foreach ($vuelos as $vuelo) {
+                    $this->db->insert('vuelos_dias', [
+                        'codigo_vuelo_id'  => $vuelo['codigo_vuelo_id'],
+                        'programa_dias_id' => $nuevo_dia_id,
+                        'orden'            => $vuelo['orden'],
+                    ]);
+                    $total++;
+                }
+            }
+
+            error_log("✅ Vuelos duplicados: $total");
+            error_log("=== VUELOS DUPLICADOS ===");
+
+        } catch (Exception $e) {
+            error_log("❌ Error duplicando vuelos: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+        }
+    }
 
     private function savePrograma()
     {
@@ -850,14 +913,14 @@ class ProgramaAPI{
     {
         try {
             error_log("=== 🆕 CREANDO NUEVO PROGRAMA ===");
-
+            $pipeline_id = $_POST['pipeline_id'] ?? null;
             // Datos para inserción (basado en estructura real de la DB)
             $data = [
                 'nombre' => trim($_POST['traveler_name'] ?? ''),
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
-                'plantilla'  => !empty($_POST['plantilla']) ? 1 : 0,
+                'plantilla' => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -909,7 +972,13 @@ class ProgramaAPI{
             }
 
             error_log("✅ ID de solicitud generado: $request_id");
-
+            error_log("✅ ID de solicitud generado: $pipeline_id");
+            if ($pipeline_id) {
+                $update_result_pipeline = $this->db->update('pipeline', ['solicitud_id' => $programa_id], 'id = ? ', [$pipeline_id]);
+                if ($update_result_pipeline) {
+                    error_log("✅ holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                }
+            }
             return [
                 'programa_id' => $programa_id,
                 'request_id' => $request_id
@@ -976,7 +1045,7 @@ class ProgramaAPI{
                 'apellido' => trim($_POST['traveler_lastname'] ?? ''),
                 'titular_id' => !empty($_POST['titular_id']) ? intval($_POST['titular_id']) : null,
                 'comprado' => !empty($_POST['comprado']) ? 1 : 0,
-                'plantilla'  => !empty($_POST['plantilla']) ? 1 : 0,
+                'plantilla' => !empty($_POST['plantilla']) ? 1 : 0,
                 'destino' => trim($_POST['destination'] ?? ''),
                 'fecha_llegada' => $_POST['arrival_date'] ?? null,
                 'fecha_salida' => $_POST['departure_date'] ?? null,
@@ -1013,6 +1082,25 @@ class ProgramaAPI{
             }
 
             error_log("✅ Solicitud actualizada");
+
+            // Recalcular y persistir fecha_dia de cada día (pudo cambiar fecha_llegada)
+            FechaCalculator::recalcularYGuardar($this->db, (int) $programa_id);
+
+            // Detectar venta: generar el Rooming List una sola vez, o resetear si se desmarca
+            try {
+                $roomingModel = new RoomingModel();
+                $compradoNow  = !empty($_POST['comprado']) ? 1 : 0;
+                $agId         = (int) ($_SESSION['agencia_id'] ?? 0);
+                if ($compradoNow === 1) {
+                    $roomingModel->generarSiVendido((int) $programa_id, $agId);
+                } else {
+                    $roomingModel->resetRoomingGenerado((int) $programa_id, $agId);
+                }
+                // Mantener al día la cantidad de pasajeros en los roomings existentes
+                $roomingModel->sincronizarPasajeros((int) $programa_id, $agId);
+            } catch (Exception $e) {
+                error_log("Rooming auto-generación: " . $e->getMessage());
+            }
 
             // ACTUALIZAR personalización
             $personalizacion_data = [

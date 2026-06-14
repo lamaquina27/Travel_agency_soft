@@ -189,9 +189,54 @@ class GmailClient {
     }
 
 
-    public function sendEmail($to, $subject, $body) {
-        $rawMessage = "To: $to\r\nSubject: $subject\r\nMIME-Version: 1.0\r\n"
-            . "Content-Type: text/html; charset=utf-8\r\n\r\n$body";
+    /**
+     * Envía un email.
+     *
+     * @param string $to           Destinatario
+     * @param string $subject      Asunto
+     * @param string $body         Cuerpo HTML
+     * @param array  $attachments  Lista de adjuntos. Cada uno:
+     *                             ['filename' => string, 'mime' => string, 'data' => raw bytes]
+     */
+    public function sendEmail($to, $subject, $body, array $attachments = []) {
+        // Codificar el subject para soportar caracteres no-ASCII (RFC 2047)
+        $encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+
+        if (empty($attachments)) {
+            // Mensaje simple sin adjuntos
+            $rawMessage = "To: $to\r\nSubject: $encodedSubject\r\nMIME-Version: 1.0\r\n"
+                . "Content-Type: text/html; charset=utf-8\r\n\r\n$body";
+        } else {
+            // Mensaje multipart/mixed: cuerpo HTML + adjuntos
+            $boundary = 'tsbnd_' . bin2hex(random_bytes(12));
+
+            $rawMessage  = "To: $to\r\n";
+            $rawMessage .= "Subject: $encodedSubject\r\n";
+            $rawMessage .= "MIME-Version: 1.0\r\n";
+            $rawMessage .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\r\n\r\n";
+
+            // Parte 1: cuerpo HTML
+            $rawMessage .= "--$boundary\r\n";
+            $rawMessage .= "Content-Type: text/html; charset=utf-8\r\n";
+            $rawMessage .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $rawMessage .= chunk_split(base64_encode($body)) . "\r\n";
+
+            // Parte 2..n: adjuntos
+            foreach ($attachments as $att) {
+                $filename = $att['filename'] ?? 'archivo';
+                $mime     = $att['mime']     ?? 'application/octet-stream';
+                $data     = $att['data']     ?? '';
+
+                $rawMessage .= "--$boundary\r\n";
+                $rawMessage .= "Content-Type: $mime; name=\"$filename\"\r\n";
+                $rawMessage .= "Content-Transfer-Encoding: base64\r\n";
+                $rawMessage .= "Content-Disposition: attachment; filename=\"$filename\"\r\n\r\n";
+                $rawMessage .= chunk_split(base64_encode($data)) . "\r\n";
+            }
+
+            $rawMessage .= "--$boundary--";
+        }
+
         $encoded = rtrim(strtr(base64_encode($rawMessage), '+/', '-_'), '=');
 
         $message = new Google\Service\Gmail\Message();
