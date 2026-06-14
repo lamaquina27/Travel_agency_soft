@@ -144,10 +144,6 @@ try {
                             $totalLeads++;
                             break;
 
-                        case 'lead_existing':
-                            wlog('LEAD LINKED', "pipeline_id={$result['lead_id']} {$result['detail']}");
-                            break;
-
                         case 'ignored':
                             wlog('EMAIL SKIP', "msg_id={$msg['id']} reason=rule:ignore {$result['detail']}");
                             break;
