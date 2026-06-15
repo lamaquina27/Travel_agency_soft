@@ -72,9 +72,10 @@ class ConfigManager {
                 'max_file_size' => 10
             ];
             
-            // Debug log
-            error_log("✅ ConfigManager cargado - Agencia: " . self::$config['company_name'] . " | Logo: " . self::$config['logo_url']);
-            
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                error_log("✅ ConfigManager cargado - Agencia: " . self::$config['company_name'] . " | Logo: " . self::$config['logo_url']);
+            }
+
         } catch(Exception $e) {
             error_log("Error loading config: " . $e->getMessage());
             self::$config = self::getDefaultConfig();
@@ -119,7 +120,6 @@ class ConfigManager {
             self::init();
         }
         $nombre = self::$config['company_name'] ?? 'TravelSoft';
-        error_log("🏢 getCompanyName() retorna: " . $nombre);
         return $nombre;
     }
     
@@ -128,7 +128,6 @@ class ConfigManager {
             self::init();
         }
         $logo = self::$config['logo_url'] ?? '';
-        error_log("🖼️ getLogo() retorna: " . ($logo ?: '/assets/uploads/TravelSoftLogo.png'));
         return $logo;
     }
     

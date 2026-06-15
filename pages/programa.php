@@ -1424,6 +1424,66 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             position: relative;
         }
 
+        /* ── Etiquetas inline del editor ── */
+        .editor-tag-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            min-height: 44px;
+        }
+
+        .editor-tag-chips .etc-empty {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .etc-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: 1.5px solid #e2e8f0;
+            background: #fff;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all .15s ease;
+        }
+
+        .etc-chip:hover {
+            border-color: var(--c, #94a3b8);
+            transform: translateY(-1px);
+        }
+
+        .etc-chip::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--c, #cbd5e1);
+            flex-shrink: 0;
+        }
+
+        .etc-chip.selected {
+            background: color-mix(in srgb, var(--c, #6366f1) 14%, #fff);
+            border-color: var(--c, #6366f1);
+            color: var(--c, #4338ca);
+        }
+
+        .editor-tag-hint {
+            display: block;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #94a3b8;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 500;
+        }
+
         .form-label {
             display: block;
             margin-bottom: 18px;
@@ -5305,6 +5365,15 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                     placeholder="Ejemplo: Tailandia - Bangkok y Phuket" required>
                             </div>
 
+                            <div class="form-group">
+                                <label class="form-label">Etiquetas</label>
+                                <div id="editorTagChips" class="editor-tag-chips">
+                                    <span class="etc-empty">Cargando etiquetas…</span>
+                                </div>
+                                <small id="editorTagHint" class="editor-tag-hint">Clic para etiquetar este
+                                    programa.</small>
+                            </div>
+
 
 
                             <div class="form-row">
@@ -5433,6 +5502,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                             <button type="button" class="btn btn-secondary" onclick="abrirVistaPrevia()">
                                 <i class="fas fa-eye"></i>
                                 Ver Programa
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="abrirModalSubagencias()">
+                                <i class="fas fa-share-alt"></i>
+                                Compartir con subagencias
                             </button>
                         <?php endif; ?>
 
@@ -5960,6 +6033,24 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 </div>
             </div>
         </div>
+        <!-- Modal: compartir tour con subagencias -->
+        <div id="modal-subagencias" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width:520px;">
+                <div class="modal-header">
+                    <h3>Compartir con subagencias</h3>
+                    <button type="button" class="modal-close" onclick="cerrarModalSubagencias()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Marca las subagencias que pueden revender este tour. Cada una lo verá en su panel con sus propios precios y marca.</p>
+                    <div id="subagChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="cerrarModalSubagencias()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarSubagencias()"><i class="fas fa-save"></i> Guardar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal para crear/seleccionar viajeros -->
         <div id="modal-viajero" class="modal" style="display: none;">
             <div class="modal-content modal-viajero-content">
@@ -7189,6 +7280,87 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             let currentTab = 'mi-programa';
             let programaId = <?= $programa_id ? $programa_id : 'null' ?>;
             let isEditing = <?= $is_editing ? 'true' : 'false' ?>;
+
+            // ====================================================================
+            // ETIQUETAS INLINE DEL EDITOR (reusa modules/itinerarios/tags_api.php)
+            // ====================================================================
+            const TAG_PALETTE_ED = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
+            function etColor(id) { const n = TAG_PALETTE_ED.length; return TAG_PALETTE_ED[((id - 1) % n + n) % n]; }
+            function escEditorTag(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+            let editorAllTags = [];
+            let editorSelTags = new Set();
+            let editorTagsDirty = false; // hay selección sin persistir (programa aún sin id)
+
+            async function initEditorTags() {
+                const cont = document.getElementById('editorTagChips');
+                if (!cont) return;
+                try {
+                    const rAll = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=get_tags');
+                    const dAll = await rAll.json();
+                    editorAllTags = (dAll && dAll.success) ? (dAll.data || []) : [];
+                    editorSelTags = new Set();
+                    if (programaId) {
+                        const rA = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=get_tags_programa&programa_id=' + encodeURIComponent(programaId));
+                        const dA = await rA.json();
+                        if (dA && dA.success) (dA.data || []).forEach(t => editorSelTags.add(Number(t.id)));
+                    }
+                } catch (e) { editorAllTags = []; }
+                renderEditorTagChips();
+            }
+
+            function renderEditorTagChips() {
+                const cont = document.getElementById('editorTagChips');
+                if (!cont) return;
+                if (!editorAllTags.length) {
+                    cont.innerHTML = '<span class="etc-empty">No hay etiquetas todavía. Créalas desde el listado de itinerarios (⚙ Configurar tags).</span>';
+                    return;
+                }
+                cont.innerHTML = editorAllTags.map(t => {
+                    const id = Number(t.id);
+                    const sel = editorSelTags.has(id);
+                    const c = etColor(id);
+                    return `<span class="etc-chip${sel ? ' selected' : ''}" style="--c:${c}" onclick="toggleEditorTag(${id})">${escEditorTag(t.nombre)}</span>`;
+                }).join('');
+            }
+
+            function toggleEditorTag(id) {
+                id = Number(id);
+                if (editorSelTags.has(id)) editorSelTags.delete(id); else editorSelTags.add(id);
+                renderEditorTagChips();
+                const hint = document.getElementById('editorTagHint');
+                if (programaId) {
+                    persistEditorTags().then(ok => { if (hint) hint.textContent = ok ? 'Etiquetas guardadas ✓' : 'No se pudieron guardar las etiquetas'; });
+                } else {
+                    editorTagsDirty = true;
+                    if (hint) hint.textContent = 'Se guardarán al crear el programa.';
+                }
+            }
+
+            async function persistEditorTags() {
+                if (!programaId) return false;
+                try {
+                    const r = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=save_tags_programa', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ solicitud_id: programaId, tag_id: [...editorSelTags] })
+                    });
+                    const d = await r.json();
+                    if (d && d.success) editorTagsDirty = false;
+                    return !!(d && d.success);
+                } catch (e) { return false; }
+            }
+
+            // Persiste las etiquetas elegidas en un programa recién creado (llamado desde guardarPrograma)
+            function flushEditorTagsAfterCreate() {
+                if (programaId && editorTagsDirty && editorSelTags.size) {
+                    persistEditorTags().then(ok => {
+                        const h = document.getElementById('editorTagHint');
+                        if (h) h.textContent = ok ? 'Etiquetas guardadas ✓' : 'Vuelve a tocar una etiqueta para guardarla';
+                    });
+                }
+            }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initEditorTags);
+            else initEditorTags();
             let selectedDiaId = null;
             let selectedServicioId = null;
             let currentDiaId = null;
@@ -8252,6 +8424,9 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                                 // Actualizar campo hidden
                                 updateHiddenField(programaId);
+
+                                // Persistir las etiquetas elegidas antes de tener id
+                                flushEditorTagsAfterCreate();
                             }
 
                             // Actualizar ID de solicitud si se generó
@@ -10358,11 +10533,18 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     let requestData;
 
                     if (isAddingAlternative) {
-                        // Es alternativa
+                        // Es alternativa — para hotel, pedir la diferencia de precio vs principal
+                        const variacion = pedirVariacionAlternativa(currentTipoServicio);
+                        if (variacion === null) {
+                            btnAgregar.disabled = false;
+                            btnAgregar.innerHTML = '<i class="fas fa-plus"></i> Agregar alternativa';
+                            return;
+                        }
                         requestData = {
                             action: 'add_alternative',
                             servicio_principal_id: alternativeParentId,
-                            biblioteca_item_id: selectedServicioId
+                            biblioteca_item_id: selectedServicioId,
+                            variacion_precio: variacion
                         };
                     } else {
                         // Es servicio principal
@@ -11076,6 +11258,96 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     toast.classList.remove('show');
                     setTimeout(() => document.body.removeChild(toast), 300);
                 }, 4000);
+            }
+
+            // ============================================================
+            // COMPARTIR TOUR CON SUBAGENCIAS (modules/subagencias/api.php)
+            // ============================================================
+            let subagLista = [];
+            let subagSeleccion = new Set();
+            let subagOriginal = new Set();
+
+            async function subagApi(action, params = {}, method = 'GET') {
+                try {
+                    if (method === 'GET') {
+                        const qs = new URLSearchParams({ action, ...params }).toString();
+                        const r = await fetch(`${APP_URL}/subagencias/api?${qs}`);
+                        return await r.json();
+                    }
+                    const fd = new FormData();
+                    fd.append('action', action);
+                    Object.entries(params).forEach(([k, v]) => fd.append(k, v));
+                    const r = await fetch(`${APP_URL}/subagencias/api`, { method: 'POST', body: fd });
+                    return await r.json();
+                } catch (e) { return { success: false, message: 'Error de red' }; }
+            }
+
+            async function abrirModalSubagencias() {
+                if (!programaId) { showAlert('Guarda el programa antes de compartirlo', 'error'); return; }
+
+                const rL = await subagApi('list_subagencias');
+                subagLista = (rL && rL.success) ? (rL.data || []) : [];
+
+                if (!subagLista.length) {
+                    showAlert('No hay subagencias. Créalas en Usuarios (rol Subagencia).', 'info');
+                    return;
+                }
+
+                const rA = await subagApi('list_tour_subagencias', { solicitud_id: programaId });
+                const asignadas = (rA && rA.success) ? (rA.data || []) : [];
+                subagSeleccion = new Set(asignadas.map(Number));
+                subagOriginal = new Set(asignadas.map(Number));
+
+                renderSubagChips();
+                document.getElementById('modal-subagencias').style.display = 'flex';
+            }
+
+            function cerrarModalSubagencias() {
+                document.getElementById('modal-subagencias').style.display = 'none';
+            }
+
+            function renderSubagChips() {
+                const el = document.getElementById('subagChips');
+                el.innerHTML = subagLista.map(s => {
+                    const sel = subagSeleccion.has(Number(s.id));
+                    const nombre = s.nombre_comercial || s.full_name || s.username || ('Subagencia #' + s.id);
+                    const base = 'display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;';
+                    const style = sel
+                        ? base + 'background:#7c3aed20;color:#7c3aed;border-color:#7c3aed;'
+                        : base + 'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;';
+                    const check = sel ? '<i class="fas fa-check" style="font-size:11px;"></i>' : '';
+                    return `<span style="${style}" onclick="toggleSubagChip(${s.id})">${check}${escapeHtmlSub(nombre)}</span>`;
+                }).join('');
+            }
+
+            function escapeHtmlSub(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+
+            function toggleSubagChip(id) {
+                id = Number(id);
+                if (subagSeleccion.has(id)) subagSeleccion.delete(id);
+                else subagSeleccion.add(id);
+                renderSubagChips();
+            }
+
+            async function guardarSubagencias() {
+                if (!programaId) return;
+                const aAsignar = [...subagSeleccion].filter(id => !subagOriginal.has(id));
+                const aQuitar = [...subagOriginal].filter(id => !subagSeleccion.has(id));
+
+                let ok = true;
+                for (const subId of aAsignar) {
+                    const r = await subagApi('assign_tour', { sub_user_id: subId, solicitud_id: programaId }, 'POST');
+                    if (!r || !r.success) ok = false;
+                }
+                for (const subId of aQuitar) {
+                    const r = await subagApi('unassign_tour', { sub_user_id: subId, solicitud_id: programaId }, 'POST');
+                    if (!r || !r.success) ok = false;
+                }
+
+                if (ok) { showAlert('Subagencias actualizadas', 'success'); cerrarModalSubagencias(); }
+                else showAlert('Algunos cambios no se pudieron guardar', 'error');
             }
 
             function toggleSection(header) {
@@ -12346,6 +12618,15 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     `;
             }
 
+            // Pide la diferencia de precio de una alternativa de HOTEL respecto al principal.
+            // Devuelve el número (+/-), 0 si no aplica, o null si el usuario cancela.
+            function pedirVariacionAlternativa(tipoServicio) {
+                if (tipoServicio !== 'alojamiento') return 0;
+                const varRaw = prompt('¿Cuánto varía el precio de esta alternativa respecto al hotel principal?\n\n• Positivo si cuesta MÁS (ej. 50)\n• Negativo si cuesta MENOS (ej. -30)\n• 0 si cuesta igual', '0');
+                if (varRaw === null) return null; // cancelado
+                return parseFloat(String(varRaw).replace(',', '.')) || 0;
+            }
+
             // Función para abrir modal de alternativas
             function abrirModalAlternativa(servicioPrincipalId, tipoServicio) {
                 console.log(`🔄 Agregando alternativa para servicio ${servicioPrincipalId}`);
@@ -12368,6 +12649,9 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 try {
                     console.log(`🔄 Agregando alternativa: Principal=${currentServicioPrincipal}, Item=${selectedServicioId}`);
 
+                    const variacion = pedirVariacionAlternativa(currentTipoServicio);
+                    if (variacion === null) return; // cancelado
+
                     const response = await fetch('<?= APP_URL ?>/modules/programa/servicios_api.php', {
                         method: 'POST',
                         headers: {
@@ -12376,7 +12660,8 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         body: JSON.stringify({
                             action: 'add_alternative',
                             servicio_principal_id: currentServicioPrincipal,
-                            biblioteca_item_id: selectedServicioId
+                            biblioteca_item_id: selectedServicioId,
+                            variacion_precio: variacion
                         })
                     });
 

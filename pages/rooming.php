@@ -821,13 +821,17 @@ async function rmBulkEstado(){
 
 // ── Export CSV (respeta filtros actuales) ──
 function rmExportCsv(){
-  const cols=['Reserva','Traslado','Titular','Tipo','Fecha','Ciudad','Aeropuerto','Vuelo','Hora vuelo','Hora recogida','Recogida','Destino','Pax','Operadores','Estado'];
+  const cols=['Reserva','Traslado','Titular','Tipo','Fecha','Ciudad','Aeropuerto','Vuelo','Hora vuelo','Hora recogida','Recogida','Destino','Hotel','Pax','Operadores','Estado'];
   const rows=R.filtered.map(r=>[
     r.reserva_codigo||'', trCode(r.id), titular(r), TIPO[r.service_type]?.l||'', fechaEff(r), r.city||'',
     aeroCol(r), r.flight_code||'', hhmm(horaVuelo(r)), hhmm(pickupEff(r)), r.pickup_location||'', r.dropoff_location||'',
-    r.cantidad_pasajeros??'', r.operadores_nombres||'', STT[r.status]?.l||''
+    r.hotel_nombre||'', r.cantidad_pasajeros??'', r.operadores_nombres||'', STT[r.status]?.l||''
   ]);
-  const csv=[cols,...rows].map(row=>row.map(c=>{ const s=String(c??''); return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',')).join('\r\n');
+  // Separador ';' + directiva 'sep=;' al inicio: Excel y LibreOffice lo abren
+  // como tabla por columnas en cualquier locale (con ',' se veía todo en una celda).
+  const SEP=';';
+  const cell=c=>{ const s=String(c??''); return /[";\n,\r]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const csv='sep='+SEP+'\r\n'+[cols,...rows].map(row=>row.map(cell).join(SEP)).join('\r\n');
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='traslados_'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(a.href);

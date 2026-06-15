@@ -219,7 +219,7 @@ class ChatService {
 
     private function loadLead(int $pipelineId): ?array {
         $row = $this->db->fetch(
-            "SELECT id, agencia_id, nombre_cliente, email_cliente
+            "SELECT id, agencia_id, nombre_cliente, email_cliente, destino
              FROM pipeline
              WHERE id = ?",
             [$pipelineId]

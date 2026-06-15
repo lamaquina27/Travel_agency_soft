@@ -62,7 +62,8 @@ class ProgramaServiciosAPI {
                 case 'add_alternative':
                     $result = $this->addAlternative(
                         $_POST['servicio_principal_id'] ?? null,
-                        $_POST['biblioteca_item_id'] ?? null
+                        $_POST['biblioteca_item_id'] ?? null,
+                        $_POST['variacion_precio'] ?? null
                     );
                     break;
                 case 'list':
@@ -304,7 +305,7 @@ class ProgramaServiciosAPI {
     // ================================================================
     // FUNCIÓN: AGREGAR ALTERNATIVA (TAMBIÉN CON AISLAMIENTO)
     // ================================================================
-    private function addAlternative($servicioPrincipalId, $bibliotecaItemId) {
+    private function addAlternative($servicioPrincipalId, $bibliotecaItemId, $variacionPrecio = null) {
         if (!$servicioPrincipalId || !$bibliotecaItemId) {
             throw new Exception('Servicio principal e item de biblioteca requeridos');
         }
@@ -367,6 +368,10 @@ class ProgramaServiciosAPI {
             $alternativaData['es_alternativa'] = 1;
             $alternativaData['orden_alternativa'] = $nextAlternativeOrder;
             $alternativaData['biblioteca_item_id'] = $bibliotecaItemId; // Referencia histórica
+            // Diferencia de precio respecto al hotel principal (+más / -menos)
+            if ($variacionPrecio !== null && $variacionPrecio !== '') {
+                $alternativaData['variacion_precio'] = (float) $variacionPrecio;
+            }
             
             error_log("📝 Datos de ALTERNATIVA aislada: " . json_encode($alternativaData, JSON_PRETTY_PRINT));
             

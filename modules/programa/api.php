@@ -929,10 +929,11 @@ class ProgramaAPI
                 'user_id' => $user_id,
                 'agencia_id' => $_SESSION['agencia_id'] ?? null,
                 'preview_token' => bin2hex(random_bytes(16)),    // ← Token para preview
-                'itinerary_token' => bin2hex(random_bytes(16))   // ← Token para itinerary
+                'itinerary_token' => bin2hex(random_bytes(16)),  // ← Token para itinerary
+                'public_token' => bin2hex(random_bytes(16))      // ← Token público (link compartido / selección de hotel)
             ];
 
-            error_log("📝 Insertando programa con datos: " . print_r($data, true));
+            if (defined('APP_DEBUG') && APP_DEBUG) { error_log("📝 Insertando programa con datos: " . print_r($data, true)); }
 
             $programa_id = $this->db->insert('programa_solicitudes', $data);
 
@@ -971,13 +972,8 @@ class ProgramaAPI
                 throw new Exception('Error al generar ID de solicitud');
             }
 
-            error_log("✅ ID de solicitud generado: $request_id");
-            error_log("✅ ID de solicitud generado: $pipeline_id");
-            if ($pipeline_id) {
-                $update_result_pipeline = $this->db->update('pipeline', ['solicitud_id' => $programa_id], 'id = ? ', [$pipeline_id]);
-                if ($update_result_pipeline) {
-                    error_log("✅ holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-                }
+            if (!empty($pipeline_id)) {
+                $this->db->update('pipeline', ['solicitud_id' => $programa_id], 'id = ? ', [$pipeline_id]);
             }
             return [
                 'programa_id' => $programa_id,

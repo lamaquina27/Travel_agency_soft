@@ -10,12 +10,23 @@ class ItineraryRenderer
     private int $programaId;
     private array $data = [];
     private string $rootPath;
+    private int $subUserId = 0; // >0 cuando el PDF se genera en contexto de una subagencia
 
     public function __construct(int $programaId)
     {
         $this->db = Database::getInstance();
         $this->programaId = $programaId;
         $this->rootPath = dirname(__DIR__, 2);
+    }
+
+    /**
+     * Genera el PDF con la marca y los precios de una subagencia (link público B2B).
+     * Espeja el override de pages/itinerary.php: sobrescribe marca (logo/colores/nombre)
+     * y mergea los precios de subagencia_tour_precios + nombre_cliente.
+     */
+    public function setSubAgencia(int $userId): void
+    {
+        $this->subUserId = $userId;
     }
 
     public function renderHtml(): string
@@ -25,6 +36,9 @@ class ItineraryRenderer
         $dias = $data['dias'];
         $precios = $data['precios'];
         $agencia = $data['agencia'];
+        $hotelDelta = (float)($data['hotel_delta'] ?? 0); // variación del hotel elegido por el cliente
+        // El precio total que ve el cliente incluye la diferencia del hotel alternativo elegido
+        $precioTotalEfectivo = (float)($precios['precio_total'] ?? 0) + $hotelDelta;
 
         $primary = $this->normalizeColor($agencia['primary_color'] ?? '#0f766e');
         $secondary = $this->normalizeColor($agencia['secondary_color'] ?? '#0f172a');
@@ -57,8 +71,19 @@ class ItineraryRenderer
 
                 @page { margin: 12mm 12mm 14mm 12mm; }
                 * { box-sizing: border-box; }
-                body { margin:0; font-family: TravelPdf, DejaVu Sans, Arial, sans-serif; color:#2f3747; font-size:12px; line-height:1.45; background:#fff; }
+                body { margin:0; font-family: TravelPdf, DejaVu Sans, Arial, sans-serif; color:#2f3747; font-size:12px; line-height:1.45; background:#fff; word-wrap:break-word; overflow-wrap:break-word; }
+                /* Evita que tokens largos (URLs, emails, nombres sin espacios) desborden su caja en dompdf */
+                td, div, span, p, h1, h2, h3 { word-wrap:break-word; overflow-wrap:break-word; }
                 img { display:block; }
+
+                /* Opciones de alojamiento (hotel principal + alternativas con su variación) */
+                .hotel-alts { margin-top:6px; }
+                .hotel-alts-title { font-size:9px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin-bottom:3px; }
+                .hotel-alts-table { width:100%; border-collapse:collapse; }
+                .hotel-alts-table td { font-size:10px; padding:3px 6px; border:1px solid #eef0f4; }
+                .hotel-alts-table .alt-name { color:#2f3747; }
+                .hotel-alts-table .alt-delta { text-align:right; white-space:nowrap; font-weight:700; color:#334155; }
+                .hotel-alts-table tr.alt-elegida td { background:#f0f7f2; color:#15803d; border-color:#cfe9d8; }
 
                 .cover {
                     page-break-after: always;
@@ -177,7 +202,7 @@ class ItineraryRenderer
                 .summary-value { font-size:13px; color:#111827; font-weight:700; }
                 .stage-title { color:#111827; font-size:17px; font-weight:700; margin:14px 0 9px; }
                 .stage-row { font-size:12px; padding:5px 0; border-bottom:1px solid #eef0f4; }
-                .stage-day { color:<?= $primary ?>; font-weight:700; display:inline-block; width:48px; }
+                .stage-day { color:<?= $primary ?>; font-weight:700; display:inline-block; min-width:48px; padding-right:8px; white-space:nowrap; }
 
                 .day { margin-bottom:20px; page-break-inside:auto; }
                 .day-head { margin-bottom:8px; }
@@ -271,6 +296,10 @@ class ItineraryRenderer
                         <td class="hero-right">
                             <?php if ($cover): ?>
                                 <img class="hero-image" src="<?= $cover ?>" alt="">
+                            <?php else: ?>
+                                <div style="width:100%;height:145mm;background:<?= $primary ?>;color:#fff;text-align:center;">
+                                    <div style="padding-top:62mm;font-size:16px;font-weight:700;"><?= htmlspecialchars($destino ?: ($agencia['nombre'] ?? '')) ?></div>
+                                </div>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -295,7 +324,7 @@ class ItineraryRenderer
                 </tr></table>
                 <div class="stage-title">Las principales etapas del viaje</div>
                 <?php foreach ($dias as $dia): ?>
-                    <div class="stage-row"><span class="stage-day">Día <?= htmlspecialchars($dia['dia_numero']) ?></span><?= htmlspecialchars($this->shortText($dia['titulo'] ?? '', 85)) ?></div>
+                    <div class="stage-row"><span class="stage-day"><?= htmlspecialchars($this->diaLabel($dia)) ?></span><?= htmlspecialchars($this->shortText($dia['titulo'] ?? '', 85)) ?></div>
                 <?php endforeach; ?>
             </div>
 
@@ -303,9 +332,9 @@ class ItineraryRenderer
                 <?php $dayImgs = $this->prepareDayImages($dia['imagenes'] ?? []); ?>
                 <div class="day">
                     <div class="day-head">
-                        <span class="day-number">Día <?= htmlspecialchars($dia['dia_numero']) ?></span>
+                        <span class="day-number"><?= htmlspecialchars($this->diaLabel($dia)) ?></span>
                         <span class="day-date"><?= $this->formatDateRange($dia) ?></span>
-                        <div class="day-title"><?= htmlspecialchars($dia['titulo'] ?? '') ?></div>
+                        <?php if (!empty($dia['titulo'])): ?><div class="day-title"><?= htmlspecialchars($dia['titulo']) ?></div><?php endif; ?>
                         <?php if (!empty($dia['ubicacion'])): ?><div class="chips"><?php foreach ($this->splitLocations($dia['ubicacion']) as $loc): ?><span class="chip"><?= htmlspecialchars($loc) ?></span><?php endforeach; ?></div><?php endif; ?>
                     </div>
 
@@ -317,17 +346,19 @@ class ItineraryRenderer
 
                     <?php if (!empty($dia['descripcion'])): ?><div class="day-desc"><?= nl2br(htmlspecialchars($this->shortText($dia['descripcion'], 12000))) ?></div><?php endif; ?>
 
-                    <?php $meals = $this->getMealsSummary($dia['servicios'] ?? [], $dia['descripcion'] ?? ''); ?>
-                    <div class="contains">Comidas</div>
-                    <div class="meals <?= str_contains($meals, 'no están') ? 'empty-meals' : '' ?>"><?= htmlspecialchars($meals) ?></div>
+                    <?php if (!empty($dia['comidas_incluidas'])): ?>
+                        <div class="contains">Comidas</div>
+                        <div class="meals"><?= htmlspecialchars($this->getMealsSummary($dia)) ?></div>
+                    <?php endif; ?>
 
                     <?php foreach (($dia['vuelos'] ?? []) as $vuelo): ?>
+                        <?php $ftTitle = trim(implode(' · ', array_filter([$vuelo['codigo_vuelo'] ?? '', $vuelo['aerolinea'] ?? '']))); ?>
                         <div class="flight">
-                            <div class="flight-title"><?= htmlspecialchars($vuelo['codigo_vuelo']) ?> - <?= htmlspecialchars($vuelo['aerolinea']) ?></div>
+                            <div class="flight-title"><?= htmlspecialchars($ftTitle !== '' ? $ftTitle : 'Vuelo') ?></div>
                             <table class="flight-table"><tr>
-                                <td style="width:35%;"><div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_origen']) ?></div><div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_origen']) ?></div><div class="flight-time"><?= htmlspecialchars(substr($vuelo['hora_salida'], 0, 5)) ?></div></td>
-                                <td style="width:30%;"><div class="flight-mid">Vuelo <?= (int)$vuelo['orden'] ?><br>→</div></td>
-                                <td style="width:35%; text-align:right;"><div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_destino']) ?></div><div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_destino']) ?></div><div class="flight-time"><?= htmlspecialchars(substr($vuelo['hora_llegada'], 0, 5)) ?></div></td>
+                                <td style="width:35%;"><div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_origen'] ?? '') ?></div><div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_origen'] ?? '') ?></div><div class="flight-time"><?= htmlspecialchars(substr((string)($vuelo['hora_salida'] ?? ''), 0, 5)) ?></div></td>
+                                <td style="width:30%;"><div class="flight-mid">Vuelo <?= (int)($vuelo['orden'] ?? 0) ?><br>→</div></td>
+                                <td style="width:35%; text-align:right;"><div class="airport-code"><?= htmlspecialchars($vuelo['codigo_aeropuerto_destino'] ?? '') ?></div><div class="airport-city"><?= htmlspecialchars($vuelo['ciudad_destino'] ?? '') ?></div><div class="flight-time"><?= htmlspecialchars(substr((string)($vuelo['hora_llegada'] ?? ''), 0, 5)) ?></div></td>
                             </tr></table>
                         </div>
                     <?php endforeach; ?>
@@ -343,23 +374,56 @@ class ItineraryRenderer
                                         <?php if ($hotelImg): ?><td style="width:84px;"><img class="hotel-photo" src="<?= $hotelImg ?>" alt=""></td><?php endif; ?>
                                         <td><div class="hotel-name"><?= htmlspecialchars($servicio['nombre'] ?? 'Hotel') ?></div>
                                             <?php if (!empty($servicio['ubicacion'])): ?><div class="hotel-info"><?= htmlspecialchars($this->shortText($servicio['ubicacion'], 120)) ?></div><?php endif; ?>
-                                            <?php if (!empty($servicio['acomodacion_nombre']) || !empty($servicio['acomodacion_capacidad'])): ?><div class="room"><?= !empty($servicio['acomodacion_nombre']) ? 'Room: ' . htmlspecialchars($servicio['acomodacion_nombre']) : '' ?><?= !empty($servicio['acomodacion_capacidad']) ? ' · Pax: ' . htmlspecialchars($servicio['acomodacion_capacidad']) : '' ?></div><?php endif; ?>
+                                            <?php if (!empty($servicio['acomodacion_nombre']) || !empty($servicio['acomodacion_capacidad'])): ?><div class="room"><?= !empty($servicio['acomodacion_nombre']) ? 'Habitación: ' . htmlspecialchars($servicio['acomodacion_nombre']) : '' ?><?= !empty($servicio['acomodacion_capacidad']) ? ' · Pax: ' . htmlspecialchars($servicio['acomodacion_capacidad']) : '' ?></div><?php endif; ?>
                                         </td>
                                     </tr></table>
+                                    <?php $hotelAlts = $servicio['_alternativas'] ?? []; if (!empty($hotelAlts)):
+                                        $altSel = false; foreach ($hotelAlts as $a) { if ((int)($a['seleccionado'] ?? 0) === 1) { $altSel = true; break; } }
+                                        $principalElegido = !$altSel;
+                                        $mon = $precios['moneda'] ?? '';
+                                        ?>
+                                        <div class="hotel-alts">
+                                            <div class="hotel-alts-title">Opciones de alojamiento</div>
+                                            <table class="hotel-alts-table">
+                                                <tr class="<?= $principalElegido ? 'alt-elegida' : '' ?>">
+                                                    <td class="alt-name"><?= $principalElegido ? '✓ ' : '' ?><?= htmlspecialchars($servicio['nombre'] ?? 'Hotel') ?> (incluido)</td>
+                                                    <td class="alt-delta">Precio base</td>
+                                                </tr>
+                                                <?php foreach ($hotelAlts as $a):
+                                                    $d = (float)($a['variacion_precio'] ?? 0);
+                                                    $eleg = (int)($a['seleccionado'] ?? 0) === 1;
+                                                    $dl = $d > 0 ? ('+ ' . number_format($d, 0, ',', '.') . ' ' . $mon) : ($d < 0 ? ('− ' . number_format(abs($d), 0, ',', '.') . ' ' . $mon) : 'Sin coste adicional');
+                                                    ?>
+                                                    <tr class="<?= $eleg ? 'alt-elegida' : '' ?>">
+                                                        <td class="alt-name"><?= $eleg ? '✓ ' : '' ?><?= htmlspecialchars($a['nombre'] ?? 'Alternativa') ?></td>
+                                                        <td class="alt-delta"><?= htmlspecialchars($dl) ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </table>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                             </tr></table>
                         <?php elseif ($tipo !== 'comida'): ?>
-                            <div class="activity"><div class="service-kind"><?= htmlspecialchars($this->formatServiceType($tipo)) ?></div><div class="activity-title"><?= htmlspecialchars($servicio['nombre'] ?? 'Service') ?></div><?php if (!empty($servicio['descripcion'])): ?><div class="activity-desc"><?= nl2br(htmlspecialchars($this->shortText($servicio['descripcion'], 5000))) ?></div><?php endif; ?></div>
+                            <div class="activity"><div class="service-kind"><?= htmlspecialchars($this->formatServiceType($tipo)) ?></div><div class="activity-title"><?= htmlspecialchars($servicio['nombre'] ?? 'Servicio') ?></div><?php if (!empty($servicio['descripcion'])): ?><div class="activity-desc"><?= nl2br(htmlspecialchars($this->shortText($servicio['descripcion'], 5000))) ?></div><?php endif; ?></div>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
             <?php endforeach; ?>
 
-            <?php if (!empty($precios)): ?>
+            <?php
+            // Mostrar la sección de precios SOLO si hay algo imprimible (evita una página
+            // "Precio y condiciones" con la tabla vacía cuando no hay datos).
+            $priceTextKeys = ['precio_incluye', 'precio_no_incluye', 'condiciones_generales', 'info_pasaporte', 'info_seguros', 'visados_entrada', 'requisitos_sanitarios', 'llegada_punto_encuentro', 'asistencia_emergencia', 'info_hoteles_servicios', 'informacion_practica'];
+            $hasPriceText = false;
+            foreach ($priceTextKeys as $k) { if (!empty($precios[$k])) { $hasPriceText = true; break; } }
+            $showPriceTotal = $mostrarPrecio && !empty($precios['precio_total']);
+            ?>
+            <?php if ($showPriceTotal || $hasPriceText): ?>
                 <div class="price-section">
                     <h2 class="section-title">Precio y condiciones</h2>
                     <table class="pricing-table">
-                        <?php if ($mostrarPrecio && !empty($precios['precio_total'])): ?><tr><td class="price-label">Precio total</td><td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></span></td></tr><?php endif; ?>
+                        <?php if ($mostrarPrecio && !empty($precios['precio_total'])): ?><tr><td class="price-label">Precio total</td><td><span class="price-main"><?= htmlspecialchars($precios['moneda'] ?? '') ?> <?= number_format($precioTotalEfectivo, 0, ',', '.') ?></span></td></tr><?php endif; ?>
                         <?php foreach ([['precio_incluye','Incluye'],['precio_no_incluye','No incluye'],['condiciones_generales','Condiciones generales'],['info_pasaporte','Pasaporte y visados'],['info_seguros','Seguros'],['visados_entrada','Visados y requisitos de entrada'],['requisitos_sanitarios','Requisitos sanitarios'],['llegada_punto_encuentro','Llegada y punto de encuentro'],['asistencia_emergencia','Asistencia y emergencias'],['info_hoteles_servicios','Información de hoteles y servicios'],['informacion_practica','Información práctica']] as $row): ?>
                             <?php if (!empty($precios[$row[0]])): ?><tr><td class="price-label"><?= $row[1] ?></td><td><?= nl2br(htmlspecialchars($precios[$row[0]])) ?></td></tr><?php endif; ?>
                         <?php endforeach; ?>
@@ -393,6 +457,7 @@ class ItineraryRenderer
         $dias = $this->db->fetchAll("SELECT *, COALESCE(duracion_estancia, 1) AS duracion_estancia FROM programa_dias WHERE solicitud_id = ? ORDER BY dia_numero ASC", [$this->programaId]);
         $fechaBase = !empty($programa['fecha_llegada']) ? new DateTime($programa['fecha_llegada']) : null;
         $diasAcumulados = 0;
+        $hotelDelta = 0.0; // suma de las variaciones de los hoteles elegidos por el cliente
 
         foreach ($dias as &$dia) {
             if ($fechaBase) {
@@ -404,6 +469,11 @@ class ItineraryRenderer
                 if ($duracion > 1) { $fechaFinDia->modify('+' . ($duracion - 1) . ' days'); }
                 $dia['fecha_fin_calculada'] = $fechaFinDia->format('Y-m-d');
             }
+            // Numeración real del día teniendo en cuenta su duración (días que abarca).
+            // Un día con duracion_estancia=3 que empieza en el día 1 cubre "Día 1 – 3";
+            // el siguiente día empieza en el 4 (no en el 2).
+            $dia['dia_inicio_real'] = $diasAcumulados + 1;
+            $dia['dia_fin_real']    = $diasAcumulados + (int)($dia['duracion_estancia'] ?? 1);
             $diasAcumulados += (int)($dia['duracion_estancia'] ?? 1);
 
             $serviciosRaw = $this->db->fetchAll(
@@ -420,13 +490,29 @@ class ItineraryRenderer
 
             $serviciosOrganizados = [];
             foreach ($serviciosRaw as $servicio) {
-                if ((int)($servicio['es_alternativa'] ?? 0) !== 0) { continue; }
+                if ((int)($servicio['es_alternativa'] ?? 0) !== 0) {
+                    // Alternativa: adjuntarla a su grupo principal (para mostrar ambos hoteles en el PDF)
+                    $pid = (int)($servicio['servicio_principal_id'] ?? 0);
+                    foreach ($serviciosOrganizados as &$g) {
+                        if (!empty($g['principal']) && (int)($g['principal']['id'] ?? 0) === $pid) { $g['alternativas'][] = $servicio; break; }
+                    }
+                    unset($g);
+                    continue;
+                }
                 $orden = $servicio['orden'] ?? count($serviciosOrganizados) + 1;
                 if (!isset($serviciosOrganizados[$orden])) { $serviciosOrganizados[$orden] = ['principal' => null, 'alternativas' => []]; }
                 $serviciosOrganizados[$orden]['principal'] = $servicio;
             }
             ksort($serviciosOrganizados);
             $dia['servicios'] = $serviciosOrganizados;
+
+            // Variación de la alternativa de hotel elegida por el cliente (para el precio del PDF)
+            foreach ($serviciosOrganizados as $g) {
+                if (empty($g['principal']) || ($g['principal']['tipo_servicio'] ?? '') !== 'alojamiento') { continue; }
+                foreach (($g['alternativas'] ?? []) as $a) {
+                    if ((int)($a['seleccionado'] ?? 0) === 1) { $hotelDelta += (float)($a['variacion_precio'] ?? 0); break; }
+                }
+            }
 
             $imagenesDia = [];
             foreach (['imagen','imagen1','imagen2','imagen3','foto','foto_dia','imagen_principal','foto_portada','portada'] as $campoDia) {
@@ -456,6 +542,7 @@ class ItineraryRenderer
             'programa' => $programa,
             'dias' => $dias,
             'precios' => $precios ?: [],
+            'hotel_delta' => $hotelDelta,
             'duracion_dias' => $diasAcumulados ?: count($dias),
             'agencia' => [
                 'nombre' => $agencia['nombre'] ?? ConfigManager::getCompanyName(),
@@ -466,7 +553,64 @@ class ItineraryRenderer
                 'secondary_color' => $agencia['agent_secondary_color'] ?: ($agencia['admin_secondary_color'] ?? '#0f172a')
             ]
         ];
+
+        // Override por subagencia (link público B2B): marca + precios propios.
+        if ($this->subUserId > 0) {
+            $this->applySubAgencia();
+        }
+
         return $this->data;
+    }
+
+    /**
+     * Sobrescribe marca y precios con los de la subagencia (espeja pages/itinerary.php).
+     */
+    private function applySubAgencia(): void
+    {
+        $subConfig = $this->db->fetch(
+            "SELECT nombre, logo_url, primary_color, secondary_color, divisa
+             FROM config_sub_agencias WHERE user_id = ?",
+            [$this->subUserId]
+        );
+        if ($subConfig) {
+            if (!empty($subConfig['nombre']))         { $this->data['agencia']['nombre'] = $subConfig['nombre']; }
+            if (!empty($subConfig['logo_url']))       { $this->data['agencia']['logo_url'] = $subConfig['logo_url']; }
+            if (!empty($subConfig['primary_color']))  { $this->data['agencia']['primary_color'] = $subConfig['primary_color']; }
+            if (!empty($subConfig['secondary_color'])){ $this->data['agencia']['secondary_color'] = $subConfig['secondary_color']; }
+        }
+
+        $subPrecios = $this->db->fetch(
+            "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
+            [$this->subUserId, $this->programaId]
+        );
+        if ($subPrecios) {
+            $this->data['precios'] = array_merge($this->data['precios'] ?? [], [
+                'precio_adulto'           => $subPrecios['precio_adulto'],
+                'precio_nino'             => $subPrecios['precio_nino'],
+                'cantidad_adultos'        => $subPrecios['cantidad_adultos'],
+                'cantidad_ninos'          => $subPrecios['cantidad_ninos'],
+                'precio_total'            => $subPrecios['precio_total'],
+                'noches_incluidas'        => $subPrecios['noches_incluidas'],
+                'moneda'                  => $subConfig['divisa'] ?? ($this->data['precios']['moneda'] ?? ''),
+                'precio_incluye'          => $subPrecios['precio_incluye'],
+                'precio_no_incluye'       => $subPrecios['precio_no_incluye'],
+                'condiciones_generales'   => $subPrecios['condiciones_generales'],
+                'movilidad_reducida'      => $subPrecios['movilidad_reducida'],
+                'info_pasaporte'          => $subPrecios['info_pasaporte'],
+                'info_seguros'            => $subPrecios['info_seguros'],
+                'visados_entrada'         => $subPrecios['visados_entrada'],
+                'requisitos_sanitarios'   => $subPrecios['requisitos_sanitarios'],
+                'llegada_punto_encuentro' => $subPrecios['llegada_punto_encuentro'],
+                'asistencia_emergencia'   => $subPrecios['asistencia_emergencia'],
+                'info_hoteles_servicios'  => $subPrecios['info_hoteles_servicios'],
+                'informacion_practica'    => $subPrecios['informacion_practica'],
+                'mostrar_precio'          => 1,
+            ]);
+            if (!empty($subPrecios['nombre_cliente'])) {
+                $this->data['programa']['nombre']   = $subPrecios['nombre_cliente'];
+                $this->data['programa']['apellido'] = '';
+            }
+        }
     }
 
     private function prepareDayImages(array $paths): array
@@ -484,18 +628,18 @@ class ItineraryRenderer
     {
         $visible = [];
         $hotelsSeen = [];
-        $hotelCount = 0;
         foreach ($servicios as $grupo) {
             if (empty($grupo['principal'])) { continue; }
             $s = $grupo['principal'];
             $tipo = $s['tipo_servicio'] ?? '';
             if ($tipo === 'alojamiento') {
+                // Dedup por nombre (evita repetir el mismo hotel), pero permite varios
+                // hoteles DISTINTOS el mismo día (p.ej. cambio de hotel).
                 $key = mb_strtolower(trim((string)($s['nombre'] ?? '')), 'UTF-8');
                 if ($key && isset($hotelsSeen[$key])) { continue; }
                 $hotelsSeen[$key] = true;
-                $hotelCount++;
-                if ($hotelCount > 1) { continue; } // solo el alojamiento principal del día
             }
+            $s['_alternativas'] = $grupo['alternativas'] ?? []; // para mostrar opciones en el PDF
             $visible[] = $s;
         }
         return $visible;
@@ -556,7 +700,7 @@ class ItineraryRenderer
         $path = trim((string)$path);
         if ($path === '') { return null; }
         if (preg_match('/^https?:\/\//i', $path)) {
-            $context = stream_context_create(['http' => ['timeout' => 2, 'ignore_errors' => true, 'header' => "User-Agent: TravelSoftPDF/1.0\r\n"], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+            $context = stream_context_create(['http' => ['timeout' => 6, 'ignore_errors' => true, 'header' => "User-Agent: TravelSoftPDF/1.0\r\n"], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
             $binary = @file_get_contents($path, false, $context);
             return $binary ?: null;
         }
@@ -619,17 +763,29 @@ class ItineraryRenderer
         return array_slice($parts, 0, 3);
     }
 
-    private function getMealsSummary(array $servicios, string $diaDescripcion = ''): string
+    /**
+     * Etiqueta del día teniendo en cuenta su duración: "Día 4" o "Día 1 – 3".
+     */
+    private function diaLabel(array $dia): string
     {
-        $source = mb_strtolower($diaDescripcion, 'UTF-8');
-        foreach ($servicios as $grupo) {
-            if (!empty($grupo['principal'])) { $source .= ' ' . mb_strtolower((string)($grupo['principal']['nombre'] ?? ''), 'UTF-8'); }
-        }
+        $ini = (int) ($dia['dia_inicio_real'] ?? $dia['dia_numero'] ?? 1);
+        $fin = (int) ($dia['dia_fin_real'] ?? $ini);
+        return $fin > $ini ? "Día {$ini} – {$fin}" : "Día {$ini}";
+    }
+
+    /**
+     * Comidas del día a partir de los campos REALES de programa_dias
+     * (comidas_incluidas/desayuno/almuerzo/cena), igual que la vista web.
+     * Antes se "adivinaba" por palabras en la descripción → falsos positivos
+     * ("dice que hay comida cuando no la incluye").
+     */
+    private function getMealsSummary(array $dia): string
+    {
         $meals = [];
-        if (str_contains($source, 'desayuno')) { $meals[] = 'Desayuno'; }
-        if (str_contains($source, 'almuerzo') || str_contains($source, 'comida')) { $meals[] = 'Almuerzo'; }
-        if (str_contains($source, 'cena')) { $meals[] = 'Cena'; }
-        $meals = array_values(array_unique($meals));
-        return empty($meals) ? 'Las comidas no están incluidas para este día' : '✓ ' . implode('   ✓ ', $meals);
+        if (!empty($dia['desayuno'])) { $meals[] = 'Desayuno'; }
+        if (!empty($dia['almuerzo'])) { $meals[] = 'Almuerzo'; }
+        if (!empty($dia['cena']))     { $meals[] = 'Cena'; }
+        if (empty($meals)) { return 'Comidas incluidas'; }
+        return '✓ ' . implode('   ✓ ', $meals);
     }
 }

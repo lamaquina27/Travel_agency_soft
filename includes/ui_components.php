@@ -107,7 +107,7 @@ class UIComponents
                     <h3 class="company-name">' . htmlspecialchars($companyName) . '</h3>
                     <div class="role-indicator">
                         <span class="role-badge-sidebar ' . $user['role'] . '">
-                            ' . ($user['role'] === 'admin' ? 'Administrador' : ($user['role'] === 'operador' ? 'Operador' : 'Agente de Viajes')) . '
+                            ' . ($user['role'] === 'admin' ? 'Administrador' : ($user['role'] === 'operador' ? 'Operador' : ($user['role'] === 'subagencia' ? 'Subagencia' : 'Agente de Viajes'))) . '
                         </span>
                     </div>
                 </div>
@@ -158,8 +158,8 @@ class UIComponents
     {
         $menuItems = [];
 
-        // Dashboard siempre presente para ambos roles
-        if ($role !== 'operador') {
+        // Dashboard siempre presente salvo roles con vista propia (operador, subagencia)
+        if (!in_array($role, ['operador', 'subagencia'], true)) {
             $menuItems[] = [
                 'url' => '/dashboard',
                 'icon' => 'dashboard',
@@ -208,6 +208,22 @@ class UIComponents
                     'icon' => 'rooming',
                     'title' => 'Traslados / Rooming',
                     'description' => 'Logística de traslados de aeropuerto'
+                ]
+            ]);
+        } else if ($role === 'subagencia') {
+            // Menú de la subagencia (revendedor B2B): su panel + perfil
+            $menuItems = array_merge($menuItems, [
+                [
+                    'url' => '/subagencias',
+                    'icon' => 'map',
+                    'title' => 'Mis Tours',
+                    'description' => 'Tours asignados, precios y enlaces'
+                ],
+                [
+                    'url' => '/perfil',
+                    'icon' => 'profile',
+                    'title' => 'Mi Perfil',
+                    'description' => 'Configuración personal'
                 ]
             ]);
         } else if ($role === 'agent') {
@@ -547,6 +563,16 @@ class UIComponents
         .role-badge-sidebar.agent {
             background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
             color: #2b6cb0;
+        }
+
+        .role-badge-sidebar.subagencia {
+            background: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 100%);
+            color: #6d28d9;
+        }
+
+        .role-badge-sidebar.operador {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            color: #475569;
         }
 
         .user-info-sidebar {

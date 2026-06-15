@@ -42,6 +42,7 @@ if (App::isLoggedIn()) {
             '/auth/logout',
             '/share',
             '/preview',
+            '/itinerary',
         ];
         if (!in_array($path, $rutasSubagencia, true)) {
             App::redirect('/subagencias');

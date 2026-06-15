@@ -1218,7 +1218,72 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             gap: 12px;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+            padding: 12px 14px;
+            background: linear-gradient(180deg, #ffffff, #fbfcff);
+            border: 1px solid #e9eef5;
+            border-radius: 16px;
+            box-shadow: 0 6px 22px rgba(15, 23, 42, .05);
+        }
+
+        /* Caja de búsqueda: ancho cómodo y fijo (ya no se estira a toda la barra) */
+        .tab-search .search-box {
+            flex: 0 1 290px;
+            min-width: 210px;
+        }
+
+        .tab-search .search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 16px 0 42px;
+        }
+
+        .tab-search .search-icon {
+            left: 16px;
+        }
+
+        /* Grupo de filtros: se empuja a la derecha, deja la búsqueda a la izquierda */
+        .tab-search .ts-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .tab-search .filter-select {
+            height: 42px;
+            padding: 0 34px 0 14px;
+            max-width: 210px;
+        }
+
+        /* Tags + su botón de configuración, pegados como una sola pieza */
+        .tab-search .ts-tag-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-search .btn-config {
+            height: 42px;
+            width: 42px;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 640px) {
+            .tab-search .search-box {
+                flex: 1 1 100%;
+            }
+
+            .tab-search .ts-filters {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .tab-search .filter-select {
+                flex: 1 1 140px;
+                max-width: none;
+            }
         }
 
         /* ── PLANTILLA CARDS ── */
@@ -2446,24 +2511,30 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
             <!-- Barras de búsqueda por tab -->
             <div class="tab-search" id="tabSearchMios">
-                <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputMios" class="search-input" style="width:100%;"
+                    <input type="text" id="searchInputMios" class="search-input"
                         placeholder="Buscar mis programas..." oninput="filtrarProgramas('mios')">
                 </div>
-                <select id="filterTagMios" class="filter-select filter-tag" onchange="filtrarProgramas('mios')">
-                    <option value="">Todos los tags</option>
-                </select>
-                <!-- Boton para configurar tags -->
-                <?php if ($isAdmin): ?>
-                    <button class="btn-config" onclick="openConfig()" title="Configurar Tags">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="3" />
-                            <path
-                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                        </svg>
-                    </button>
-                <?php endif; ?>
+                <div class="ts-filters">
+                    <div class="ts-tag-group">
+                        <select id="filterTagMios" class="filter-select filter-tag" onchange="filtrarProgramas('mios')">
+                            <option value="">Todos los tags</option>
+                        </select>
+                        <?php if ($isAdmin): ?>
+                            <button class="btn-config" onclick="openConfig()" title="Configurar tags">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                                </svg>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                    <select id="filterDestinoMios" class="filter-select filter-destino" onchange="filtrarProgramas('mios')">
+                        <option value="">Todos los destinos</option>
+                    </select>
+                </div>
             </div>
             <!-- Config Modal (estados + tags) — admin only -->
             <?php if ($isAdmin): ?>
@@ -2512,35 +2583,47 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 </div>
             </div>
 
+
             <div class="tab-search" id="tabSearchOtros" style="display:none;">
-                <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputOtros" class="search-input" style="width:100%;"
+                    <input type="text" id="searchInputOtros" class="search-input"
                         placeholder="Buscar otros programas..." oninput="filtrarProgramas('otros')">
                 </div>
-                <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
-                    <option value="">Todos los estados</option>
-                    <option value="borrador">Borrador</option>
-                    <option value="activo">Activo</option>
-                    <option value="completado">Completado</option>
-                </select>
-                <select id="filterAuthor" class="filter-select" onchange="filtrarProgramas('otros')">
-                    <option value="">Todos los autores</option>
-                </select>
-                <select id="filterTagOtros" class="filter-select filter-tag" onchange="filtrarProgramas('otros')">
-                    <option value="">Todos los tags</option>
-                </select>
+                <div class="ts-filters">
+                    <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los estados</option>
+                        <option value="borrador">Borrador</option>
+                        <option value="activo">Activo</option>
+                        <option value="completado">Completado</option>
+                    </select>
+                    <select id="filterAuthor" class="filter-select" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los autores</option>
+                    </select>
+                    <select id="filterTagOtros" class="filter-select filter-tag" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los tags</option>
+                    </select>
+                    <select id="filterDestinoOtros" class="filter-select filter-destino" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los destinos</option>
+                    </select>
+                </div>
             </div>
             <div class="tab-search" id="tabSearchPlantillas" style="display:none;">
-                <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputPlantillas" class="search-input" style="width:100%;"
+                    <input type="text" id="searchInputPlantillas" class="search-input"
                         placeholder="Buscar plantillas..." oninput="filtrarProgramas('plantillas')">
                 </div>
-                <select id="filterTagPlantillas" class="filter-select filter-tag"
-                    onchange="filtrarProgramas('plantillas')">
-                    <option value="">Todos los tags</option>
-                </select>
+                <div class="ts-filters">
+                    <select id="filterTagPlantillas" class="filter-select filter-tag"
+                        onchange="filtrarProgramas('plantillas')">
+                        <option value="">Todos los tags</option>
+                    </select>
+                    <select id="filterDestinoPlantillas" class="filter-select filter-destino"
+                        onchange="filtrarProgramas('plantillas')">
+                        <option value="">Todos los destinos</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Paneles de tabs -->
@@ -2890,6 +2973,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     actualizarEstadisticas();
                     mostrarProgramas();
                     cargarAutoresEnFiltro();
+                    fillDestinoSelects();
 
                     console.log(`${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
                 } else {
@@ -2991,6 +3075,19 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             });
         }
 
+        // Puebla los selectores de Destino con los destinos distintos de los programas cargados
+        function fillDestinoSelects() {
+            const destinos = [...new Set(allProgramas.map(p => (p.destino || '').trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+            const opciones = '<option value="">Todos los destinos</option>' +
+                destinos.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+            document.querySelectorAll('.filter-destino').forEach(sel => {
+                const prev = sel.value;
+                sel.innerHTML = opciones;
+                sel.value = prev; // conserva la selección si sigue existiendo
+            });
+        }
+
         // ============================================================
         // PICKER DE ETIQUETAS POR TOUR (asignación en la tarjeta)
         // ============================================================
@@ -3075,6 +3172,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         // Cerrar el picker al hacer clic fuera o con Escape
         document.getElementById('tagPickerModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeTagPicker(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTagPicker(); });
+
         function separarProgramas() {
             const normales = allProgramas.filter(p => !p.plantilla || p.plantilla == 0);
             misProgramasFiltrados = normales.filter(p => p.user_id == CURRENT_USER_ID);
@@ -3456,11 +3554,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                 const programasBase = allProgramas.filter(p => p.user_id == CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
                 const tagId = document.getElementById('filterTagMios').value;
+                const destinoF = document.getElementById('filterDestinoMios').value;
 
 
                 misProgramasFiltrados = programasBase.filter(programa => {
                     // Filtro por tag
                     if (tagId && !(programa.tagIds || []).includes(Number(tagId))) return false;
+                    // Filtro por destino
+                    if (destinoF && (programa.destino || '').trim() !== destinoF) return false;
                     if (!searchTerm) return true;
                     const search_term = searchTerm.split(" ").filter(term => term !== '');
 
@@ -3492,6 +3593,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 const searchTerm = document.getElementById('searchInputOtros').value.toLowerCase().trim();
                 const authorFilter = document.getElementById('filterAuthor').value;
                 const tagId = document.getElementById('filterTagOtros').value;
+                const destinoF = document.getElementById('filterDestinoOtros').value;
 
 
                 const programasBase = allProgramas.filter(p => p.user_id != CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
@@ -3528,8 +3630,11 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Filtro por tag
                     const matchesTag = !tagId || (programa.tagIds || []).includes(Number(tagId));
 
+                    // Filtro por destino
+                    const matchesDestino = !destinoF || (programa.destino || '').trim() === destinoF;
 
-                    return matchesSearch && matchesAuthor && matchesTag;
+
+                    return matchesSearch && matchesAuthor && matchesTag && matchesDestino;
                 });
 
 
@@ -3541,11 +3646,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                 const programasBase = allProgramas.filter(p => p.plantilla == 1);
                 const tagId = document.getElementById('filterTagPlantillas').value;
+                const destinoF = document.getElementById('filterDestinoPlantillas').value;
 
 
                 plantillas = programasBase.filter(programa => {
                     // Filtro por tag
                     if (tagId && !(programa.tagIds || []).includes(Number(tagId))) return false;
+                    // Filtro por destino
+                    if (destinoF && (programa.destino || '').trim() !== destinoF) return false;
                     if (!searchTerm) return true;
                     const search_term = searchTerm.split(" ").filter(term => term !== '');
 
@@ -3926,12 +4034,18 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         function limpiarFiltros(tipo) {
             if (tipo === 'mios') {
                 document.getElementById('searchInputMios').value = '';
+                document.getElementById('filterTagMios').value = '';
+                document.getElementById('filterDestinoMios').value = '';
             } else if (tipo === 'otros') {
                 document.getElementById('searchInputOtros').value = '';
                 document.getElementById('filterStatusOtros').value = '';
                 document.getElementById('filterAuthor').value = '';
+                document.getElementById('filterTagOtros').value = '';
+                document.getElementById('filterDestinoOtros').value = '';
             } else if (tipo === 'plantillas') {
                 document.getElementById('searchInputPlantillas').value = '';
+                document.getElementById('filterTagPlantillas').value = '';
+                document.getElementById('filterDestinoPlantillas').value = '';
             }
             filtrarProgramas(tipo);
         }

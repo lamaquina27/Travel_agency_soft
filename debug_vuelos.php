@@ -9,6 +9,7 @@ require_once 'config/app.php';
 require_once 'config/aerodatabox.php';
 
 App::init();
+App::requireRole('superadmin'); // protegido: script de debug
 
 // Si envía datos POST, prueba el API
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

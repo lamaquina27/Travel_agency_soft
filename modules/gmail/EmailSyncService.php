@@ -83,7 +83,10 @@ class EmailSyncService {
                 if ($status === 'skipped') $result['skipped']++;
                 // 'filtered' → no relevante, se descarta sin guardar nada
             } catch (\Exception $e) {
-                throw $e;
+                // No abortar todo el lote por el fallo de un solo mensaje:
+                // se registra y se continúa con los demás (evita reprocesar todo).
+                error_log('EmailSync processMessage ' . $messageId . ': ' . $e->getMessage());
+                $result['skipped']++;
             }
         }
 

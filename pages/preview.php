@@ -57,6 +57,31 @@ function preview_sanitize_hex($hex, string $fallback = '#1f2937'): string
     return preg_match('/^#[0-9a-fA-F]{6}$/', $hex) ? $hex : $fallback;
 }
 
+// Marca (nombre, logo, colores) de la agencia dueña del programa. Independiente de la
+// sesión → funciona en acceso público. Prioriza la paleta de agente y cae a la de admin
+// (igual que el renderer del PDF).
+function preview_agency_brand($db, $agencia_id): array
+{
+    if (!$agencia_id) return [];
+    try {
+        $a = $db->fetch(
+            "SELECT nombre, logo_url, agent_primary_color, admin_primary_color, agent_secondary_color, admin_secondary_color
+             FROM agencias WHERE id = ? LIMIT 1",
+            [(int) $agencia_id]
+        );
+    } catch (Throwable $e) {
+        error_log('preview_agency_brand: ' . $e->getMessage());
+        return [];
+    }
+    if (!$a) return [];
+    return [
+        'nombre'    => $a['nombre'] ?? '',
+        'logo_url'  => $a['logo_url'] ?? '',
+        'primary'   => $a['agent_primary_color'] ?: ($a['admin_primary_color'] ?? ''),
+        'secondary' => $a['agent_secondary_color'] ?: ($a['admin_secondary_color'] ?? ''),
+    ];
+}
+
 function preview_hex_to_rgb(string $hex): array
 {
     $hex = ltrim(preview_sanitize_hex($hex), '#');
@@ -210,6 +235,20 @@ try {
     exit;
 }
 
+// Marca real desde la agencia dueña del programa (programa_solicitudes.agencia_id).
+// Antes la marca venía de ConfigManager, que solo funciona con sesión de login → en el
+// link público (sin sesión) caía al branding por defecto. Esto lo corrige.
+$agencyBrand = preview_agency_brand($db, $programa['agencia_id'] ?? null);
+if (!empty($agencyBrand['nombre']))   { $company_name = $agencyBrand['nombre']; }
+if (!empty($agencyBrand['logo_url'])) { $company_logo = preview_asset_url($agencyBrand['logo_url'], $company_logo); }
+if (!empty($agencyBrand['primary'])) {
+    $brand_primary    = preview_sanitize_hex($agencyBrand['primary'], $brand_primary);
+    $brand_secondary  = preview_sanitize_hex($agencyBrand['secondary'] ?? '', $brand_primary);
+    $brand_text       = preview_readable_text($brand_primary);
+    [$brand_r, $brand_g, $brand_b]    = preview_hex_to_rgb($brand_primary);
+    [$brand2_r, $brand2_g, $brand2_b] = preview_hex_to_rgb($brand_secondary);
+}
+
 if ($is_sub && $sub_config) {
     if (!empty($sub_config['nombre']))
         $company_name = $sub_config['nombre'];
@@ -238,6 +277,11 @@ if ($is_sub && $sub_precios) {
         'info_seguros'          => $sub_precios['info_seguros'],
         'mostrar_precio'        => 1,
     ]);
+    // Nombre del cliente personalizado por la subagencia
+    if (!empty($sub_precios['nombre_cliente'])) {
+        $programa['nombre']   = $sub_precios['nombre_cliente'];
+        $programa['apellido'] = '';
+    }
 }
 
 $duracion_dias = 0;
@@ -493,7 +537,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             gap: 10px;
         }
 
-        .fact {
+        .fact,
+        .summary-item {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -503,13 +548,15 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             background: var(--surface-soft);
         }
 
-        .fact i {
+        .fact i,
+        .summary-item i {
             width: 20px;
             color: var(--brand-primary);
             text-align: center;
         }
 
-        .fact span {
+        .fact span,
+        .summary-item span {
             font-size: 14px;
             line-height: 1.35;
             color: var(--text-main);
@@ -632,18 +679,28 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         @media (max-width: 900px) {
+
+            /* En móvil la portada respira y puede hacer scroll si el contenido no cabe (ya no se recorta) */
             .page {
                 grid-template-columns: 1fr;
+                height: auto;
+                min-height: 100vh;
+                min-height: 100svh;
+                overflow: visible;
                 background:
                     linear-gradient(180deg, rgba(var(--brand-rgb), 0.55), rgba(var(--brand-rgb), 0.18)),
                     url('<?= addslashes($imagen_portada) ?>') center / cover no-repeat;
             }
 
             .panel {
+                height: auto;
                 min-height: 100vh;
-                width: min(100%, 520px);
+                min-height: 100svh;
+                overflow: visible;
+                width: min(100%, 560px);
                 margin: 0;
                 padding: 34px 26px;
+                gap: 24px;
             }
 
             .visual {
@@ -657,6 +714,40 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             .translate-container {
                 top: 14px;
                 right: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel {
+                padding: 26px 20px 30px;
+                gap: 20px;
+            }
+
+            .title {
+                font-size: clamp(38px, 13vw, 52px);
+            }
+
+            .traveler {
+                font-size: 20px;
+            }
+
+            .intro {
+                max-width: 100%;
+                font-size: 14px;
+            }
+
+            .fact,
+            .summary-item {
+                padding: 11px 13px;
+            }
+
+            .primary-button,
+            .secondary-button {
+                padding: 15px 16px;
+            }
+
+            #google_translate_element {
+                padding: 6px 10px;
             }
         }
     </style>
@@ -753,8 +844,13 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         function verItinerarioCompleto() {
             const isPublic = new URLSearchParams(window.location.search).get('public') === '1';
             const programaId = '<?= addslashes((string) $programa_id) ?>';
+            const isSub = <?= $is_sub ? 'true' : 'false' ?>;
 
-            if (isPublic) {
+            if (isSub) {
+                // Contexto de subagencia: ir directo conservando la sesión y el flag sub=1.
+                // (Pasar por /share con token base64 borraría subagencia_context.)
+                window.location.href = `<?= APP_URL ?>/itinerary?id=${programaId}&public=1&sub=1`;
+            } else if (isPublic) {
                 const timestamp = Date.now();
                 const tokenData = `${programaId}_${timestamp}`;
                 const token = btoa(tokenData);

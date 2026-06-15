@@ -28,6 +28,13 @@ if (!$programa_id) {
     exit;
 }
 
+// Contexto de subagencia: link público compartido por una subagencia.
+// Aplica su marca y precios (espeja la lógica de preview.php).
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$is_sub = isset($_GET['sub']) && $_GET['sub'] == '1'
+       && isset($_SESSION['subagencia_context'])
+       && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int)$programa_id;
+
 try {
     ConfigManager::init();
     $company_name = ConfigManager::getCompanyName();
@@ -253,6 +260,51 @@ try {
         [$programa_id]
     );
 
+    // Override de precios/marca por subagencia (si se entra por su link público)
+    $sub_config  = null;
+    $sub_precios = null;
+    if ($is_sub) {
+        $subCtx = $_SESSION['subagencia_context'];
+        $sub_config = $db->fetch(
+            "SELECT nombre, logo_url, primary_color, secondary_color, divisa
+             FROM config_sub_agencias WHERE user_id = ?",
+            [(int)$subCtx['user_id']]
+        );
+        $sub_precios = $db->fetch(
+            "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
+            [(int)$subCtx['user_id'], (int)$programa_id]
+        );
+        if ($sub_precios) {
+            $precios = array_merge($precios ?? [], [
+                'precio_adulto'           => $sub_precios['precio_adulto'],
+                'precio_nino'             => $sub_precios['precio_nino'],
+                'cantidad_adultos'        => $sub_precios['cantidad_adultos'],
+                'cantidad_ninos'          => $sub_precios['cantidad_ninos'],
+                'precio_total'            => $sub_precios['precio_total'],
+                'noches_incluidas'        => $sub_precios['noches_incluidas'],
+                'moneda'                  => $sub_config['divisa'] ?? ($precios['moneda'] ?? ''),
+                'precio_incluye'          => $sub_precios['precio_incluye'],
+                'precio_no_incluye'       => $sub_precios['precio_no_incluye'],
+                'condiciones_generales'   => $sub_precios['condiciones_generales'],
+                'movilidad_reducida'      => $sub_precios['movilidad_reducida'],
+                'info_pasaporte'          => $sub_precios['info_pasaporte'],
+                'info_seguros'            => $sub_precios['info_seguros'],
+                'visados_entrada'         => $sub_precios['visados_entrada'],
+                'requisitos_sanitarios'   => $sub_precios['requisitos_sanitarios'],
+                'llegada_punto_encuentro' => $sub_precios['llegada_punto_encuentro'],
+                'asistencia_emergencia'   => $sub_precios['asistencia_emergencia'],
+                'info_hoteles_servicios'  => $sub_precios['info_hoteles_servicios'],
+                'informacion_practica'    => $sub_precios['informacion_practica'],
+                'mostrar_precio'          => 1,
+            ]);
+            // Nombre del cliente personalizado por la subagencia
+            if (!empty($sub_precios['nombre_cliente'])) {
+                $programa['nombre']   = $sub_precios['nombre_cliente'];
+                $programa['apellido'] = '';
+            }
+        }
+    }
+
     // Obtener adjuntos (archivos y enlaces) en orden de subida
     $adjuntos = $db->fetchAll(
         "SELECT id, archivo, enlace FROM programa_adjuntos WHERE solicitud_id = ? ORDER BY created_at ASC, id ASC",
@@ -263,6 +315,19 @@ try {
     //Cambio para mostrar los precios o esconderlos
     $mostrar_precios = $precios && (!isset($precios['mostrar_precio']) || (int) $precios['mostrar_precio'] === 1);
     $vendido = ($programa['comprado']) ? 1 : 0;
+
+    // ── Selección de hotel alternativo por el cliente (link compartido) ──
+    $hotelSeleccionDelta = 0.0; // suma de las diferencias de precio de las alternativas elegidas
+    // Token público estable para autorizar la selección desde el link (se genera si falta)
+    $public_token = $programa['public_token'] ?? '';
+    if (empty($public_token)) {
+        try {
+            $public_token = bin2hex(random_bytes(16));
+            $db->query("UPDATE programa_solicitudes SET public_token = ? WHERE id = ?", [$public_token, (int) $programa_id]);
+        } catch (Throwable $e) {
+            $public_token = '';
+        }
+    }
 
     // Preparar datos para el mapa
 // Preparar datos para el mapa - SOLO UBICACIONES DE DÍAS
@@ -442,6 +507,40 @@ $brand_secondary = ts_safe_hex_color(
     $brand_primary
 );
 
+// Marca real de la agencia dueña del programa (programa_solicitudes.agencia_id).
+// $config (ConfigManager) no expone estas claves de color y en el link público (sin sesión)
+// caía al branding por defecto; por eso "a veces" salía el default en vez del de la empresa.
+// Tomamos la paleta de la agencia: agente y, si falta, admin (igual que el renderer del PDF).
+try {
+    $agenciaBrand = $db->fetch(
+        "SELECT nombre, agent_primary_color, admin_primary_color, agent_secondary_color, admin_secondary_color
+         FROM agencias WHERE id = ? LIMIT 1",
+        [(int) ($programa['agencia_id'] ?? 0)]
+    );
+} catch (Throwable $e) {
+    $agenciaBrand = null;
+}
+if ($agenciaBrand) {
+    if (!empty($agenciaBrand['nombre'])) { $company_name = $agenciaBrand['nombre']; }
+    $agPrim = $agenciaBrand['agent_primary_color'] ?: ($agenciaBrand['admin_primary_color'] ?? '');
+    $agSec  = $agenciaBrand['agent_secondary_color'] ?: ($agenciaBrand['admin_secondary_color'] ?? '');
+    if (!empty($agPrim)) {
+        $brand_primary   = ts_safe_hex_color($agPrim, $brand_primary);
+        $brand_secondary = ts_safe_hex_color($agSec, $brand_primary);
+    }
+}
+
+// Si se entra por el link de una subagencia, su marca manda
+if (!empty($is_sub) && !empty($sub_config)) {
+    if (!empty($sub_config['nombre'])) {
+        $company_name = $sub_config['nombre'];
+    }
+    if (!empty($sub_config['primary_color'])) {
+        $brand_primary   = ts_safe_hex_color($sub_config['primary_color'], $brand_primary);
+        $brand_secondary = ts_safe_hex_color($sub_config['secondary_color'] ?? '', $brand_primary);
+    }
+}
+
 function ts_spanish_day_name($date)
 {
     $dias = [
@@ -608,6 +707,13 @@ if ($programa['fecha_llegada']) {
             line-height: 1.6;
             color: var(--brand-text);
             background: #ffffff;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        /* Red de seguridad: ningún desborde puntual arrastra scroll horizontal en móvil */
+        html {
+            overflow-x: hidden;
         }
 
         /* ========================================
@@ -5201,6 +5307,38 @@ if ($programa['fecha_llegada']) {
                 padding-right: 20px !important;
             }
         }
+
+        /* ─── Ajustes finales de responsive móvil (#3) ─── */
+        @media (max-width: 768px) {
+
+            /* Barra de acciones (Bono / Descargar PDF): en columna y a ancho completo,
+               antes se salían de pantalla al ser 2 botones anchos */
+            .footer-actions {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+                padding: 0 20px !important;
+            }
+
+            .footer-actions .btn {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+
+            /* Texto sobre la imagen del día: más compacto y legible en pantallas pequeñas */
+            .day-image-overlay {
+                padding: 30px 14px 14px !important;
+            }
+
+            .day-image-overlay .dih-title {
+                font-size: 16px !important;
+            }
+
+            .day-image-overlay .dih-date,
+            .day-image-overlay .dih-locs {
+                font-size: 12px !important;
+            }
+        }
     </style>
 </head>
 
@@ -5946,8 +6084,43 @@ if ($programa['fecha_llegada']) {
                                                         </div>
                                                     </div>
 
-                                                    <!-- Alternativas -->
-                                                    <?php if (!empty($servicio_grupo['alternativas'])): ?>
+                                                    <!-- Selector de hotel (alojamiento con alternativas): el cliente elige y el precio se actualiza -->
+                                                    <?php if ($servicio['tipo_servicio'] === 'alojamiento' && !empty($servicio_grupo['alternativas'])):
+                                                        $hsOpciones = [['id' => (int) $servicio['id'], 'nombre' => $servicio['nombre'], 'delta' => 0.0, 'sel' => ((int) ($servicio['seleccionado'] ?? 0) === 1), 'principal' => true]];
+                                                        foreach ($servicio_grupo['alternativas'] as $hsAlt) {
+                                                            $hsOpciones[] = ['id' => (int) $hsAlt['id'], 'nombre' => $hsAlt['nombre'], 'delta' => (float) ($hsAlt['variacion_precio'] ?? 0), 'sel' => ((int) ($hsAlt['seleccionado'] ?? 0) === 1), 'principal' => false];
+                                                        }
+                                                        $hsHaySel = false;
+                                                        foreach ($hsOpciones as $o) { if ($o['sel']) { $hsHaySel = true; break; } }
+                                                        foreach ($hsOpciones as $o) {
+                                                            if ($o['sel'] || (!$hsHaySel && $o['principal'])) { $hotelSeleccionDelta += (float) $o['delta']; break; }
+                                                        }
+                                                        $hsMoneda = $precios['moneda'] ?? '';
+                                                        ?>
+                                                        <div class="hotel-selector" data-grupo="<?= (int) $servicio['id'] ?>">
+                                                            <div class="hotel-selector-title"><i class="fas fa-hotel"></i> Elige tu alojamiento</div>
+                                                            <?php foreach ($hsOpciones as $o):
+                                                                $checked = $o['sel'] || (!$hsHaySel && $o['principal']);
+                                                                $d = (float) $o['delta'];
+                                                                $deltaLabel = $d > 0 ? ('+ ' . number_format($d, 0, ',', '.') . ' ' . htmlspecialchars($hsMoneda))
+                                                                    : ($d < 0 ? ('− ' . number_format(abs($d), 0, ',', '.') . ' ' . htmlspecialchars($hsMoneda))
+                                                                        : 'Sin coste adicional');
+                                                                ?>
+                                                                <label class="hotel-option<?= $checked ? ' selected' : '' ?>">
+                                                                    <input type="radio" name="hotel-<?= (int) $servicio['id'] ?>" value="<?= (int) $o['id'] ?>"
+                                                                        data-grupo="<?= (int) $servicio['id'] ?>" data-delta="<?= htmlspecialchars((string) $d) ?>"
+                                                                        <?= $checked ? 'checked' : '' ?> <?= $vendido ? 'disabled' : '' ?>
+                                                                        onchange="seleccionarHotel(this)">
+                                                                    <span class="hotel-option-name"><?= htmlspecialchars($o['nombre']) ?><?= $o['principal'] ? ' <em>(incluido)</em>' : '' ?></span>
+                                                                    <span class="hotel-option-delta <?= $d > 0 ? 'pos' : ($d < 0 ? 'neg' : 'zero') ?>"><?= $deltaLabel ?></span>
+                                                                </label>
+                                                            <?php endforeach; ?>
+                                                            <?php if ($vendido): ?><div class="hotel-locked"><i class="fas fa-lock"></i> Selección confirmada</div><?php endif; ?>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Alternativas (otros servicios: lista informativa) -->
+                                                    <?php if (!empty($servicio_grupo['alternativas']) && $servicio['tipo_servicio'] !== 'alojamiento'): ?>
                                                         <div class="alternatives-header"
                                                             onclick="toggleAlternatives(<?= $servicio['id'] ?>)">
                                                             <i class="fas fa-sync-alt"></i>
@@ -6117,8 +6290,8 @@ if ($programa['fecha_llegada']) {
                                         <span class="total-label">Precio Total</span>
                                         <div class="total-amount">
                                             <span class="price-currency"><?= htmlspecialchars($precios['moneda']) ?></span>
-                                            <span
-                                                class="price-value"><?= number_format($precios['precio_total'], 0, ',', '.') ?></span>
+                                            <span class="price-value" id="pricingTotalValue"
+                                                data-base="<?= (float) $precios['precio_total'] ?>"><?= number_format($precios['precio_total'] + $hotelSeleccionDelta, 0, ',', '.') ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -6304,7 +6477,7 @@ if ($programa['fecha_llegada']) {
                 <?php endif; ?>
 
                 <?php if (!empty($programa_id)): ?>
-                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?>"
+                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?><?= $is_sub ? '&sub=1' : '' ?>"
                         class="btn btn-outline" target="_blank">
                         <i class="fas fa-download"></i>
                         Descargar PDF
@@ -7401,6 +7574,95 @@ if ($programa['fecha_llegada']) {
             });
         </script>
     <?php endif; ?>
+
+    <!-- ── Selector de hotel alternativo (cliente elige, precio en tiempo real) ── -->
+    <style>
+        .hotel-selector {
+            margin-top: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(var(--brand-rgb), .18);
+            border-radius: 14px;
+            background: rgba(var(--brand-rgb), .04);
+        }
+
+        .hotel-selector-title {
+            font-weight: 700;
+            font-size: .95rem;
+            color: var(--brand-text);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hotel-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 13px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 11px;
+            background: #fff;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .hotel-option:last-of-type { margin-bottom: 0; }
+
+        .hotel-option.selected {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), .12);
+        }
+
+        .hotel-option input[type=radio] { accent-color: var(--brand-primary); flex-shrink: 0; }
+
+        .hotel-option-name { flex: 1; font-weight: 600; font-size: .92rem; }
+        .hotel-option-name em { color: #94a3b8; font-style: normal; font-weight: 500; font-size: .82rem; }
+
+        .hotel-option-delta { font-weight: 800; font-size: .9rem; white-space: nowrap; }
+        .hotel-option-delta.pos { color: #b45309; }
+        .hotel-option-delta.neg { color: #15803d; }
+        .hotel-option-delta.zero { color: #94a3b8; font-weight: 600; }
+
+        .hotel-locked {
+            margin-top: 8px;
+            font-size: .82rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+    <script>
+        (function () {
+            const SEL_PROG = <?= (int) $programa_id ?>;
+            const SEL_TOKEN = '<?= htmlspecialchars($public_token, ENT_QUOTES) ?>';
+            const SEL_API = '<?= APP_URL ?>/modules/itinerary/seleccionar_alternativa.php';
+
+            function selFmt(n) { try { return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(n); } catch (e) { return Math.round(n); } }
+
+            function recomputeTotal() {
+                let delta = 0;
+                document.querySelectorAll('.hotel-selector input[type=radio]:checked').forEach(r => { delta += parseFloat(r.dataset.delta) || 0; });
+                const el = document.getElementById('pricingTotalValue');
+                if (el) { const base = parseFloat(el.dataset.base) || 0; el.textContent = selFmt(base + delta); }
+            }
+
+            window.seleccionarHotel = function (radio) {
+                const grupo = radio.dataset.grupo;
+                document.querySelectorAll('.hotel-selector[data-grupo="' + grupo + '"] .hotel-option').forEach(l => l.classList.remove('selected'));
+                const lbl = radio.closest('.hotel-option'); if (lbl) lbl.classList.add('selected');
+                recomputeTotal();
+                fetch(SEL_API, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ programa_id: SEL_PROG, token: SEL_TOKEN, grupo_principal_id: parseInt(grupo, 10), servicio_id: parseInt(radio.value, 10) })
+                }).then(r => r.json()).then(d => { if (!d || !d.success) { console.warn('Selección no guardada:', d && d.message); } }).catch(() => { });
+            };
+
+            document.addEventListener('DOMContentLoaded', recomputeTotal);
+        })();
+    </script>
 
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

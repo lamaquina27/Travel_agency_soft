@@ -57,6 +57,9 @@ class SubagenciasAPI {
                     case 'list_assigned_tours':
                         $result = $this->listAssignedTours();
                         break;
+                    case 'list_tour_subagencias':
+                        $result = $this->listTourSubagencias();
+                        break;
                     default:
                         $result = ['success' => false, 'message' => 'Acción no válida: ' . $action];
                 }
@@ -73,6 +76,9 @@ class SubagenciasAPI {
                         break;
                     case 'list_assigned_tours':
                         $result = $this->listAssignedTours();
+                        break;
+                    case 'list_tour_subagencias':
+                        $result = $this->listTourSubagencias();
                         break;
                     default:
                         $result = ['success' => false, 'message' => 'Acción no válida: ' . $action];
@@ -93,6 +99,9 @@ class SubagenciasAPI {
                         break;
                     case 'save_config':
                         $result = $this->saveConfig();
+                        break;
+                    case 'upload_logo':
+                        $result = $this->uploadLogo();
                         break;
                     default:
                         $result = ['success' => false, 'message' => 'Acción no válida: ' . $action];
@@ -266,28 +275,57 @@ class SubagenciasAPI {
             return ['success' => false, 'message' => 'Este tour ya está asignado a esa subagencia'];
         }
 
-        // Copiar los precios originales como valores iniciales del override
+        // Copiar TODA la sección editable de precios como base del override
         $precios = $this->db->fetch(
-            "SELECT precio_adulto, precio_nino, precio_total, precio_incluye,
-                    precio_no_incluye, condiciones_generales, movilidad_reducida,
-                    info_pasaporte, info_seguros
+            "SELECT precio_adulto, precio_nino, cantidad_adultos, cantidad_ninos,
+                    precio_total, noches_incluidas, precio_incluye, precio_no_incluye,
+                    condiciones_generales, movilidad_reducida, info_pasaporte, info_seguros,
+                    visados_entrada, requisitos_sanitarios, llegada_punto_encuentro,
+                    asistencia_emergencia, info_hoteles_servicios, informacion_practica
              FROM programa_precios WHERE solicitud_id = ?",
             [$solicitudId]
         );
 
+        // Nombre del titular como cliente base (la subagencia lo puede cambiar)
+        $titular = $this->db->fetch(
+            "SELECT TRIM(CONCAT(COALESCE(nombre,''), ' ', COALESCE(apellido,''))) AS nombre_cliente
+             FROM programa_solicitudes WHERE id = ?",
+            [$solicitudId]
+        );
+
+        // Noches base: usar las del programa; si no están definidas, derivar de los días (días - 1)
+        $nochesBase = (int)($precios['noches_incluidas'] ?? 0);
+        if ($nochesBase <= 0) {
+            $diasRow = $this->db->fetch(
+                "SELECT COUNT(*) AS c FROM programa_dias WHERE solicitud_id = ?",
+                [$solicitudId]
+            );
+            $nochesBase = max(0, (int)($diasRow['c'] ?? 0) - 1);
+        }
+
         $this->db->insert('subagencia_tour_precios', [
-            'user_id'               => $subUserId,
-            'solicitud_id'          => $solicitudId,
-            'precio_adulto'         => $precios['precio_adulto']         ?? null,
-            'precio_nino'           => $precios['precio_nino']           ?? null,
-            'precio_total'          => $precios['precio_total']          ?? null,
-            'precio_incluye'        => $precios['precio_incluye']        ?? null,
-            'precio_no_incluye'     => $precios['precio_no_incluye']     ?? null,
-            'condiciones_generales' => $precios['condiciones_generales'] ?? null,
-            'movilidad_reducida'    => $precios['movilidad_reducida']    ?? 0,
-            'info_pasaporte'        => $precios['info_pasaporte']        ?? null,
-            'info_seguros'          => $precios['info_seguros']          ?? null,
-            'public_token'          => bin2hex(random_bytes(16)),
+            'user_id'                 => $subUserId,
+            'solicitud_id'            => $solicitudId,
+            'nombre_cliente'          => $titular['nombre_cliente'] ?: null,
+            'precio_adulto'           => $precios['precio_adulto']           ?? null,
+            'precio_nino'             => $precios['precio_nino']             ?? null,
+            'cantidad_adultos'        => $precios['cantidad_adultos']        ?? 1,
+            'cantidad_ninos'          => $precios['cantidad_ninos']          ?? 0,
+            'precio_total'            => $precios['precio_total']            ?? null,
+            'noches_incluidas'        => $nochesBase,
+            'precio_incluye'          => $precios['precio_incluye']          ?? null,
+            'precio_no_incluye'       => $precios['precio_no_incluye']       ?? null,
+            'condiciones_generales'   => $precios['condiciones_generales']   ?? null,
+            'movilidad_reducida'      => $precios['movilidad_reducida']      ?? 0,
+            'info_pasaporte'          => $precios['info_pasaporte']          ?? null,
+            'info_seguros'            => $precios['info_seguros']            ?? null,
+            'visados_entrada'         => $precios['visados_entrada']         ?? null,
+            'requisitos_sanitarios'   => $precios['requisitos_sanitarios']   ?? null,
+            'llegada_punto_encuentro' => $precios['llegada_punto_encuentro'] ?? null,
+            'asistencia_emergencia'   => $precios['asistencia_emergencia']   ?? null,
+            'info_hoteles_servicios'  => $precios['info_hoteles_servicios']  ?? null,
+            'informacion_practica'    => $precios['informacion_practica']    ?? null,
+            'public_token'            => bin2hex(random_bytes(16)),
         ]);
 
         return ['success' => true, 'message' => 'Tour asignado correctamente'];
@@ -355,7 +393,7 @@ class SubagenciasAPI {
             $tours = $this->db->fetchAll(
                 "SELECT stp.id, stp.solicitud_id, stp.precio_total, stp.public_token,
                         COALESCE(pp.titulo_programa, ps.destino) AS titulo,
-                        ps.destino, ps.fecha_inicio, ps.fecha_fin
+                        ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin
                  FROM subagencia_tour_precios stp
                  JOIN programa_solicitudes ps ON ps.id = stp.solicitud_id
                  LEFT JOIN programa_personalizacion pp ON pp.solicitud_id = ps.id
@@ -367,7 +405,7 @@ class SubagenciasAPI {
             $tours = $this->db->fetchAll(
                 "SELECT stp.id, stp.solicitud_id, stp.precio_total, stp.public_token,
                         COALESCE(pp.titulo_programa, ps.destino) AS titulo,
-                        ps.destino, ps.fecha_inicio, ps.fecha_fin
+                        ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin
                  FROM subagencia_tour_precios stp
                  JOIN programa_solicitudes ps ON ps.id = stp.solicitud_id
                  LEFT JOIN programa_personalizacion pp ON pp.solicitud_id = ps.id
@@ -378,6 +416,28 @@ class SubagenciasAPI {
         }
 
         return ['success' => true, 'data' => $tours];
+    }
+
+    private function listTourSubagencias(): array {
+        $agenciaId   = (int)$_SESSION['agencia_id'];
+        $solicitudId = (int)($_GET['solicitud_id'] ?? $_POST['solicitud_id'] ?? 0);
+
+        if (!$solicitudId) {
+            return ['success' => false, 'message' => 'solicitud_id es obligatorio'];
+        }
+
+        // ids de subagencias (de esta agencia) que ya tienen el tour asignado
+        $rows = $this->db->fetchAll(
+            "SELECT stp.user_id
+             FROM subagencia_tour_precios stp
+             JOIN users u ON u.id = stp.user_id
+             WHERE stp.solicitud_id = ? AND u.agencia_id = ? AND u.role = 'subagencia'",
+            [$solicitudId, $agenciaId]
+        );
+
+        $ids = array_map(static fn($r) => (int)$r['user_id'], $rows);
+
+        return ['success' => true, 'data' => $ids];
     }
 
     // ================================================================
@@ -391,7 +451,7 @@ class SubagenciasAPI {
             "SELECT stp.id, stp.solicitud_id, stp.precio_adulto, stp.precio_nino,
                     stp.precio_total, stp.public_token,
                     COALESCE(pp.titulo_programa, ps.destino) AS titulo,
-                    ps.destino, ps.fecha_inicio, ps.fecha_fin, ps.num_dias
+                    ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin
              FROM subagencia_tour_precios stp
              JOIN programa_solicitudes ps ON ps.id = stp.solicitud_id
              LEFT JOIN programa_personalizacion pp ON pp.solicitud_id = ps.id
@@ -420,8 +480,8 @@ class SubagenciasAPI {
         }
 
         $programa = $this->db->fetch(
-            "SELECT ps.id, ps.destino, ps.fecha_inicio, ps.fecha_fin, ps.num_dias,
-                    ps.num_pasajeros,
+            "SELECT ps.id, ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin,
+                    ps.numero_pasajeros AS num_pasajeros,
                     COALESCE(pp.titulo_programa, ps.destino) AS titulo,
                     pp.foto_portada, pp.idioma_predeterminado
              FROM programa_solicitudes ps
@@ -464,9 +524,12 @@ class SubagenciasAPI {
 
         // Whitelist de campos editables — nunca se permite editar user_id, solicitud_id, public_token
         $camposPermitidos = [
+            'nombre_cliente',
             'precio_adulto', 'precio_nino', 'cantidad_adultos', 'cantidad_ninos',
             'precio_total', 'noches_incluidas', 'precio_incluye', 'precio_no_incluye',
             'condiciones_generales', 'movilidad_reducida', 'info_pasaporte', 'info_seguros',
+            'visados_entrada', 'requisitos_sanitarios', 'llegada_punto_encuentro',
+            'asistencia_emergencia', 'info_hoteles_servicios', 'informacion_practica',
         ];
 
         $data = [];
@@ -548,6 +611,49 @@ class SubagenciasAPI {
         }
 
         return ['success' => true, 'message' => 'Configuración guardada correctamente'];
+    }
+
+    private function uploadLogo(): array {
+        $userId = (int)$_SESSION['user_id'];
+
+        if (!isset($_FILES['logo']) || $_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
+            return ['success' => false, 'message' => 'No se recibió el logo o hubo un error en la subida'];
+        }
+
+        $file = $_FILES['logo'];
+
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        if (!in_array($file['type'], $allowedTypes, true)) {
+            return ['success' => false, 'message' => 'Tipo de archivo no permitido (usa JPG, PNG, GIF, WEBP o SVG)'];
+        }
+        if ($file['size'] > 5 * 1024 * 1024) {
+            return ['success' => false, 'message' => 'El logo es demasiado grande (máx 5MB)'];
+        }
+
+        $uploadDir = dirname(__DIR__, 2) . '/assets/uploads/subagencias/';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+            return ['success' => false, 'message' => 'No se pudo crear el directorio de subida'];
+        }
+
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION)) ?: 'png';
+        $filename  = 'logo_' . $userId . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
+        $filepath  = $uploadDir . $filename;
+
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            return ['success' => false, 'message' => 'Error moviendo el archivo'];
+        }
+
+        $url = APP_URL . '/assets/uploads/subagencias/' . $filename;
+
+        // Guardar/actualizar la fila de marca
+        $existe = $this->db->fetch("SELECT id FROM config_sub_agencias WHERE user_id = ?", [$userId]);
+        if ($existe) {
+            $this->db->update('config_sub_agencias', ['logo_url' => $url], 'user_id = ?', [$userId]);
+        } else {
+            $this->db->insert('config_sub_agencias', ['user_id' => $userId, 'logo_url' => $url]);
+        }
+
+        return ['success' => true, 'message' => 'Logo actualizado', 'url' => $url];
     }
 
     private function sendError(string $message): void {

@@ -47,6 +47,17 @@ try {
     }
 
     $renderer = new ItineraryRenderer($programaId);
+
+    // Contexto de subagencia (link público B2B): aplica su marca y precios al PDF.
+    // Espeja la detección de pages/itinerary.php (sub=1 + subagencia_context + match solicitud_id).
+    if (session_status() === PHP_SESSION_NONE) { session_start(); }
+    $isSub = isset($_GET['sub']) && $_GET['sub'] == '1'
+          && isset($_SESSION['subagencia_context'])
+          && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === $programaId;
+    if ($isSub) {
+        $renderer->setSubAgencia((int)$_SESSION['subagencia_context']['user_id']);
+    }
+
     $html = $renderer->renderHtml();
 
     $options = new Options();

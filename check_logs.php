@@ -1,5 +1,9 @@
 <?php
 // check_logs.php - ELIMINA DESPUÉS DE USAR
+// Protegido: solo superadmin autenticado (expone configuración/logs).
+require_once __DIR__ . '/config/app.php';
+App::init();
+App::requireRole('superadmin');
 
 echo "<h2>📋 Revisión de Logs</h2>";
 

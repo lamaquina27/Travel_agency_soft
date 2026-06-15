@@ -441,6 +441,36 @@ $pRgb = pl_rgb($userColors['primary']);
       flex-shrink: 0;
     }
 
+    /* Insignias de columna: entrada (estado inicial) y final ganado/perdido */
+    .k-entrada-tag {
+      background: rgba(var(--pr-rgb), .12);
+      color: var(--pr);
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      flex-shrink: 0;
+    }
+
+    .k-final-tag {
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .k-final-ganado {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .k-final-perdido {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
     .k-body {
       flex: 1;
       overflow-y: auto;
@@ -2220,6 +2250,35 @@ $pRgb = pl_rgb($userColors['primary']);
       opacity: 1;
     }
 
+    .est-entrada-badge {
+      background: rgba(var(--pr-rgb), .12);
+      color: var(--pr);
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 10.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .est-final-sel {
+      height: 28px;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      background: #fff;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      flex-shrink: 0;
+      max-width: 135px;
+    }
+
+    .est-final-sel:focus {
+      outline: none;
+      border-color: var(--pr);
+    }
+
     .est-del-btn {
       width: 28px;
       height: 28px;
@@ -3505,11 +3564,18 @@ $pRgb = pl_rgb($userColors['primary']);
             <div style="font-size:13px;">${IS_ADMIN ? 'Crea los estados del pipeline en ⚙ Configurar.' : 'Contacta al administrador.'}</div></div>`;
         return;
       }
-      board.innerHTML = S.estados.map(est => {
+      board.innerHTML = S.estados.map((est, idx) => {
         const cl = leads.filter(l => l.estado_id == est.id);
         const c = est.color || '#6366f1';
+        const esEntrada = idx === 0;
+        const finalTag = est.tipo_final === 'ganado'
+          ? `<span class="k-final-tag k-final-ganado" title="Estado final: ganado">✓ Ganado</span>`
+          : est.tipo_final === 'perdido'
+            ? `<span class="k-final-tag k-final-perdido" title="Estado final: perdido">✕ Perdido</span>`
+            : '';
+        const entradaTag = esEntrada ? `<span class="k-entrada-tag" title="Aquí caen los leads nuevos y los de Gmail">Entrada</span>` : '';
         return `<div class="k-col" style="--cc:${c};">
-            <div class="k-col-hd"><div class="k-dot"></div><span class="k-name">${esc(est.nombre)}</span><span class="k-cnt">${cl.length}</span></div>
+            <div class="k-col-hd"><div class="k-dot"></div><span class="k-name">${esc(est.nombre)}</span>${entradaTag}${finalTag}<span class="k-cnt">${cl.length}</span></div>
             <div class="k-body" id="kb-${est.id}"
                 ondragover="onDragOver(event,${est.id})"
                 ondragleave="onDragLeave(event,${est.id})"
@@ -4017,8 +4083,10 @@ $pRgb = pl_rgb($userColors['primary']);
 
     function renderEstList() {
       const el = document.getElementById('estList'); if (!el) return;
-      el.innerHTML = S.estados.map(est => {
+      el.innerHTML = S.estados.map((est, idx) => {
         const c = est.color || '#6366f1';
+        const esEntrada = idx === 0; // el de menor posición es el estado inicial (entrada)
+        const tf = est.tipo_final || '';
         return `<div class="est-row" data-id="${est.id}" draggable="true"
             ondragstart="estDragStart(event,${est.id})"
             ondragover="estDragOver(event)"
@@ -4031,12 +4099,29 @@ $pRgb = pl_rgb($userColors['primary']);
             </div>
             <input class="est-name-inp" type="text" value="${esc(est.nombre)}" placeholder="Nombre del estado"
                 data-orig="${esc(est.nombre)}" onchange="saveEstado(${est.id})" oninput="markEstDirty(this)">
+            ${esEntrada ? `<span class="est-entrada-badge" title="Aquí caen los leads nuevos y los de Gmail">Entrada</span>` : ''}
+            <select class="est-final-sel" title="Tipo de estado" onchange="saveEstadoFinal(${est.id}, this.value)">
+                <option value=""${tf === '' ? ' selected' : ''}>En curso</option>
+                <option value="ganado"${tf === 'ganado' ? ' selected' : ''}>Final · Ganado</option>
+                <option value="perdido"${tf === 'perdido' ? ' selected' : ''}>Final · Perdido</option>
+            </select>
             <button class="est-save-btn" onclick="saveEstado(${est.id})">Guardar</button>
             <button class="est-del-btn" onclick="deleteEstado(${est.id})" title="Eliminar">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
             </button>
         </div>`;
       }).join('');
+    }
+    // Marca un estado como En curso / Final-Ganado / Final-Perdido
+    async function saveEstadoFinal(id, tipo) {
+      const tipo_final = (tipo === 'ganado' || tipo === 'perdido') ? tipo : null;
+      const r = await apiJ('update_estados', { id, tipo_final, es_final: tipo_final ? 1 : 0 });
+      if (r.success) {
+        const est = S.estados.find(e => e.id == id);
+        if (est) { est.tipo_final = tipo_final; est.es_final = tipo_final ? 1 : 0; }
+        render();
+        showToast('Estado actualizado', 'ok');
+      } else showToast(r.message || 'Error', 'err');
     }
     function onEstColorInput(input, id) {
       // Update preview live

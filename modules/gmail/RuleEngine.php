@@ -164,7 +164,7 @@ class RuleEngine {
             'email_cliente'                 => $data['email_cliente'],
             'destino'                       => $data['destino'],
             'fecha_salida'                  => $data['fecha_salida'],
-            'source'                        => 'email',
+            'source'                        => $this->getOrCreateEmailSourceId($agencyId),
             'created_from_email_message_id' => $message['id'],
         ];
 
@@ -267,6 +267,24 @@ class RuleEngine {
             [$agencyId, $emailCliente]
         );
         return $row ?: null;
+    }
+
+    /**
+     * Devuelve el id del origen "Email" de la agencia (lo crea si no existe).
+     * pipeline.source es un id hacia pipeline_sources (catálogo), no texto libre:
+     * antes se insertaba la cadena 'email', lo que rompía tras pasar source a INT+FK.
+     */
+    private function getOrCreateEmailSourceId(int $agencyId): ?int {
+        $row = $this->db->fetch(
+            "SELECT id FROM pipeline_sources WHERE agencia_id = ? AND nombre = 'Email' LIMIT 1",
+            [$agencyId]
+        );
+        if ($row) return (int) $row['id'];
+        $id = $this->db->insert('pipeline_sources', [
+            'agencia_id' => $agencyId,
+            'nombre'     => 'Email',
+        ]);
+        return $id ? (int) $id : null;
     }
 
     /**

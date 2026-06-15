@@ -67,7 +67,17 @@ class App {
         if (session_status() === PHP_SESSION_NONE) {
             // Sesión sin expiración por inactividad: 1 año
             ini_set('session.gc_maxlifetime', 31536000);
-            session_set_cookie_params(31536000);
+            // Secure solo bajo HTTPS (para no romper el desarrollo local en http);
+            // HttpOnly y SameSite=Lax siempre (mitiga robo de sesión vía XSS/CSRF).
+            $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+                || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+            session_set_cookie_params([
+                'lifetime' => 31536000,
+                'path'     => '/',
+                'secure'   => $isHttps,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
             session_start();
         }
     }
