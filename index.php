@@ -33,6 +33,22 @@ if (App::isLoggedIn()) {
             exit;
         }
     }
+    if ($user['role'] === 'subagencia') {
+        $rutasSubagencia = [
+            '/subagencias',
+            '/subagencias/api',
+            '/perfil',
+            '/perfil/api',
+            '/auth/logout',
+            '/share',
+            '/preview',
+            '/itinerary',
+        ];
+        if (!in_array($path, $rutasSubagencia, true)) {
+            App::redirect('/subagencias');
+            exit;
+        }
+    }
 }
 switch ($path) {
     case '/':
@@ -157,6 +173,16 @@ switch ($path) {
         include 'modules/admin/api.php';
         break;
 
+    case '/reportes':
+        App::requireRole('admin');
+        include 'pages/reportes.php';
+        break;
+
+    case '/reportes/api':
+        App::requireRole('admin');
+        include 'modules/reportes/api.php';
+        break;
+
     case '/perfil':
         App::requireLogin();
         // Solo permitir acceso a agentes y operadores
@@ -262,6 +288,17 @@ switch ($path) {
         require_once 'modules/gmail/chat_api.php';
         break;
 
+    case '/subagencias':
+        App::requireLogin();
+        App::requireRole('subagencia');
+        include 'pages/subagencias.php';
+        break;
+
+    case '/subagencias/api':
+        App::requireLogin();
+        include 'modules/subagencias/api.php';
+        break;
+        
     default:
         http_response_code(404);
         include 'pages/404.php';

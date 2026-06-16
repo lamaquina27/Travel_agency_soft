@@ -1424,6 +1424,125 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             position: relative;
         }
 
+        /* ── Etiquetas inline del editor ── */
+        .editor-tag-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            min-height: 44px;
+        }
+
+        .editor-tag-create {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .editor-tag-create #editorTagNew {
+            flex: 1 1 auto;
+            max-width: 260px;
+        }
+
+        .editor-tag-create-btn {
+            flex-shrink: 0;
+            padding: 9px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all .15s ease;
+        }
+
+        .editor-tag-create-btn:hover {
+            background: #eef2f7;
+            border-color: #cbd5e1;
+        }
+
+        .editor-tag-create-btn:disabled {
+            opacity: .6;
+            cursor: default;
+        }
+
+        .editor-tag-chips .etc-empty {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .etc-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: 1.5px solid #e2e8f0;
+            background: #fff;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: all .15s ease;
+        }
+
+        .etc-chip:hover {
+            border-color: var(--c, #94a3b8);
+            transform: translateY(-1px);
+        }
+
+        .etc-chip::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--c, #cbd5e1);
+            flex-shrink: 0;
+        }
+
+        .etc-chip.selected {
+            background: color-mix(in srgb, var(--c, #6366f1) 14%, #fff);
+            border-color: var(--c, #6366f1);
+            color: var(--c, #4338ca);
+        }
+
+        .editor-tag-hint {
+            display: block;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #94a3b8;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 500;
+        }
+
+        /* ── Lead vinculado (editor) ── */
+        .lead-vinculo-box { font-size: 14px; }
+        .lead-vinculo-box .lv-empty { color: #94a3b8; }
+        .lv-linked { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: #f8fafc; border: 1px solid #e8edf2; border-radius: 12px; padding: 12px 14px; }
+        .lv-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 160px; }
+        .lv-info strong { color: #0f172a; font-size: 15px; }
+        .lv-info span { color: #64748b; font-size: 13px; }
+        .lv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .lv-btn { height: 36px; padding: 0 14px; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+        .lv-btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+        .lv-btn-ghost { background: #eef2f7; color: #475569; }
+        .lv-btn-ghost:hover { background: #e2e8f0; }
+        .lv-picker { margin-top: 10px; }
+        .lv-search { width: 100%; height: 40px; border: 1px solid #cbd5e1; border-radius: 9px; padding: 0 12px; font-size: 14px; }
+        .lv-results { margin-top: 8px; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .lv-result { text-align: left; background: #fff; border: 1px solid #e8edf2; border-radius: 9px; padding: 9px 12px; cursor: pointer; }
+        .lv-result:hover { border-color: #8b5cf6; background: #faf9ff; }
+        .lv-result strong { display: block; font-size: 14px; color: #0f172a; }
+        .lv-result span { font-size: 12.5px; color: #64748b; }
+        .lv-result.linked { opacity: .55; cursor: default; }
+
         .form-label {
             display: block;
             margin-bottom: 18px;
@@ -2816,6 +2935,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             top: 0;
         }
 
+        /* Google Translate inyecta un banner superior y empuja el <body> hacia abajo
+           (body { top: 40px }), descuadrando toda la maqueta. Neutralizamos ese efecto:
+           ocultamos el iframe del banner y forzamos el body a su posición original. */
+        body { top: 0 !important; }
+        iframe.goog-te-banner-frame,
+        iframe.skiptranslate { display: none !important; }
+
         /* Caja del widget */
         #google_translate_element {
             background: rgba(255, 255, 255, 0.95);
@@ -3282,6 +3408,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .programa-no-guardado .tab-item[data-tab="dia-a-dia"],
         .programa-no-guardado .tab-item[data-tab="precio"],
         .programa-no-guardado .tab-item[data-tab="viajeros"],
+        .tab-item[data-tab="adjuntos"],
         .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"],
         .programa-no-guardado .nav-button[onclick*="compartirEnlace"],
         .programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"] {
@@ -3293,6 +3420,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         .programa-no-guardado .tab-item[data-tab="dia-a-dia"]::after,
         .programa-no-guardado .tab-item[data-tab="precio"]::after,
         .programa-no-guardado .tab-item[data-tab="viajeros"]::after,
+        .tab-item[data-tab="adjuntos"]::after,
         .programa-no-guardado .tab-item[onclick*="abrirVistaPrevia"]::after,
         .programa-no-guardado .nav-button[onclick*="compartirEnlace"]::after,
         .programa-no-guardado .nav-button[onclick*="abrirBonoReservaPrograma"]::after {
@@ -3324,11 +3452,17 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
 
         .toast.success {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
         }
 
         .toast.error {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+
+        /* Antes no existía estilo para los toast informativos (los de "día agregado"),
+           así que quedaban con texto blanco sin fondo → invisibles sobre el fondo claro. */
+        .toast.info {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         }
 
         /* Contenedor para input con contador */
@@ -3882,6 +4016,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
             border-radius: 14px;
             margin-top: 12px;
+        }
+
+        /* Variante de acceso rápido al inicio del formulario (#23) */
+        .sell-visibility-top {
+            margin-top: 0;
+            margin-bottom: 18px;
+            border-left: 4px solid var(--primary-color, #0f766e);
         }
 
         .setting-info {
@@ -4928,6 +5069,232 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             color: var(--text-primary) !important;
         }
 
+
+        /* ====== ADJUNTOS: zona de añadir ====== */
+        .adj-add-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 28px;
+            margin-bottom: 36px;
+        }
+
+        @media (max-width: 900px) {
+            .adj-add-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Dropzone (arrastrar o clic) */
+        .adj-dropzone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 180px;
+            padding: 28px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #f8fafc;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .adj-dropzone:hover {
+            border-color: var(--primary-color);
+            background: #fff;
+        }
+
+        /* Estado activo al arrastrar encima (toggle con JS: classList 'is-dragover') */
+        .adj-dropzone.is-dragover {
+            border-color: var(--primary-color);
+            background: rgba(45, 90, 74, 0.06);
+            transform: scale(1.01);
+        }
+
+        .adj-dropzone i {
+            font-size: 44px;
+            color: var(--primary-color);
+        }
+
+        .adj-dz-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .adj-dz-sub {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Caja de enlace */
+        .adj-link-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 24px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            justify-content: center;
+        }
+
+        .adj-link-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .adj-link-label i {
+            color: var(--primary-color);
+        }
+
+        .adj-link-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .adj-link-input {
+            flex: 1;
+            font-size: 15px;
+            padding: 12px 14px;
+        }
+
+        .adj-link-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .adj-link-btn:hover {
+            opacity: 0.92;
+        }
+
+        .adj-link-btn:active {
+            transform: scale(0.97);
+        }
+
+        .adj-link-hint {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* ====== ADJUNTOS: lista ====== */
+        .adj-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .adj-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            border: 1px solid #eef0f3;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .adj-item:hover {
+            border-color: #d7dce3;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .adj-item-icon {
+            flex-shrink: 0;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .adj-icon-file {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        }
+
+        .adj-icon-link {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .adj-item-info {
+            flex: 1;
+            min-width: 0;
+            /* permite el truncado */
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .adj-item-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .adj-item-name:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        .adj-item-meta {
+            font-size: 12.5px;
+            color: #9ca3af;
+        }
+
+        .adj-item-action {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: #f3f4f6;
+            color: #4b5563;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .adj-item-action:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .adj-item-delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 18px 14px 36px !important;
@@ -4994,6 +5361,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             <a href="#" class="tab-item" data-tab="dia-a-dia">Día a día</a>
             <a href="#" class="tab-item" data-tab="precio">Precio</a>
             <a href="#" class="tab-item" data-tab="viajeros">Viajeros</a>
+            <a href="#" class="tab-item" data-tab="informacion">Informacion Adicional</a>
             <a href="#" class="tab-item" onclick="abrirVistaPrevia()">
                 <i class="fas fa-eye"></i> Vista previa
             </a>
@@ -5024,6 +5392,30 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     <?php if ($is_editing): ?>
                         <input type="hidden" id="programa-id-hidden" name="programa_id" value="<?= $programa_id ?>">
                     <?php endif; ?>
+
+                    <!-- Control "vendido" ARRIBA para acceso rápido (#23). Mismo id/name que antes
+                         para no romper el guardado (comprado), la confirmación al desmarcar ni el Rooming. -->
+                    <div class="sell-visibility-setting sell-visibility-top">
+                        <div class="setting-info">
+                            <label for="vendido-toggle" class="setting-title">
+                                ¿El itinerario ya fue vendido?
+                            </label>
+                            <small class="setting-subtitle">
+                                Actívalo solo cuando la venta esté confirmada.
+                            </small>
+                        </div>
+
+                        <div class="toggle-wrapper">
+                            <input type="hidden" name="comprado" value="0">
+
+                            <label class="switch">
+                                <input type="checkbox" name="comprado" id="vendido-toggle" value="1"
+                                    <?= (!empty($form_data['comprado']) && $form_data['comprado'] == 1) ? 'checked' : '' ?>>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <script>window.ORIG_COMPRADO = <?= (!empty($form_data['comprado']) && $form_data['comprado'] == 1) ? 1 : 0 ?>;</script>
+                    </div>
 
                     <!-- Sección: Solicitud del viajero -->
                     <div class="section-card">
@@ -5074,6 +5466,33 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                 <input type="text" class="form-control" id="destination" name="destination"
                                     value="<?= htmlspecialchars($form_data['destination']) ?>"
                                     placeholder="Ejemplo: Tailandia - Bangkok y Phuket" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Etiquetas</label>
+                                <div id="editorTagChips" class="editor-tag-chips">
+                                    <span class="etc-empty">Cargando etiquetas…</span>
+                                </div>
+                                <small id="editorTagHint" class="editor-tag-hint">Clic para etiquetar este
+                                    programa.</small>
+                                <div class="editor-tag-create">
+                                    <input type="text" id="editorTagNew" class="form-control" maxlength="40"
+                                        placeholder="Nueva etiqueta…"
+                                        onkeydown="if(event.key==='Enter'){event.preventDefault();crearEtiquetaEditor();}">
+                                    <button type="button" id="editorTagCreateBtn" class="editor-tag-create-btn"
+                                        onclick="crearEtiquetaEditor()">
+                                        <i class="fas fa-plus"></i> Crear etiqueta
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Lead vinculado</label>
+                                <div id="leadVinculoBox" class="lead-vinculo-box">
+                                    <span class="lv-empty">Cargando…</span>
+                                </div>
+                                <small class="editor-tag-hint">Vincula este itinerario a un lead del pipeline para
+                                    abrir su chat. El vínculo es bidireccional con el pipeline.</small>
                             </div>
 
 
@@ -5168,28 +5587,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            <!--Toogle para Seleccionar vendido o no vendido -->
-                            <div class="sell-visibility-setting">
-                                <div class="setting-info">
-                                    <label for="vendido-toggle" class="setting-title">
-                                        ¿El itinerario ya fue vendido?
-                                    </label>
-                                    <small class="setting-subtitle">
-                                        Activa o desactiva solo si es una venta ya confirmada .
-                                    </small>
-                                </div>
-
-                                <div class="toggle-wrapper">
-                                    <input type="hidden" name="comprado" value="0">
-
-                                    <label class="switch">
-                                        <input type="checkbox" name="comprado" id="vendido-toggle" value="1"
-                                            <?= (!empty($form_data['comprado']) && $form_data['comprado'] == 1) ? 'checked' : '' ?>>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <script>window.ORIG_COMPRADO = <?= (!empty($form_data['comprado']) && $form_data['comprado'] == 1) ? 1 : 0 ?>;</script>
-                            </div>
+                            <!-- (El control "¿El itinerario ya fue vendido?" se movió al inicio del formulario para acceso rápido — #23) -->
                         </div>
                     </div>
 
@@ -5204,6 +5602,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                             <button type="button" class="btn btn-secondary" onclick="abrirVistaPrevia()">
                                 <i class="fas fa-eye"></i>
                                 Ver Programa
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="abrirModalSubagencias()">
+                                <i class="fas fa-share-alt"></i>
+                                Compartir con subagencias
                             </button>
                         <?php endif; ?>
 
@@ -5676,6 +6078,82 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             </div>
         </div>
 
+
+
+        <!-- Contenido de la pestaña Informacion adicional -->
+        <div id="informacion" class="tab-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-title">
+                        <i class="fas fa-users"></i>
+                        Informacion adicional
+                    </div>
+                </div>
+
+                <div class="section-body">
+
+                    <!-- ZONA DE AÑADIR: archivo (izq) + enlace (der) -->
+                    <div class="adj-add-grid">
+                        <!-- Dropzone: arrastrar O clic -->
+                        <label class="adj-dropzone" for="adj-file-input">
+                            <input type="file" id="adj-file-input" multiple hidden
+                                accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,application/pdf,image/jpeg,image/png,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span class="adj-dz-title">Arrastra tus archivos aquí</span>
+                            <span class="adj-dz-sub">o haz clic para buscar · PDF, JPG, PNG, WebP, Word (.doc/.docx), Excel (.xls/.xlsx) · máx. 10 MB</span>
+                        </label>
+
+                        <!-- Enlace: pegar + Enter / botón -->
+                        <div class="adj-link-box">
+                            <span class="adj-link-label"><i class="fas fa-link"></i> Añadir un enlace</span>
+                            <input type="text" id="adj-link-titulo" class="form-control adj-link-input"
+                                maxlength="255" placeholder="Título (opcional)" style="margin-bottom:8px;">
+                            <div class="adj-link-row">
+                                <input type="url" id="adj-link-input" class="form-control adj-link-input"
+                                    placeholder="https://… y presiona Enter">
+                                <button type="button" class="adj-link-btn">
+                                    <i class="fas fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                            <span class="adj-link-hint">Reservas, vuelos, documentos compartidos…</span>
+                        </div>
+                    </div>
+
+                    <!-- LISTA DE ADJUNTOS -->
+                    <div class="adj-list" id="adj-list">
+
+
+
+                    </div>
+
+                    <!-- ESTADO VACÍO (mostrar solo si no hay adjuntos) -->
+                    <div class="empty-state adj-empty" id="adj-empty" style="display:none;">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>Aún no hay archivos ni enlaces</h3>
+                        <p>Arrastra un archivo o pega un enlace para empezar.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Modal: compartir tour con subagencias -->
+        <div id="modal-subagencias" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width:520px;">
+                <div class="modal-header">
+                    <h3>Compartir con subagencias</h3>
+                    <button type="button" class="modal-close" onclick="cerrarModalSubagencias()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Marca las subagencias que pueden revender este tour. Cada una lo verá en su panel con sus propios precios y marca.</p>
+                    <div id="subagChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="cerrarModalSubagencias()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarSubagencias()"><i class="fas fa-save"></i> Guardar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal para crear/seleccionar viajeros -->
         <div id="modal-viajero" class="modal" style="display: none;">
             <div class="modal-content modal-viajero-content">
@@ -5892,7 +6370,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                         <!-- IDIOMA -->
                         <div class="form-group">
-                            <label>🌐 Idioma</label>
+                            <label>Idioma</label>
                             <select id="idioma-crear-programa" name="idioma" class="form-control">
                                 <option value="es">Español</option>
                                 <option value="en">English</option>
@@ -5903,7 +6381,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                         <!-- TÍTULO -->
                         <div class="form-group">
-                            <label>📝 Título <span style="color: var(--primary-color);">*</span></label>
+                            <label>Título <span style="color: var(--primary-color);">*</span></label>
                             <div style="position: relative;">
                                 <input type="text" id="titulo-crear-programa" name="titulo" class="form-control"
                                     required placeholder="Ej: Día en París" maxlength="300"
@@ -5916,10 +6394,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                         <!-- UBICACIÓN PRINCIPAL -->
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>📍 Ubicación Principal <span style="color: var(--primary-color);">*</span></label>
+                            <label>Ubicación Principal <span style="color: var(--primary-color);">*</span></label>
                             <div style="position: relative;">
                                 <input type="text" id="ubicacion-principal-crear-programa" name="ubicacion"
-                                    class="form-control" required placeholder="🔍 Buscar ciudad, lugar, monumento..."
+                                    class="form-control" required placeholder="Buscar ciudad, lugar, monumento..."
                                     autocomplete="off"
                                     style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px;">
                                 <input type="hidden" name="latitud" id="latitud-principal-programa">
@@ -5930,7 +6408,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                         <!-- UBICACIONES SECUNDARIAS -->
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>📍 Ubicaciones Adicionales (opcional)</label>
+                            <label>Ubicaciones Adicionales (opcional)</label>
                             <div id="ubicaciones-secundarias-container-programa"
                                 style="display: flex; flex-direction: column; gap: 12px;">
                                 <!-- Se agregan dinámicamente -->
@@ -5943,7 +6421,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                         <!-- DESCRIPCIÓN -->
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>📄 Descripción</label>
+                            <label>Descripción</label>
                             <div style="position: relative;">
                                 <textarea id="descripcion-crear-programa" name="descripcion" rows="5"
                                     class="form-control" placeholder="Describe las actividades..." maxlength="3000"
@@ -5956,7 +6434,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                         <!-- IMÁGENES -->
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>📸 Imágenes (máximo 3)</label>
+                            <label>Imágenes (máximo 3)</label>
                             <div id="imageUploadContainerPrograma"></div>
                         </div>
 
@@ -5997,7 +6475,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 <div class="modal-body" style="padding: 30px;">
                     <form id="formCrearTransporteEnPrograma">
                         <div class="form-group">
-                            <label>🚗 Medio de Transporte <span style="color: var(--primary-color);">*</span></label>
+                            <label>Medio de Transporte <span style="color: var(--primary-color);">*</span></label>
                             <select id="medio-crear-transporte" class="form-control" required>
                                 <option value="">Seleccionar medio</option>
                                 <option value="bus">Bus</option>
@@ -6009,16 +6487,16 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         </div>
 
                         <div class="form-group">
-                            <label>📝 Título <span style="color: var(--primary-color);">*</span></label>
+                            <label>Título <span style="color: var(--primary-color);">*</span></label>
                             <input type="text" id="titulo-crear-transporte" class="form-control" required
                                 placeholder="Ej: Vuelo París-Roma" maxlength="250">
                         </div>
 
                         <div class="form-group">
-                            <label>📍 Lugar de Salida <span style="color: var(--primary-color);">*</span></label>
+                            <label>Lugar de Salida <span style="color: var(--primary-color);">*</span></label>
                             <div style="position: relative;">
                                 <input type="text" id="lugar-salida-crear-transporte" class="form-control" required
-                                    placeholder="🔍 Buscar aeropuerto, estación, ciudad..." autocomplete="off">
+                                    placeholder="Buscar aeropuerto, estación, ciudad..." autocomplete="off">
                                 <input type="hidden" id="lat-salida-crear-transporte">
                                 <input type="hidden" id="lng-salida-crear-transporte">
                                 <div id="preview-salida-crear-transporte"></div>
@@ -6026,10 +6504,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         </div>
 
                         <div class="form-group">
-                            <label>📍 Lugar de Llegada <span style="color: var(--primary-color);">*</span></label>
+                            <label>Lugar de Llegada <span style="color: var(--primary-color);">*</span></label>
                             <div style="position: relative;">
                                 <input type="text" id="lugar-llegada-crear-transporte" class="form-control" required
-                                    placeholder="🔍 Buscar aeropuerto, estación, ciudad..." autocomplete="off">
+                                    placeholder="Buscar aeropuerto, estación, ciudad..." autocomplete="off">
                                 <input type="hidden" id="lat-llegada-crear-transporte">
                                 <input type="hidden" id="lng-llegada-crear-transporte">
                                 <div id="preview-llegada-crear-transporte"></div>
@@ -6043,13 +6521,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         </div>
 
                         <div class="form-group">
-                            <label>📏 Distancia (km)</label>
+                            <label>Distancia (km)</label>
                             <input type="number" id="distancia-crear-transporte" class="form-control" step="0.01"
                                 placeholder="Distancia en kilómetros">
                         </div>
 
                         <div class="form-group">
-                            <label>📄 Descripción</label>
+                            <label>Descripción</label>
                             <textarea id="descripcion-crear-transporte" rows="4" class="form-control"
                                 placeholder="Detalles adicionales del transporte..." maxlength="3000"></textarea>
                         </div>
@@ -6082,16 +6560,16 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 <div class="modal-body" style="padding: 30px;">
                     <form id="formCrearActividadEnPrograma">
                         <div class="form-group">
-                            <label>📝 Nombre de la Actividad <span style="color: var(--primary-color);">*</span></label>
+                            <label>Nombre de la Actividad <span style="color: var(--primary-color);">*</span></label>
                             <input type="text" id="nombre-crear-actividad" class="form-control" required
                                 placeholder="Ej: Tour Eiffel" maxlength="250">
                         </div>
 
                         <div class="form-group">
-                            <label>📍 Ubicación <span style="color: var(--primary-color);">*</span></label>
+                            <label>Ubicación <span style="color: var(--primary-color);">*</span></label>
                             <div style="position: relative;">
                                 <input type="text" id="ubicacion-crear-actividad" class="form-control" required
-                                    placeholder="🔍 Buscar lugar, monumento, parque..." autocomplete="off">
+                                    placeholder="Buscar lugar, monumento, parque..." autocomplete="off">
                                 <input type="hidden" id="lat-crear-actividad">
                                 <input type="hidden" id="lng-crear-actividad">
                                 <div id="preview-ubicacion-crear-actividad"></div>
@@ -6099,13 +6577,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         </div>
 
                         <div class="form-group">
-                            <label>📄 Descripción</label>
+                            <label>Descripción</label>
                             <textarea id="descripcion-crear-actividad" rows="5" class="form-control"
                                 placeholder="Describe la actividad..." maxlength="3000"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label>📸 Imágenes (máximo 3, opcional)</label>
+                            <label>Imágenes (máximo 3, opcional)</label>
                             <div id="imageUploadActividad"></div>
                         </div>
                     </form>
@@ -6137,13 +6615,13 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 <div class="modal-body" style="padding: 30px;">
                     <form id="formCrearAlojamientoEnPrograma">
                         <div class="form-group">
-                            <label>🏨 Nombre <span style="color: var(--primary-color);">*</span></label>
+                            <label>Nombre <span style="color: var(--primary-color);">*</span></label>
                             <input type="text" id="nombre-crear-alojamiento" class="form-control" required
                                 placeholder="Ej: Hotel Le Marais" maxlength="250">
                         </div>
 
                         <div class="form-group">
-                            <label>🏷️ Tipo <span style="color: var(--primary-color);">*</span></label>
+                            <label>Tipo <span style="color: var(--primary-color);">*</span></label>
                             <select id="tipo-crear-alojamiento" class="form-control" required
                                 onchange="toggleCategoriaAlojamiento()">
                                 <option value="hotel">Hotel</option>
@@ -6171,10 +6649,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         </div>
 
                         <div class="form-group">
-                            <label>📍 Ubicación</label>
+                            <label>Ubicación</label>
                             <div style="position: relative;">
                                 <input type="text" id="ubicacion-crear-alojamiento" class="form-control"
-                                    placeholder="🔍 Buscar dirección, ciudad..." autocomplete="off">
+                                    placeholder="Buscar dirección, ciudad..." autocomplete="off">
                                 <input type="hidden" id="lat-crear-alojamiento">
                                 <input type="hidden" id="lng-crear-alojamiento">
                                 <div id="preview-ubicacion-crear-alojamiento"></div>
@@ -6182,19 +6660,19 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         </div>
 
                         <div class="form-group">
-                            <label>🌐 Sitio web</label>
+                            <label>Sitio web</label>
                             <input type="text" id="sitio-web-crear-alojamiento" class="form-control"
                                 placeholder="https://...">
                         </div>
 
                         <div class="form-group">
-                            <label>📄 Descripción <span style="color: var(--primary-color);">*</span></label>
+                            <label>Descripción <span style="color: var(--primary-color);">*</span></label>
                             <textarea id="descripcion-crear-alojamiento" rows="5" class="form-control" required
                                 placeholder="Describe el alojamiento..." maxlength="3000"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label>📸 Imagen (opcional)</label>
+                            <label>Imagen (opcional)</label>
                             <div id="imageUploadAlojamiento"></div>
                         </div>
                     </form>
@@ -6480,7 +6958,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         apiUrl: `${baseURL}/modules/ubicaciones/ubicaciones_api.php`,
                         latInputId: 'latitud-principal-programa',
                         lngInputId: 'longitud-principal-programa',
-                        placeholder: '🔍 Buscar ciudad, lugar, monumento...',
+                        placeholder: 'Buscar ciudad, lugar, monumento...',
                         showPreview: true,
                         previewContainerId: 'preview-ubicacion-principal-programa',
                         autoSave: true,
@@ -6514,7 +6992,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             <input type="text" 
                 id="ubicacion-sec-${index}-programa"
                 class="form-control"
-                placeholder="🔍 Buscar ubicación adicional..."
+                placeholder="Buscar ubicación adicional..."
                 autocomplete="off"
                 style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px;">
             <input type="hidden" id="lat-sec-${index}-programa">
@@ -6539,7 +7017,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                 apiUrl: `${baseURL}/modules/ubicaciones/ubicaciones_api.php`,
                                 latInputId: `lat-sec-${index}-programa`,
                                 lngInputId: `lng-sec-${index}-programa`,
-                                placeholder: '🔍 Buscar otra ubicación...',
+                                placeholder: 'Buscar otra ubicación...',
                                 showPreview: true,
                                 previewContainerId: `preview-sec-${index}-programa`,
                                 autoSave: true,
@@ -6905,6 +7383,242 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             let currentTab = 'mi-programa';
             let programaId = <?= $programa_id ? $programa_id : 'null' ?>;
             let isEditing = <?= $is_editing ? 'true' : 'false' ?>;
+
+            // ====================================================================
+            // ETIQUETAS INLINE DEL EDITOR (reusa modules/itinerarios/tags_api.php)
+            // ====================================================================
+            const TAG_PALETTE_ED = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'];
+            function etColor(id) { const n = TAG_PALETTE_ED.length; return TAG_PALETTE_ED[((id - 1) % n + n) % n]; }
+            function escEditorTag(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+            let editorAllTags = [];
+            let editorSelTags = new Set();
+            let editorTagsDirty = false; // hay selección sin persistir (programa aún sin id)
+
+            async function initEditorTags() {
+                const cont = document.getElementById('editorTagChips');
+                if (!cont) return;
+                try {
+                    const rAll = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=get_tags');
+                    const dAll = await rAll.json();
+                    editorAllTags = (dAll && dAll.success) ? (dAll.data || []) : [];
+                    editorSelTags = new Set();
+                    if (programaId) {
+                        const rA = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=get_tags_programa&programa_id=' + encodeURIComponent(programaId));
+                        const dA = await rA.json();
+                        if (dA && dA.success) (dA.data || []).forEach(t => editorSelTags.add(Number(t.id)));
+                    }
+                } catch (e) { editorAllTags = []; }
+                renderEditorTagChips();
+            }
+
+            function renderEditorTagChips() {
+                const cont = document.getElementById('editorTagChips');
+                if (!cont) return;
+                if (!editorAllTags.length) {
+                    cont.innerHTML = '<span class="etc-empty">No hay etiquetas todavía. Crea una abajo.</span>';
+                    return;
+                }
+                cont.innerHTML = editorAllTags.map(t => {
+                    const id = Number(t.id);
+                    const sel = editorSelTags.has(id);
+                    const c = etColor(id);
+                    return `<span class="etc-chip${sel ? ' selected' : ''}" style="--c:${c}" onclick="toggleEditorTag(${id})">${escEditorTag(t.nombre)}</span>`;
+                }).join('');
+            }
+
+            function toggleEditorTag(id) {
+                id = Number(id);
+                if (editorSelTags.has(id)) editorSelTags.delete(id); else editorSelTags.add(id);
+                renderEditorTagChips();
+                const hint = document.getElementById('editorTagHint');
+                if (programaId) {
+                    persistEditorTags().then(ok => { if (hint) hint.textContent = ok ? 'Etiquetas guardadas ✓' : 'No se pudieron guardar las etiquetas'; });
+                } else {
+                    editorTagsDirty = true;
+                    if (hint) hint.textContent = 'Se guardarán al crear el programa.';
+                }
+            }
+
+            async function persistEditorTags() {
+                if (!programaId) return false;
+                try {
+                    const r = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=save_tags_programa', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ solicitud_id: programaId, tag_id: [...editorSelTags] })
+                    });
+                    const d = await r.json();
+                    if (d && d.success) editorTagsDirty = false;
+                    return !!(d && d.success);
+                } catch (e) { return false; }
+            }
+
+            // Persiste las etiquetas elegidas en un programa recién creado (llamado desde guardarPrograma)
+            function flushEditorTagsAfterCreate() {
+                if (programaId && editorTagsDirty && editorSelTags.size) {
+                    persistEditorTags().then(ok => {
+                        const h = document.getElementById('editorTagHint');
+                        if (h) h.textContent = ok ? 'Etiquetas guardadas ✓' : 'Vuelve a tocar una etiqueta para guardarla';
+                    });
+                }
+            }
+
+            // Crear una etiqueta nueva DESDE programa (antes solo se podían crear en el listado).
+            // Usa la misma API (tags_api.php?action=save_tags) y recarga la lista SIN perder
+            // la selección actual; auto-selecciona la recién creada.
+            async function crearEtiquetaEditor() {
+                const inp = document.getElementById('editorTagNew');
+                const hint = document.getElementById('editorTagHint');
+                const btn = document.getElementById('editorTagCreateBtn');
+                const nombre = (inp && inp.value || '').trim();
+                if (!nombre) { if (hint) hint.textContent = 'Escribe un nombre para la etiqueta.'; if (inp) inp.focus(); return; }
+                if (btn) btn.disabled = true;
+                try {
+                    const r = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=save_tags', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    });
+                    const d = await r.json();
+                    if (!d || !d.success) {
+                        if (hint) hint.textContent = (d && d.message) ? d.message : 'No se pudo crear la etiqueta.';
+                        return;
+                    }
+                    // Recargar la lista de etiquetas sin tocar editorSelTags (no perder selección)
+                    const rAll = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=get_tags');
+                    const dAll = await rAll.json();
+                    if (dAll && dAll.success) editorAllTags = dAll.data || editorAllTags;
+                    // Auto-seleccionar la recién creada (match por nombre, mayor id)
+                    const nueva = editorAllTags
+                        .filter(t => String(t.nombre).trim().toLowerCase() === nombre.toLowerCase())
+                        .sort((a, b) => Number(b.id) - Number(a.id))[0];
+                    if (nueva) editorSelTags.add(Number(nueva.id));
+                    if (inp) inp.value = '';
+                    renderEditorTagChips();
+                    if (programaId) {
+                        const ok = await persistEditorTags();
+                        if (hint) hint.textContent = ok ? 'Etiqueta creada y aplicada ✓' : 'Etiqueta creada (no se pudo aplicar)';
+                    } else {
+                        editorTagsDirty = true;
+                        if (hint) hint.textContent = 'Etiqueta creada. Se aplicará al crear el programa.';
+                    }
+                } catch (e) {
+                    if (hint) hint.textContent = 'Error al crear la etiqueta.';
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            }
+            window.crearEtiquetaEditor = crearEtiquetaEditor;
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initEditorTags);
+            else initEditorTags();
+
+            // ====================================================================
+            // LEAD VINCULADO (editor): vincular un lead del pipeline + abrir su chat.
+            // El vínculo vive en pipeline.solicitud_id → bidireccional con el pipeline.
+            // ====================================================================
+            const PIPE_API = APP_URL + '/pipeline/api';
+            function lvEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+            async function initLeadVinculo() {
+                const box = document.getElementById('leadVinculoBox');
+                if (!box) return;
+                if (!programaId) {
+                    box.innerHTML = '<span class="lv-empty">Guarda el programa primero para poder vincular un lead.</span>';
+                    return;
+                }
+                box.innerHTML = '<span class="lv-empty">Cargando…</span>';
+                let leads = [];
+                try {
+                    const r = await fetch(PIPE_API + '?action=filtrar_pipeline&solicitud_id=' + encodeURIComponent(programaId));
+                    const d = await r.json();
+                    leads = (d && d.success) ? (d.data || []) : [];
+                } catch (e) { leads = []; }
+                renderLeadVinculo(leads);
+            }
+
+            function renderLeadVinculo(leads) {
+                const box = document.getElementById('leadVinculoBox');
+                if (!box) return;
+                if (leads && leads.length) {
+                    box.innerHTML = leads.map(l => `
+                        <div class="lv-linked">
+                            <div class="lv-info"><strong>${lvEsc(l.nombre_cliente || 'Lead')}</strong><span>${lvEsc(l.email_cliente || '')}</span></div>
+                            <div class="lv-actions">
+                                <button type="button" class="lv-btn lv-btn-primary" onclick="lvAbrirChat(${l.id})"><i class="fas fa-comments"></i> Abrir chat</button>
+                                <button type="button" class="lv-btn lv-btn-ghost" onclick="lvDesvincular(${l.id})"><i class="fas fa-link-slash"></i> Desvincular</button>
+                            </div>
+                        </div>`).join('');
+                    return;
+                }
+                box.innerHTML = `
+                    <button type="button" class="lv-btn lv-btn-primary" onclick="lvAbrirPicker()"><i class="fas fa-link"></i> Vincular lead</button>
+                    <div id="lvPicker" class="lv-picker" style="display:none;">
+                        <input type="text" class="lv-search" placeholder="Buscar lead por nombre, email o destino…" oninput="lvBuscar(this.value)">
+                        <div id="lvResults" class="lv-results"></div>
+                    </div>`;
+            }
+
+            function lvAbrirPicker() {
+                const p = document.getElementById('lvPicker');
+                if (p) { p.style.display = 'block'; p.querySelector('.lv-search')?.focus(); lvBuscar(''); }
+            }
+
+            let _lvTimer = null;
+            function lvBuscar(term) {
+                clearTimeout(_lvTimer);
+                _lvTimer = setTimeout(async () => {
+                    const cont = document.getElementById('lvResults');
+                    if (!cont) return;
+                    cont.innerHTML = '<span class="lv-empty">Buscando…</span>';
+                    let leads = [];
+                    try {
+                        const qs = term ? ('&buscar=' + encodeURIComponent(term)) : '';
+                        const r = await fetch(PIPE_API + '?action=filtrar_pipeline' + qs);
+                        const d = await r.json();
+                        leads = (d && d.success) ? (d.data || []) : [];
+                    } catch (e) { leads = []; }
+                    if (!leads.length) { cont.innerHTML = '<span class="lv-empty">Sin resultados.</span>'; return; }
+                    cont.innerHTML = leads.slice(0, 30).map(l => {
+                        const yaAqui = String(l.solicitud_id || '') === String(programaId);
+                        const otro = l.solicitud_id && !yaAqui;
+                        return `<button type="button" class="lv-result${yaAqui ? ' linked' : ''}" ${yaAqui ? '' : `onclick="lvVincular(${l.id})"`}>
+                            <strong>${lvEsc(l.nombre_cliente || 'Lead')}${yaAqui ? ' · (ya vinculado aquí)' : ''}</strong>
+                            <span>${lvEsc(l.email_cliente || '')}${l.destino ? (' · ' + lvEsc(l.destino)) : ''}${otro ? ' · (vinculado a otro itinerario)' : ''}</span>
+                        </button>`;
+                    }).join('');
+                }, 250);
+            }
+
+            async function lvVincular(pipelineId) {
+                if (!programaId) return;
+                try {
+                    const r = await fetch(PIPE_API + '?action=asignar_itinerario', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pipeline_id: pipelineId, solicitud_id: programaId })
+                    });
+                    const d = await r.json();
+                    if (d && d.success) { if (typeof showAlert === 'function') showAlert('Lead vinculado', 'success'); initLeadVinculo(); }
+                    else if (typeof showAlert === 'function') showAlert((d && d.message) || 'No se pudo vincular', 'error');
+                } catch (e) { if (typeof showAlert === 'function') showAlert('Error de red', 'error'); }
+            }
+
+            async function lvDesvincular(pipelineId) {
+                try {
+                    const r = await fetch(PIPE_API + '?action=desvincular_itinerario', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pipeline_id: pipelineId })
+                    });
+                    const d = await r.json();
+                    if (d && d.success) { if (typeof showAlert === 'function') showAlert('Lead desvinculado', 'success'); initLeadVinculo(); }
+                    else if (typeof showAlert === 'function') showAlert((d && d.message) || 'No se pudo desvincular', 'error');
+                } catch (e) { if (typeof showAlert === 'function') showAlert('Error de red', 'error'); }
+            }
+
+            // Abre el lead en el pipeline (con su chat integrado), no el chat.php standalone
+            function lvAbrirChat(pipelineId) { window.open(APP_URL + '/pipeline?lead=' + pipelineId, '_blank'); }
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLeadVinculo);
+            else initLeadVinculo();
+
             let selectedDiaId = null;
             let selectedServicioId = null;
             let currentDiaId = null;
@@ -6924,6 +7638,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             document.addEventListener('DOMContentLoaded', async function () {
                 console.log('🚀 Iniciando programa.php...');
                 setupTabNavigation();
+                setupAdjuntos();
                 setupFormHandling();
                 setupCharacterCounters();
                 setupFileValidation();
@@ -6937,6 +7652,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     // ✅ IMPORTANTE: ESPERAR a que termine de cargar
                     await cargarDiasPrograma();
                     await cargarPreciosPrograma();
+                    cargarArchivos();   // ← carga adjuntos al recargar la página
 
                     // ✅ AHORA SÍ calcular la fecha de salida
                     actualizarFechaSalida();
@@ -6988,6 +7704,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                     cargarPreciosPrograma();
                                 }
                                 break;
+                            case 'adjuntos':
+                                if (isEditing && programaId) {
+                                    cargarArchivos();
+                                }
+                                break;
                         }
                     });
                 });
@@ -7013,7 +7734,40 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     });
                 }
             }
+            function setupAdjuntos() {
+                const fileInput = document.getElementById('adj-file-input');
+                const linkInput = document.getElementById('adj-link-input');
+                const linkBtn = document.querySelector('.adj-link-btn');
+                const dropzone = document.querySelector('.adj-dropzone');
+                if (!fileInput) return;   // el tab no está en el DOM, salir
 
+                // Elegir archivo desde el explorador → subir
+                fileInput.addEventListener('change', guardarArchivos);
+
+                // Botón "Añadir" enlace
+                linkBtn.addEventListener('click', guardarArchivos);
+
+                // Enter en el input de enlace
+                linkInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); guardarArchivos(); }
+                });
+
+                // Drag & drop sobre la dropzone
+                ['dragover', 'dragenter'].forEach(ev =>
+                    dropzone.addEventListener(ev, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.add('is-dragover');
+                    }));
+                ['dragleave', 'drop'].forEach(ev =>
+                    dropzone.addEventListener(ev, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.remove('is-dragover');
+                    }));
+                dropzone.addEventListener('drop', (e) => {
+                    fileInput.files = e.dataTransfer.files;   // pasa los archivos soltados
+                    guardarArchivos();
+                });
+            }
 
 
             // Configurar manejadores de comidas - VERSIÓN MEJORADA
@@ -7712,6 +8466,9 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 return String(fecha).substring(0, 10);
             }
 
+            // Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y minúsculas.
+            function normalizarBusqueda(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
             function calcularTipoPorEdad(fechaNacimiento) {
                 if (!fechaNacimiento) return 'Edad no definida';
 
@@ -7928,6 +8685,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                                 // Actualizar campo hidden
                                 updateHiddenField(programaId);
+
+                                // Persistir las etiquetas elegidas antes de tener id
+                                flushEditorTagsAfterCreate();
+                                // Refrescar el panel de lead vinculado (ya hay id)
+                                if (typeof initLeadVinculo === 'function') initLeadVinculo();
                             }
 
                             // Actualizar ID de solicitud si se generó
@@ -8411,7 +9173,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
 
                 newSearchInput.addEventListener('input', function (e) {
-                    const searchTerm = e.target.value.toLowerCase().split(/\s+/);
+                    const searchTerm = normalizarBusqueda(e.target.value).split(/\s+/).filter(Boolean);
 
 
 
@@ -8433,7 +9195,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     // Filtrar por el texto VISIBLE en cada tarjeta
                     items.forEach(item => {
                         // Obtener TODO el texto visible de la tarjeta (traducido o no)
-                        const itemText = item.querySelector('h4').innerText.toLowerCase();
+                        const itemText = normalizarBusqueda(item.querySelector('h4').innerText);
 
                         // Verificar si el término de búsqueda está en el texto visible
                         if (searchTerm.every(palabra => itemText.includes(palabra))) {
@@ -8690,11 +9452,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 if (!searchInput) return;
 
                 searchInput.addEventListener('input', function (e) {
-                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const searchTerm = normalizarBusqueda(e.target.value);
                     const filteredDias = dias.filter(dia =>
-                        dia.titulo.toLowerCase().includes(searchTerm) ||
-                        (dia.descripcion && dia.descripcion.toLowerCase().includes(searchTerm)) ||
-                        (dia.ubicacion && dia.ubicacion.toLowerCase().includes(searchTerm))
+                        normalizarBusqueda(dia.titulo).includes(searchTerm) ||
+                        (dia.descripcion && normalizarBusqueda(dia.descripcion).includes(searchTerm)) ||
+                        (dia.ubicacion && normalizarBusqueda(dia.ubicacion).includes(searchTerm))
                     );
 
                     renderFilteredDias(filteredDias);
@@ -9009,7 +9771,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     title: '¿Eliminar día?',
                     message: '¿Estás seguro de que quieres eliminar este día?',
                     details: 'Esta acción no se puede deshacer.',
-                    icon: '🗑️',
+                    icon: '<i class="fas fa-trash"></i>',
                     confirmText: 'Aceptar',
                     cancelText: 'Cancelar'
                 });
@@ -9765,11 +10527,11 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 searchInput.removeEventListener('input', searchInput.searchHandler);
 
                 searchInput.searchHandler = function (e) {
-                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const searchTerm = normalizarBusqueda(e.target.value);
                     const filteredServicios = servicios.filter(servicio => {
-                        const titulo = (servicio.titulo || servicio.nombre || '').toLowerCase();
-                        const descripcion = (servicio.descripcion || '').toLowerCase();
-                        const ubicacion = getServiceLocation(servicio, tipoServicio).toLowerCase();
+                        const titulo = normalizarBusqueda(servicio.titulo || servicio.nombre || '');
+                        const descripcion = normalizarBusqueda(servicio.descripcion || '');
+                        const ubicacion = normalizarBusqueda(getServiceLocation(servicio, tipoServicio));
 
                         return titulo.includes(searchTerm) ||
                             descripcion.includes(searchTerm) ||
@@ -10034,11 +10796,18 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     let requestData;
 
                     if (isAddingAlternative) {
-                        // Es alternativa
+                        // Es alternativa — para hotel, pedir la diferencia de precio vs principal
+                        const variacion = pedirVariacionAlternativa(currentTipoServicio);
+                        if (variacion === null) {
+                            btnAgregar.disabled = false;
+                            btnAgregar.innerHTML = '<i class="fas fa-plus"></i> Agregar alternativa';
+                            return;
+                        }
                         requestData = {
                             action: 'add_alternative',
                             servicio_principal_id: alternativeParentId,
-                            biblioteca_item_id: selectedServicioId
+                            biblioteca_item_id: selectedServicioId,
+                            variacion_precio: variacion
                         };
                     } else {
                         // Es servicio principal
@@ -10289,7 +11058,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     title: '¿Eliminar servicio?',
                     message: '¿Estás seguro de que quieres eliminar este servicio?',
                     details: 'Esta acción no se puede deshacer.',
-                    icon: '🗑️',
+                    icon: '<i class="fas fa-trash"></i>',
                     confirmText: 'Aceptar',
                     cancelText: 'Cancelar'
                 });
@@ -10601,6 +11370,165 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 }
             }
 
+            // ============================================================
+            // FUNCION PARA INFORMACION Adicional
+            // ============================================================
+
+            function cargarArchivos() {
+                if (!programaId) return;
+                fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=get&programa_id=${programaId}`)
+                    .then(r => r.json())
+                    .then(result => {
+                        const lista = document.getElementById('adj-list');
+                        const vacio = document.getElementById('adj-empty');
+                        lista.innerHTML = '';
+                        console.log("holaa");
+                        const items = (result.success && result.data) ? result.data : [];
+                        vacio.style.display = items.length ? 'none' : 'block';
+
+                        items.forEach(item => {
+                            lista.insertAdjacentHTML('beforeend', item.enlace
+                                ? renderEnlace(item)
+                                : renderArchivo(item));
+                        });
+                    })
+                    .catch(err => console.error('Error cargando adjuntos:', err));
+            }
+            function renderEnlace(item) {
+                const url = escapeHtml(item.enlace);
+                const titulo = item.titulo ? escapeHtml(item.titulo) : '';
+                const nombre = titulo || url;
+                const meta = titulo ? url : 'Enlace';
+                return `
+                    <div class="adj-item" data-id="${item.id}">
+                        <div class="adj-item-icon adj-icon-link"><i class="fas fa-link"></i></div>
+                        <div class="adj-item-info">
+                            <a href="${url}" class="adj-item-name" target="_blank" rel="noopener">${nombre}</a>
+                            <span class="adj-item-meta">${meta}</span>
+                        </div>
+                        <button type="button" class="adj-item-action" title="Editar título" onclick="editarTituloAdjunto(${item.id})">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <a href="${url}" class="adj-item-action" title="Abrir" target="_blank" rel="noopener">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button type="button" class="adj-item-action adj-item-delete"
+                                title="Eliminar" onclick="eliminarArchivos(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }
+            function renderArchivo(item) {
+                const url = escapeHtml(item.archivo);
+                const ext = (item.archivo.split('.').pop() || '').toLowerCase();
+                const fileName = escapeHtml(decodeURIComponent(item.archivo.split('/').pop() || item.archivo));
+                const titulo = item.titulo ? escapeHtml(item.titulo) : '';
+                const nombre = titulo || fileName;
+                const meta = titulo ? `${fileName} · ${ext.toUpperCase()}` : `Archivo · ${ext.toUpperCase()}`;
+                const icono = iconoPorExtension(ext);
+                return `
+                    <div class="adj-item" data-id="${item.id}">
+                        <div class="adj-item-icon adj-icon-file"><i class="fas ${icono}"></i></div>
+                        <div class="adj-item-info">
+                            <a href="${url}" class="adj-item-name" target="_blank" rel="noopener">${nombre}</a>
+                            <span class="adj-item-meta">${meta}</span>
+                        </div>
+                        <button type="button" class="adj-item-action" title="Editar título" onclick="editarTituloAdjunto(${item.id})">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <a href="${url}" class="adj-item-action" title="Descargar" download target="_blank" rel="noopener">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <button type="button" class="adj-item-action adj-item-delete"
+                                title="Eliminar" onclick="eliminarArchivos(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>`;
+            }
+            function iconoPorExtension(ext) {
+                const mapa = {
+                    pdf: 'fa-file-pdf',
+                    doc: 'fa-file-word', docx: 'fa-file-word',
+                    xls: 'fa-file-excel', xlsx: 'fa-file-excel', csv: 'fa-file-csv',
+                    ppt: 'fa-file-powerpoint', pptx: 'fa-file-powerpoint',
+                    jpg: 'fa-file-image', jpeg: 'fa-file-image', png: 'fa-file-image',
+                    webp: 'fa-file-image', gif: 'fa-file-image',
+                    zip: 'fa-file-archive', rar: 'fa-file-archive',
+                    txt: 'fa-file-lines'
+                };
+                return mapa[ext] || 'fa-file';
+            }
+
+            // Editar (o quitar) el título de un adjunto ya subido — archivo o enlace.
+            async function editarTituloAdjunto(id) {
+                if (!id) return;
+                const actual = (document.querySelector(`.adj-item[data-id="${id}"] .adj-item-name`)?.textContent || '').trim();
+                const titulo = prompt('Título del adjunto (deja vacío para quitarlo):', actual);
+                if (titulo === null) return; // canceló
+                try {
+                    const fd = new FormData();
+                    fd.append('id', id);
+                    fd.append('titulo', titulo.trim());
+                    const r = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=update_titulo`, { method: 'POST', body: fd });
+                    const d = await r.json();
+                    if (d && d.success) { cargarArchivos(); showAlert('Título actualizado', 'success'); }
+                    else { showAlert((d && d.message) || 'No se pudo actualizar el título', 'error'); }
+                } catch (e) { showAlert('Error al actualizar el título', 'error'); }
+            }
+
+            async function guardarArchivos() {
+                if (!programaId) return;
+
+                try {
+                    const archivos = document.getElementById('adj-file-input').files;
+                    const enlace = document.getElementById('adj-link-input').value.trim();
+                    const tituloEnlace = (document.getElementById('adj-link-titulo')?.value || '').trim();
+                    const fd = new FormData();
+                    fd.append('programa_id', programaId);
+                    if (enlace) fd.append('enlace', enlace);
+                    if (tituloEnlace) fd.append('titulo', tituloEnlace); // título opcional para el enlace
+                    for (const f of archivos) fd.append('archivos[]', f);   // multipart real
+
+                    if (!enlace && archivos.length === 0) {
+                        showAlert('Añade un archivo o un enlace', 'error');
+                        return;
+                    }
+                    const response = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=save&programa_id=${programaId}`, {
+                        method: 'POST',
+                        body: fd
+                    }
+                    );
+                    const result = await response.json();
+
+                    if (result.success) {
+                        document.getElementById('adj-file-input').value = "";
+                        document.getElementById('adj-link-input').value = "";
+                        const tEl = document.getElementById('adj-link-titulo'); if (tEl) tEl.value = "";
+                        cargarArchivos();
+                    } else {
+                        showAlert(result.message || 'Error al guardar', 'error');
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+            async function eliminarArchivos(adjuntoId) {
+                if (!adjuntoId) return;
+                if (!confirm('¿Eliminar este adjunto?')) return;
+
+                const fd = new FormData();
+                fd.append('id', adjuntoId);
+
+                const resp = await fetch(`<?= APP_URL ?>/modules/programa/archivos_api.php?action=delete`, {
+                    method: 'POST',
+                    body: fd
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    cargarArchivos();
+                    showAlert('Adjunto eliminado', 'success');
+                }
+            }
 
             // ============================================================
             // FUNCIONES AUXILIARES
@@ -10609,10 +11537,10 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
 
-                const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+                const iconClass = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-xmark' : 'fa-circle-info';
                 toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">${icon}</span>
+            <i class="fas ${iconClass}" style="font-size: 20px;"></i>
             <span>${message}</span>
         </div>
     `;
@@ -10625,6 +11553,96 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     toast.classList.remove('show');
                     setTimeout(() => document.body.removeChild(toast), 300);
                 }, 4000);
+            }
+
+            // ============================================================
+            // COMPARTIR TOUR CON SUBAGENCIAS (modules/subagencias/api.php)
+            // ============================================================
+            let subagLista = [];
+            let subagSeleccion = new Set();
+            let subagOriginal = new Set();
+
+            async function subagApi(action, params = {}, method = 'GET') {
+                try {
+                    if (method === 'GET') {
+                        const qs = new URLSearchParams({ action, ...params }).toString();
+                        const r = await fetch(`${APP_URL}/subagencias/api?${qs}`);
+                        return await r.json();
+                    }
+                    const fd = new FormData();
+                    fd.append('action', action);
+                    Object.entries(params).forEach(([k, v]) => fd.append(k, v));
+                    const r = await fetch(`${APP_URL}/subagencias/api`, { method: 'POST', body: fd });
+                    return await r.json();
+                } catch (e) { return { success: false, message: 'Error de red' }; }
+            }
+
+            async function abrirModalSubagencias() {
+                if (!programaId) { showAlert('Guarda el programa antes de compartirlo', 'error'); return; }
+
+                const rL = await subagApi('list_subagencias');
+                subagLista = (rL && rL.success) ? (rL.data || []) : [];
+
+                if (!subagLista.length) {
+                    showAlert('No hay subagencias. Créalas en Usuarios (rol Subagencia).', 'info');
+                    return;
+                }
+
+                const rA = await subagApi('list_tour_subagencias', { solicitud_id: programaId });
+                const asignadas = (rA && rA.success) ? (rA.data || []) : [];
+                subagSeleccion = new Set(asignadas.map(Number));
+                subagOriginal = new Set(asignadas.map(Number));
+
+                renderSubagChips();
+                document.getElementById('modal-subagencias').style.display = 'flex';
+            }
+
+            function cerrarModalSubagencias() {
+                document.getElementById('modal-subagencias').style.display = 'none';
+            }
+
+            function renderSubagChips() {
+                const el = document.getElementById('subagChips');
+                el.innerHTML = subagLista.map(s => {
+                    const sel = subagSeleccion.has(Number(s.id));
+                    const nombre = s.nombre_comercial || s.full_name || s.username || ('Subagencia #' + s.id);
+                    const base = 'display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;';
+                    const style = sel
+                        ? base + 'background:#7c3aed20;color:#7c3aed;border-color:#7c3aed;'
+                        : base + 'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;';
+                    const check = sel ? '<i class="fas fa-check" style="font-size:11px;"></i>' : '';
+                    return `<span style="${style}" onclick="toggleSubagChip(${s.id})">${check}${escapeHtmlSub(nombre)}</span>`;
+                }).join('');
+            }
+
+            function escapeHtmlSub(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+
+            function toggleSubagChip(id) {
+                id = Number(id);
+                if (subagSeleccion.has(id)) subagSeleccion.delete(id);
+                else subagSeleccion.add(id);
+                renderSubagChips();
+            }
+
+            async function guardarSubagencias() {
+                if (!programaId) return;
+                const aAsignar = [...subagSeleccion].filter(id => !subagOriginal.has(id));
+                const aQuitar = [...subagOriginal].filter(id => !subagSeleccion.has(id));
+
+                let ok = true;
+                for (const subId of aAsignar) {
+                    const r = await subagApi('assign_tour', { sub_user_id: subId, solicitud_id: programaId }, 'POST');
+                    if (!r || !r.success) ok = false;
+                }
+                for (const subId of aQuitar) {
+                    const r = await subagApi('unassign_tour', { sub_user_id: subId, solicitud_id: programaId }, 'POST');
+                    if (!r || !r.success) ok = false;
+                }
+
+                if (ok) { showAlert('Subagencias actualizadas', 'success'); cerrarModalSubagencias(); }
+                else showAlert('Algunos cambios no se pudieron guardar', 'error');
             }
 
             function toggleSection(header) {
@@ -11215,7 +12233,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                 id="edit-dia-ubicacion-${diaId}" 
                                 class="form-control location-search-input"
                                 value="${dia.ubicacion || ''}"
-                                placeholder="🔍 Buscar ubicación principal..."
+                                placeholder="Buscar ubicación principal..."
                                 autocomplete="off"
                             >
                             <div id="location-results-dia-${diaId}" class="location-results"></div>
@@ -11895,6 +12913,15 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     `;
             }
 
+            // Pide la diferencia de precio de una alternativa de HOTEL respecto al principal.
+            // Devuelve el número (+/-), 0 si no aplica, o null si el usuario cancela.
+            function pedirVariacionAlternativa(tipoServicio) {
+                if (tipoServicio !== 'alojamiento') return 0;
+                const varRaw = prompt('¿Cuánto varía el precio de esta alternativa respecto al hotel principal?\n\n• Positivo si cuesta MÁS (ej. 50)\n• Negativo si cuesta MENOS (ej. -30)\n• 0 si cuesta igual', '0');
+                if (varRaw === null) return null; // cancelado
+                return parseFloat(String(varRaw).replace(',', '.')) || 0;
+            }
+
             // Función para abrir modal de alternativas
             function abrirModalAlternativa(servicioPrincipalId, tipoServicio) {
                 console.log(`🔄 Agregando alternativa para servicio ${servicioPrincipalId}`);
@@ -11917,6 +12944,9 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 try {
                     console.log(`🔄 Agregando alternativa: Principal=${currentServicioPrincipal}, Item=${selectedServicioId}`);
 
+                    const variacion = pedirVariacionAlternativa(currentTipoServicio);
+                    if (variacion === null) return; // cancelado
+
                     const response = await fetch('<?= APP_URL ?>/modules/programa/servicios_api.php', {
                         method: 'POST',
                         headers: {
@@ -11925,7 +12955,8 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         body: JSON.stringify({
                             action: 'add_alternative',
                             servicio_principal_id: currentServicioPrincipal,
-                            biblioteca_item_id: selectedServicioId
+                            biblioteca_item_id: selectedServicioId,
+                            variacion_precio: variacion
                         })
                     });
 
@@ -11954,7 +12985,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     title: '¿Eliminar alternativa?',
                     message: '¿Estás seguro de que quieres eliminar esta alternativa?',
                     details: 'Esta acción no se puede deshacer.',
-                    icon: '🗑️',
+                    icon: '<i class="fas fa-trash"></i>',
                     confirmText: 'Aceptar',
                     cancelText: 'Cancelar'
                 });
@@ -12132,14 +13163,21 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     window.googleTranslateElementInit = googleTranslateElementInit;
                     const script = document.createElement('script');
                     script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+                    script.async = true;
+                    // Si Google no responde o está bloqueado, no romper ni colgar la página.
+                    script.onerror = function () { console.warn('Google Translate no disponible (se ignora).'); };
                     document.head.appendChild(script);
                 }
             }
 
-            // Inicializar al cargar
-            document.addEventListener('DOMContentLoaded', function () {
-                initializeGoogleTranslate();
-            });
+            // Cargar el widget SOLO cuando la página ya terminó de cargar, para que el script
+            // externo de Google (lento/poco fiable) no compita con la carga ni deje el
+            // navegador en "carga infinita". Antes se inyectaba en DOMContentLoaded.
+            if (document.readyState === 'complete') {
+                setTimeout(initializeGoogleTranslate, 0);
+            } else {
+                window.addEventListener('load', function () { setTimeout(initializeGoogleTranslate, 0); });
+            }
 
             document.addEventListener('DOMContentLoaded', function () {
                 console.log('🚀 Iniciando programa.php...');
@@ -12206,7 +13244,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 modal.innerHTML = `
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h3>🔗 Enlaces Públicos Creados</h3>
+                <h3>Enlaces Públicos Creados</h3>
                 <button onclick="this.closest('.modal').remove()">&times;</button>
             </div>
             <div class="modal-body">
@@ -12361,7 +13399,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 const modal = `
         <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;" onclick="this.remove()">
             <div style="background:white;padding:30px;border-radius:15px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;" onclick="event.stopPropagation()">
-                <h3 style="margin-bottom:20px;color:#333;text-align:center;">🔗 Enlaces para Compartir</h3>
+                <h3 style="margin-bottom:20px;color:#333;text-align:center;">Enlaces para Compartir</h3>
                 
                 <div style="margin-bottom:20px;padding:15px;background:#f8f9fa;border-radius:8px;">
                     <strong style="color:var(--primary-color);">📖 Vista Previa:</strong><br>
@@ -13442,7 +14480,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                         id="${itemId}-input"
                         class="form-control location-search-input"
                         value="${ubic.ubicacion || ''}"
-                        placeholder="🔍 Buscar ubicación..."
+                        placeholder="Buscar ubicación..."
                         autocomplete="off"
                         data-dia-id="${diaId}"
                         data-ubic-index="${index}"
@@ -13520,7 +14558,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     type="text" 
                     id="${itemId}-input"
                     class="form-control location-search-input"
-                    placeholder="🔍 Buscar ubicación..."
+                    placeholder="Buscar ubicación..."
                     autocomplete="off"
                     data-dia-id="${diaId}"
                     data-ubic-index="${index}"

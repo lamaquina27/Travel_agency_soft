@@ -83,8 +83,14 @@ class BonoRenderer
             ];
         }
 
-        $hoteles = $this->db->fetchAll(
-            "SELECT 
+        // Trae principal + alternativas; luego se elige por grupo la opción EFECTIVA
+        // (la que el cliente marcó como seleccionada, o el principal si no eligió).
+        $hotelesRaw = $this->db->fetchAll(
+            "SELECT
+                pds.id AS servicio_id,
+                pds.es_alternativa,
+                pds.servicio_principal_id,
+                pds.seleccionado,
                 bv.nombre AS hotel_nombre,
                 bv.ubicacion,
                 a.tipo_acomodacion,
@@ -102,11 +108,25 @@ class BonoRenderer
             LEFT JOIN acomodaciones a ON a.id = pds.acomodacion_id
             WHERE pd.solicitud_id = ?
             AND pds.tipo_servicio = 'alojamiento'
-            AND pds.es_alternativa = 0
             AND bv.agencia_id = ?
-            ORDER BY pd.dia_numero ASC",
+            ORDER BY pd.dia_numero ASC, pds.es_alternativa ASC, pds.orden_alternativa ASC",
             [$this->programaId, $this->agenciaId]
         );
+
+        // Reducir cada grupo (principal + sus alternativas) a la opción efectiva
+        $grupos = [];
+        foreach ($hotelesRaw as $row) {
+            $gid = !empty($row['es_alternativa']) ? (int) $row['servicio_principal_id'] : (int) $row['servicio_id'];
+            if (!isset($grupos[$gid])) { $grupos[$gid] = ['principal' => null, 'elegida' => null]; }
+            if (empty($row['es_alternativa'])) { $grupos[$gid]['principal'] = $row; }
+            if ((int) ($row['seleccionado'] ?? 0) === 1) { $grupos[$gid]['elegida'] = $row; }
+        }
+        $hoteles = [];
+        foreach ($grupos as $g) {
+            $efectiva = $g['elegida'] ?: $g['principal'];
+            if ($efectiva) { $hoteles[] = $efectiva; }
+        }
+        usort($hoteles, fn($a, $b) => (int) $a['dia_numero'] <=> (int) $b['dia_numero']);
 
         foreach ($hoteles as &$hotel) {
             $fecha = $mapaFechas[(int)$hotel['dia_numero']] ?? null;

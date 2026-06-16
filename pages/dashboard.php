@@ -138,6 +138,7 @@ function dashboardIcon($name) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Dashboard - <?= htmlspecialchars($companyName) ?></title>
     
     <?= UIComponents::getComponentStyles() ?>
@@ -917,7 +918,7 @@ function dashboardIcon($name) {
                 <div class="db-role-pill">
                     <?= $user['role']==='admin' ? 'Administrador' : 'Agente de Viajes' ?>
                 </div>
-                <h1 class="db-greeting">Hola, <?= htmlspecialchars($user['name']) ?> 👋</h1>
+                <h1 class="db-greeting">Hola, <?= htmlspecialchars($user['name']) ?></h1>
                 <p class="db-subtitle">
                     <?= $user['role']==='admin' ? 'Panel de control de la agencia' : 'Aquí está el resumen de tu actividad' ?>
                 </p>
@@ -948,7 +949,7 @@ function dashboardIcon($name) {
         <!-- Alertas de Rooming: viajes próximos con traslados incompletos -->
         <div class="db-rooming-alerts animate-in">
             <div class="db-ra-head">
-                <span class="db-ra-title">⚠ Traslados por completar — viajes próximos</span>
+                <span class="db-ra-title"><i class="fas fa-triangle-exclamation"></i> Traslados por completar — viajes próximos</span>
                 <a class="db-section-link" href="<?= APP_URL ?>/rooming">Ir a Rooming →</a>
             </div>
             <div class="db-ra-list">
@@ -1302,7 +1303,7 @@ function dashboardIcon($name) {
             notification.className = `notification notification-${type}`;
             notification.innerHTML = `
                 <div class="notification-content">
-                    <span class="notification-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                    <span class="notification-icon"><i class="fas ${type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-xmark' : 'fa-circle-info'}"></i></span>
                     <span class="notification-message">${message}</span>
                 </div>
             `;

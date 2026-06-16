@@ -107,7 +107,7 @@ class UIComponents
                     <h3 class="company-name">' . htmlspecialchars($companyName) . '</h3>
                     <div class="role-indicator">
                         <span class="role-badge-sidebar ' . $user['role'] . '">
-                            ' . ($user['role'] === 'admin' ? 'Administrador' : ($user['role'] === 'operador' ? 'Operador' : 'Agente de Viajes')) . '
+                            ' . ($user['role'] === 'admin' ? 'Administrador' : ($user['role'] === 'operador' ? 'Operador' : ($user['role'] === 'subagencia' ? 'Subagencia' : 'Agente de Viajes'))) . '
                         </span>
                     </div>
                 </div>
@@ -149,7 +149,8 @@ class UIComponents
             'profile' => '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>',
             'logout'   => '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>',
             'pipeline' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
-            'rooming' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2l1-5h12l1 5h2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M6 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/></svg>'
+            'rooming' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2l1-5h12l1 5h2"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M6 12V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/></svg>',
+            'chart' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
         ];
 
         return $icons[$icon] ?? $icons['dashboard'];
@@ -158,8 +159,8 @@ class UIComponents
     {
         $menuItems = [];
 
-        // Dashboard siempre presente para ambos roles
-        if ($role !== 'operador') {
+        // Dashboard siempre presente salvo roles con vista propia (operador, subagencia)
+        if (!in_array($role, ['operador', 'subagencia'], true)) {
             $menuItems[] = [
                 'url' => '/dashboard',
                 'icon' => 'dashboard',
@@ -208,6 +209,28 @@ class UIComponents
                     'icon' => 'rooming',
                     'title' => 'Traslados / Rooming',
                     'description' => 'Logística de traslados de aeropuerto'
+                ],
+                [
+                    'url' => '/reportes',
+                    'icon' => 'chart',
+                    'title' => 'Reportes',
+                    'description' => 'Métricas comerciales y de conversión'
+                ]
+            ]);
+        } else if ($role === 'subagencia') {
+            // Menú de la subagencia (revendedor B2B): su panel + perfil
+            $menuItems = array_merge($menuItems, [
+                [
+                    'url' => '/subagencias',
+                    'icon' => 'map',
+                    'title' => 'Mis Tours',
+                    'description' => 'Tours asignados, precios y enlaces'
+                ],
+                [
+                    'url' => '/perfil',
+                    'icon' => 'profile',
+                    'title' => 'Mi Perfil',
+                    'description' => 'Configuración personal'
                 ]
             ]);
         } else if ($role === 'agent') {
@@ -549,6 +572,16 @@ class UIComponents
             color: #2b6cb0;
         }
 
+        .role-badge-sidebar.subagencia {
+            background: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 100%);
+            color: #6d28d9;
+        }
+
+        .role-badge-sidebar.operador {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            color: #475569;
+        }
+
         .user-info-sidebar {
             display: flex;
             align-items: center;
@@ -802,7 +835,7 @@ class UIComponents
                     title: options.title || "¿Confirmar acción?",
                     message: options.message || "¿Estás seguro de que quieres continuar?",
                     details: options.details || null,
-                    icon: options.icon || "⚠️",
+                    icon: options.icon || "<i class=\'fas fa-triangle-exclamation\'></i>",
                     confirmText: options.confirmText || "Confirmar",
                     cancelText: options.cancelText || "Cancelar",
                     confirmButtonStyle: options.confirmButtonStyle || "danger"
@@ -881,7 +914,7 @@ class UIComponents
         }
 
         function updateModalContent(modal, config) {
-            modal.querySelector(".confirm-modal-icon").textContent = config.icon;
+            modal.querySelector(".confirm-modal-icon").innerHTML = config.icon;
             modal.querySelector(".confirm-modal-title").textContent = config.title;
             modal.querySelector(".confirm-modal-message").textContent = config.message;
             

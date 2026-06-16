@@ -5,6 +5,13 @@
 // ⚠️  EJECUTAR SOLO UNA VEZ PARA CONFIGURAR CARPETAS
 // ====================================================================
 
+// Protegido: solo por consola (CLI) o superadmin autenticado.
+if (PHP_SAPI !== 'cli') {
+    require_once __DIR__ . '/config/app.php';
+    App::init();
+    App::requireRole('superadmin');
+}
+
 echo "🚀 Configurando carpetas de uploads para programa...\n\n";
 
 // Obtener año y mes actuales

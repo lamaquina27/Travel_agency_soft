@@ -24,6 +24,9 @@ if (!$programa_id) {
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
+$is_sub = isset($_GET['sub']) && $_GET['sub'] == '1'
+       && isset($_SESSION['subagencia_context'])
+       && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int)$programa_id;
 
 // --------------------------------------------------------------------
 // Helpers
@@ -52,6 +55,31 @@ function preview_sanitize_hex($hex, string $fallback = '#1f2937'): string
     if ($hex[0] !== '#')
         $hex = '#' . $hex;
     return preg_match('/^#[0-9a-fA-F]{6}$/', $hex) ? $hex : $fallback;
+}
+
+// Marca (nombre, logo, colores) de la agencia dueña del programa. Independiente de la
+// sesión → funciona en acceso público. Prioriza la paleta de agente y cae a la de admin
+// (igual que el renderer del PDF).
+function preview_agency_brand($db, $agencia_id): array
+{
+    if (!$agencia_id) return [];
+    try {
+        $a = $db->fetch(
+            "SELECT nombre, logo_url, agent_primary_color, admin_primary_color, agent_secondary_color, admin_secondary_color
+             FROM agencias WHERE id = ? LIMIT 1",
+            [(int) $agencia_id]
+        );
+    } catch (Throwable $e) {
+        error_log('preview_agency_brand: ' . $e->getMessage());
+        return [];
+    }
+    if (!$a) return [];
+    return [
+        'nombre'    => $a['nombre'] ?? '',
+        'logo_url'  => $a['logo_url'] ?? '',
+        'primary'   => $a['agent_primary_color'] ?: ($a['admin_primary_color'] ?? ''),
+        'secondary' => $a['agent_secondary_color'] ?: ($a['admin_secondary_color'] ?? ''),
+    ];
 }
 
 function preview_hex_to_rgb(string $hex): array
@@ -190,11 +218,82 @@ try {
         "SELECT * FROM programa_precios WHERE solicitud_id = ?",
         [$programa_id]
     );
+
+    $sub_config  = null;
+    $sub_precios = null;
+
+    if ($is_sub) {
+        $subCtx = $_SESSION['subagencia_context'];
+        $sub_config = $db->fetch(
+            "SELECT nombre, logo_url, primary_color, secondary_color, divisa
+             FROM config_sub_agencias WHERE user_id = ?",
+            [(int)$subCtx['user_id']]
+        );
+        $sub_precios = $db->fetch(
+            "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
+            [(int)$subCtx['user_id'], (int)$programa_id]
+        );
+    }
+
 } catch (Exception $e) {
     error_log('Error cargando programa para preview: ' . $e->getMessage());
     header('Location: ' . APP_URL . '/itinerarios');
     exit;
 }
+
+// Marca real desde la agencia dueña del programa (programa_solicitudes.agencia_id).
+// Antes la marca venía de ConfigManager, que solo funciona con sesión de login → en el
+// link público (sin sesión) caía al branding por defecto. Esto lo corrige.
+$agencyBrand = preview_agency_brand($db, $programa['agencia_id'] ?? null);
+if (!empty($agencyBrand['nombre']))   { $company_name = $agencyBrand['nombre']; }
+if (!empty($agencyBrand['logo_url'])) { $company_logo = preview_asset_url($agencyBrand['logo_url'], $company_logo); }
+if (!empty($agencyBrand['primary'])) {
+    $brand_primary    = preview_sanitize_hex($agencyBrand['primary'], $brand_primary);
+    $brand_secondary  = preview_sanitize_hex($agencyBrand['secondary'] ?? '', $brand_primary);
+    $brand_text       = preview_readable_text($brand_primary);
+    [$brand_r, $brand_g, $brand_b]    = preview_hex_to_rgb($brand_primary);
+    [$brand2_r, $brand2_g, $brand2_b] = preview_hex_to_rgb($brand_secondary);
+}
+
+if ($is_sub && $sub_config) {
+    if (!empty($sub_config['nombre']))
+        $company_name = $sub_config['nombre'];
+    if (!empty($sub_config['logo_url']))
+        $company_logo = preview_asset_url($sub_config['logo_url']);
+    if (!empty($sub_config['primary_color'])) {
+        $brand_primary   = preview_sanitize_hex($sub_config['primary_color']);
+        $brand_secondary = preview_sanitize_hex($sub_config['secondary_color'] ?? $brand_primary, $brand_primary);
+        $brand_text      = preview_readable_text($brand_primary);
+        [$brand_r, $brand_g, $brand_b]   = preview_hex_to_rgb($brand_primary);
+        [$brand2_r, $brand2_g, $brand2_b] = preview_hex_to_rgb($brand_secondary);
+    }
+}
+
+if ($is_sub && $sub_precios) {
+    $precios = array_merge($precios ?? [], [
+        'precio_adulto'         => $sub_precios['precio_adulto'],
+        'precio_nino'           => $sub_precios['precio_nino'],
+        'precio_total'          => $sub_precios['precio_total'],
+        'moneda'                => $sub_config['divisa']               ?? ($precios['moneda'] ?? ''),
+        'precio_incluye'        => $sub_precios['precio_incluye'],
+        'precio_no_incluye'     => $sub_precios['precio_no_incluye'],
+        'condiciones_generales' => $sub_precios['condiciones_generales'],
+        'movilidad_reducida'    => $sub_precios['movilidad_reducida'],
+        'info_pasaporte'        => $sub_precios['info_pasaporte'],
+        'info_seguros'          => $sub_precios['info_seguros'],
+        // La subagencia decide de forma independiente; si no eligió (NULL/columna ausente)
+        // hereda el ajuste del tour principal.
+        'mostrar_precio'        => (!array_key_exists('mostrar_precio', $sub_precios) || $sub_precios['mostrar_precio'] === null)
+            ? ($precios['mostrar_precio'] ?? 1)
+            : (int) $sub_precios['mostrar_precio'],
+    ]);
+    // Nombre del cliente personalizado por la subagencia
+    if (!empty($sub_precios['nombre_cliente'])) {
+        $programa['nombre']   = $sub_precios['nombre_cliente'];
+        $programa['apellido'] = '';
+    }
+}
+
 $duracion_dias = 0;
 $num_noches = 0;
 foreach ($dias as $dia) {
@@ -314,8 +413,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             ;
             --surface: rgba(255, 255, 255, 0.94);
             --surface-soft: rgba(255, 255, 255, 0.72);
-            --text-main: color-mix(in srgb, var(--brand-primary) 70%, black 30%);
-            --text-soft: color-mix(in srgb, var(--brand-primary) 55%, white 45%);
+            --text-main: #1f2937;
+            --text-soft: #64748b;
             --border-soft: rgba(var(--brand-rgb), 0.14);
             --shadow-soft: 0 24px 70px rgba(var(--brand-rgb), 0.18);
         }
@@ -345,7 +444,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             display: grid;
             grid-template-columns: minmax(360px, 430px) 1fr;
             background:
-                linear-gradient(90deg, rgba(var(--brand-rgb), 0.78) 0%, rgba(var(--brand-rgb), 0.42) 43%, rgba(var(--brand-secondary-rgb), 0.12) 100%),
+                linear-gradient(rgba(15, 23, 42, 0.30), rgba(15, 23, 42, 0.30)),
                 url('<?= addslashes($imagen_portada) ?>') center / cover no-repeat;
         }
 
@@ -367,6 +466,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             align-items: center;
             gap: 12px;
             min-height: 42px;
+            flex-shrink: 0;
         }
 
         .brand-logo {
@@ -400,6 +500,11 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         .content {
             display: grid;
             gap: 16px;
+            /* Absorbe el sobrante: si el contenido (título/nombre muy largos) no cabe,
+               el scroll ocurre AQUÍ dentro y el botón de abajo nunca se recorta ni se va de pantalla. */
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
         }
 
         .eyebrow {
@@ -418,6 +523,11 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             letter-spacing: -0.05em;
             color: var(--text-main);
             margin-bottom: 10px;
+            /* Tope de líneas para que un destino larguísimo no empuje el resto del panel */
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .traveler {
@@ -453,7 +563,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             gap: 10px;
         }
 
-        .fact {
+        .fact,
+        .summary-item {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -463,13 +574,15 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             background: var(--surface-soft);
         }
 
-        .fact i {
+        .fact i,
+        .summary-item i {
             width: 20px;
             color: var(--brand-primary);
             text-align: center;
         }
 
-        .fact span {
+        .fact span,
+        .summary-item span {
             font-size: 14px;
             line-height: 1.35;
             color: var(--text-main);
@@ -479,6 +592,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         .actions {
             display: grid;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .primary-button,
@@ -592,18 +706,34 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         }
 
         @media (max-width: 900px) {
+
+            /* En móvil la portada respira y puede hacer scroll si el contenido no cabe (ya no se recorta) */
             .page {
                 grid-template-columns: 1fr;
+                height: auto;
+                min-height: 100vh;
+                min-height: 100svh;
+                overflow: visible;
                 background:
-                    linear-gradient(180deg, rgba(var(--brand-rgb), 0.55), rgba(var(--brand-rgb), 0.18)),
+                    linear-gradient(180deg, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.18)),
                     url('<?= addslashes($imagen_portada) ?>') center / cover no-repeat;
             }
 
             .panel {
+                height: auto;
                 min-height: 100vh;
-                width: min(100%, 520px);
+                min-height: 100svh;
+                overflow: visible;
+                width: min(100%, 560px);
                 margin: 0;
                 padding: 34px 26px;
+                gap: 24px;
+            }
+
+            /* En móvil el contenido fluye con el scroll natural de la página, sin scroll interno */
+            .content {
+                overflow: visible;
+                min-height: auto;
             }
 
             .visual {
@@ -617,6 +747,40 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             .translate-container {
                 top: 14px;
                 right: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel {
+                padding: 26px 20px 30px;
+                gap: 20px;
+            }
+
+            .title {
+                font-size: clamp(38px, 13vw, 52px);
+            }
+
+            .traveler {
+                font-size: 20px;
+            }
+
+            .intro {
+                max-width: 100%;
+                font-size: 14px;
+            }
+
+            .fact,
+            .summary-item {
+                padding: 11px 13px;
+            }
+
+            .primary-button,
+            .secondary-button {
+                padding: 15px 16px;
+            }
+
+            #google_translate_element {
+                padding: 6px 10px;
             }
         }
     </style>
@@ -713,8 +877,13 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         function verItinerarioCompleto() {
             const isPublic = new URLSearchParams(window.location.search).get('public') === '1';
             const programaId = '<?= addslashes((string) $programa_id) ?>';
+            const isSub = <?= $is_sub ? 'true' : 'false' ?>;
 
-            if (isPublic) {
+            if (isSub) {
+                // Contexto de subagencia: ir directo conservando la sesión y el flag sub=1.
+                // (Pasar por /share con token base64 borraría subagencia_context.)
+                window.location.href = `<?= APP_URL ?>/itinerary?id=${programaId}&public=1&sub=1`;
+            } else if (isPublic) {
                 const timestamp = Date.now();
                 const tokenData = `${programaId}_${timestamp}`;
                 const token = btoa(tokenData);

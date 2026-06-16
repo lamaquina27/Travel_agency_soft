@@ -15,6 +15,7 @@ require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../includes/ui_components.php';
 
 $user = App::getUser();
+$isAdmin = $user['role'] === 'admin';
 
 // Obtener configuración de colores según el rol del usuario
 ConfigManager::init();
@@ -46,6 +47,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Mis Programas - <?= htmlspecialchars($companyName) ?></title>
 
     <!-- Incluir estilos de componentes -->
@@ -1217,7 +1219,72 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             gap: 12px;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+            padding: 12px 14px;
+            background: linear-gradient(180deg, #ffffff, #fbfcff);
+            border: 1px solid #e9eef5;
+            border-radius: 16px;
+            box-shadow: 0 6px 22px rgba(15, 23, 42, .05);
+        }
+
+        /* Caja de búsqueda: ancho cómodo y fijo (ya no se estira a toda la barra) */
+        .tab-search .search-box {
+            flex: 0 1 290px;
+            min-width: 210px;
+        }
+
+        .tab-search .search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 16px 0 42px;
+        }
+
+        .tab-search .search-icon {
+            left: 16px;
+        }
+
+        /* Grupo de filtros: se empuja a la derecha, deja la búsqueda a la izquierda */
+        .tab-search .ts-filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .tab-search .filter-select {
+            height: 42px;
+            padding: 0 34px 0 14px;
+            max-width: 210px;
+        }
+
+        /* Tags + su botón de configuración, pegados como una sola pieza */
+        .tab-search .ts-tag-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-search .btn-config {
+            height: 42px;
+            width: 42px;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 640px) {
+            .tab-search .search-box {
+                flex: 1 1 100%;
+            }
+
+            .tab-search .ts-filters {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .tab-search .filter-select {
+                flex: 1 1 140px;
+                max-width: none;
+            }
         }
 
         /* ── PLANTILLA CARDS ── */
@@ -1273,6 +1340,50 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             stroke-linecap: round;
             stroke-linejoin: round;
             stroke: #64748b;
+        }
+
+        /* Botón de etiquetas en la tarjeta */
+        .btn-tag-card {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .92);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            z-index: 2;
+            transition: transform .15s, background .15s, color .15s;
+        }
+
+        .btn-tag-card:hover {
+            background: #fff;
+            transform: scale(1.08);
+            color: var(--primary-color);
+        }
+
+        .btn-tag-card i {
+            font-size: 13px;
+        }
+
+        /* Chips de etiquetas mostrados en la tarjeta */
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .card-tags .c-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
         }
 
         /* ── PICKER MODAL ── */
@@ -1340,12 +1451,23 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         .picker-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
-            max-height: 240px;
+            max-height: 320px;
             overflow-y: auto;
             padding-right: 2px;
+        }
+
+        .picker-card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .picker-tag-chip {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--c, #64748b) 14%, #fff);
+            color: var(--c, #475569);
+            border: 1px solid color-mix(in srgb, var(--c, #64748b) 30%, #fff);
         }
 
         .picker-card {
@@ -1821,6 +1943,282 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             color: #9f1239 !important;
         }
 
+
+        /*modal de tags*/
+        /* Tag management */
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 8px;
+        }
+
+        .tag-mgr-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px 4px 12px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .tag-mgr-del {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, .12);
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            line-height: 1;
+            transition: background .15s;
+        }
+
+        .tag-mgr-del:hover {
+            background: rgba(0, 0, 0, .22);
+        }
+
+        .tag-new-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tag-new-inp {
+            flex: 1;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            font-size: 13px;
+            color: #1e293b;
+            background: #f8fafc;
+            outline: none;
+            font-family: inherit;
+            transition: border-color .18s;
+        }
+
+        .tag-new-inp:focus {
+            border-color: var(--pr);
+            background: #fff;
+        }
+
+        .btn-add-tag {
+            height: 38px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 9px;
+            background: var(--primary-gradient);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
+            transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+        }
+
+        .btn-add-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(var(--primary-color-rgb), 0.4);
+            opacity: .95;
+        }
+
+        .btn-add-tag:active {
+            transform: translateY(0);
+        }
+
+        /* ─── Botón engranaje para abrir config ─── */
+        .btn-config {
+            height: 36px;
+            width: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            transition: all .18s;
+            flex-shrink: 0;
+        }
+
+        .btn-config:hover {
+            background: #fff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-config svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* ─── CONFIG MODAL (estados + tags) ─── */
+        .cfg-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .55);
+            z-index: 1100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .cfg-overlay.open {
+            display: flex;
+        }
+
+        .cfg-box {
+            background: #fff;
+            border-radius: 18px;
+            width: min(540px, 96vw);
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, .2);
+            animation: mdIn .24s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .cfg-hd {
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .cfg-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .cfg-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 18px 22px;
+        }
+
+        .cfg-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .cfg-body::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .cfg-sec-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-bottom: 12px;
+            margin-top: 20px;
+        }
+
+        .cfg-sec-title:first-child {
+            margin-top: 0;
+        }
+
+        /* Tag chips in modal */
+        .tag-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 36px;
+            align-items: center;
+        }
+
+        .tag-chip {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all .15s;
+            opacity: .7;
+        }
+
+        .tag-chip.selected {
+            opacity: 1;
+            border-color: rgba(0, 0, 0, .2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+        }
+
+        .tag-chip:hover {
+            opacity: 1;
+            transform: scale(1.04);
+        }
+
+        .nl-ft {
+            padding: 12px 22px 16px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            gap: 9px;
+            justify-content: flex-end;
+            flex-shrink: 0;
+        }
+
+        .btn-cancel {
+            height: 38px;
+            padding: 0 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: background .18s;
+        }
+
+        .btn-cancel:hover {
+            background: #f8fafc;
+        }
+
+        .btn-submit {
+            height: 38px;
+            padding: 0 22px;
+            border: none;
+            border-radius: 9px;
+            background: var(--grad);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .18s;
+        }
+
+        .btn-submit:hover {
+            opacity: .88;
+        }
+
+        .btn-submit:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+
         .modal-overlay {
             background: rgba(15, 23, 42, 0.45) !important;
             backdrop-filter: blur(8px) !important;
@@ -2125,33 +2523,118 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
             <!-- Barras de búsqueda por tab -->
             <div class="tab-search" id="tabSearchMios">
-                <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputMios" class="search-input" style="width:100%;"
+                    <input type="text" id="searchInputMios" class="search-input"
                         placeholder="Buscar mis programas..." oninput="filtrarProgramas('mios')">
                 </div>
+                <div class="ts-filters">
+                    <div class="ts-tag-group">
+                        <select id="filterTagMios" class="filter-select filter-tag" onchange="filtrarProgramas('mios')">
+                            <option value="">Todos los tags</option>
+                        </select>
+                        <?php if ($isAdmin): ?>
+                            <button class="btn-config" onclick="openConfig()" title="Configurar tags">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                                </svg>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                    <select id="filterDestinoMios" class="filter-select filter-destino" onchange="filtrarProgramas('mios')">
+                        <option value="">Todos los destinos</option>
+                    </select>
+                </div>
             </div>
+            <!-- Config Modal (estados + tags) — admin only -->
+            <?php if ($isAdmin): ?>
+                <div class="cfg-overlay" id="cfgModal">
+                    <div class="cfg-box">
+                        <div class="cfg-hd">
+                            <span class="cfg-title">Configurar Tags</span>
+                            <button class="nl-close" onclick="closeConfig()"><svg viewBox="0 0 24 24">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg></button>
+                        </div>
+                        <div class="cfg-body">
+
+
+                            <div class="cfg-sec-title">Tags</div>
+                            <div class="tag-list" id="tagMgrList"></div>
+                            <div class="tag-new-row">
+                                <input class="tag-new-inp" id="tagNewInp" type="text" placeholder="Nombre del tag…"
+                                    onkeydown="if(event.key==='Enter')addTag()">
+                                <button class="btn-add-tag" onclick="addTag()">+ Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Picker de etiquetas de un tour (dueño o admin) -->
+            <div class="cfg-overlay" id="tagPickerModal">
+                <div class="cfg-box">
+                    <div class="cfg-hd">
+                        <span class="cfg-title">Etiquetas del tour</span>
+                        <button class="nl-close" onclick="closeTagPicker()"><svg viewBox="0 0 24 24">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg></button>
+                    </div>
+                    <div class="cfg-body">
+                        <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Selecciona las etiquetas para este
+                            tour.</p>
+                        <div class="tag-chips" id="tagPickerChips"></div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+                            <button class="btn-add-tag" onclick="guardarTagPicker()">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
             <div class="tab-search" id="tabSearchOtros" style="display:none;">
-                <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputOtros" class="search-input" style="width:100%;"
+                    <input type="text" id="searchInputOtros" class="search-input"
                         placeholder="Buscar otros programas..." oninput="filtrarProgramas('otros')">
                 </div>
-                <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
-                    <option value="">Todos los estados</option>
-                    <option value="borrador">Borrador</option>
-                    <option value="activo">Activo</option>
-                    <option value="completado">Completado</option>
-                </select>
-                <select id="filterAuthor" class="filter-select" onchange="filtrarProgramas('otros')">
-                    <option value="">Todos los autores</option>
-                </select>
+                <div class="ts-filters">
+                    <select id="filterStatusOtros" class="filter-select" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los estados</option>
+                        <option value="borrador">Borrador</option>
+                        <option value="activo">Activo</option>
+                        <option value="completado">Completado</option>
+                    </select>
+                    <select id="filterAuthor" class="filter-select" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los autores</option>
+                    </select>
+                    <select id="filterTagOtros" class="filter-select filter-tag" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los tags</option>
+                    </select>
+                    <select id="filterDestinoOtros" class="filter-select filter-destino" onchange="filtrarProgramas('otros')">
+                        <option value="">Todos los destinos</option>
+                    </select>
+                </div>
             </div>
             <div class="tab-search" id="tabSearchPlantillas" style="display:none;">
-                <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
+                <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInputPlantillas" class="search-input" style="width:100%;"
+                    <input type="text" id="searchInputPlantillas" class="search-input"
                         placeholder="Buscar plantillas..." oninput="filtrarProgramas('plantillas')">
+                </div>
+                <div class="ts-filters">
+                    <select id="filterTagPlantillas" class="filter-select filter-tag"
+                        onchange="filtrarProgramas('plantillas')">
+                        <option value="">Todos los tags</option>
+                    </select>
+                    <select id="filterDestinoPlantillas" class="filter-select filter-destino"
+                        onchange="filtrarProgramas('plantillas')">
+                        <option value="">Todos los destinos</option>
+                    </select>
                 </div>
             </div>
 
@@ -2228,7 +2711,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         <path d="m21 21-4.35-4.35" />
                     </svg>
                     <input type="text" class="picker-search" id="pickerSearchPlantilla"
-                        placeholder="Buscar plantilla..." oninput="renderPickerCards('plantilla')">
+                        placeholder="Buscar por nombre, destino o etiqueta…" oninput="renderPickerCards('plantilla')">
                 </div>
                 <div class="picker-grid" id="pickerGridPlantilla"></div>
             </div>
@@ -2240,7 +2723,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         <circle cx="11" cy="11" r="8" />
                         <path d="m21 21-4.35-4.35" />
                     </svg>
-                    <input type="text" class="picker-search" id="pickerSearchExistente" placeholder="Buscar programa..."
+                    <input type="text" class="picker-search" id="pickerSearchExistente" placeholder="Buscar por nombre, destino o etiqueta…"
                         oninput="renderPickerCards('existente')">
                 </div>
                 <div class="picker-tabs">
@@ -2348,6 +2831,24 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         const CURRENT_USER_ID = <?= $user['id'] ?>;
         const esAdmin = <?= json_encode($user['role'] === 'admin') ?>;
 
+        // Estado global (tags de itinerario)
+        const S = { tags: [] };
+
+        // ── TAGS: paleta, helpers y API GET ──
+        const TAG_PALETTE = ['#6366f1', '#3b82f6', '#14b8a6', '#f59e0b', '#f97316', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#0ea5e9'];
+        function tagColor(id) { return TAG_PALETTE[((id - 1) % TAG_PALETTE.length + TAG_PALETTE.length) % TAG_PALETTE.length]; }
+        function esc(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+        async function api(action, params = {}) {
+            try {
+                let url = APP_URL + '/modules/itinerarios/tags_api.php?action=' + encodeURIComponent(action);
+                const qs = Object.entries(params).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
+                if (qs) url += '&' + qs;
+                const r = await fetch(url);
+                return await r.json();
+            } catch (e) { return { success: false, message: 'Error de red' }; }
+        }
+
         /**
          * Normaliza cualquier URL de imagen para que use siempre el APP_URL
          * del entorno actual (local o hosting), sin importar lo que esté en BD.
@@ -2356,11 +2857,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         function normalizarImagenUrl(url) {
             if (!url) return null;
             try {
+                url = String(url).replace(/\\/g, '/');
                 // Si tiene dominio (http/https), extraer solo el path
                 if (url.startsWith('http://') || url.startsWith('https://')) {
-                    const parsed = new URL(url);
-                    url = parsed.pathname; // → /assets/uploads/...
+                    url = new URL(url).pathname; // → /.../assets/uploads/...
                 }
+                // Recortar desde /assets/ (ignora subdirectorios del hosting viejo, igual que preview)
+                const i = url.indexOf('/assets/');
+                if (i !== -1) url = url.substring(i);
                 // Reconstruir con APP_URL del entorno actual
                 return APP_URL + (url.startsWith('/') ? url : '/' + url);
             } catch (e) {
@@ -2384,8 +2888,16 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         document.addEventListener('DOMContentLoaded', function () {
             console.log('Iniciando página de itinerarios mejorada...');
             cargarProgramas();
+            cargarTagsFiltro();
             initializeGoogleTranslate();
         });
+
+        // Carga los tags de itinerario y rellena el selector de filtro
+        async function cargarTagsFiltro() {
+            const rT = await api('get_tags');
+            S.tags = rT.success ? rT.data : [];
+            fillSelects();
+        }
 
         // Funciones de sidebar CORREGIDAS
         function toggleSidebar() {
@@ -2454,6 +2966,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 if (result.success) {
                     allProgramas = result.data || [];
 
+                    // Normalizar tags: convertir los GROUP_CONCAT en arrays
+                    allProgramas.forEach(p => {
+                        const ids = p.tag_ids ? p.tag_ids.split(',').map(Number) : [];
+                        const nombres = p.tag_nombres ? p.tag_nombres.split('||') : [];
+                        p.tagIds = ids;                                          // para filtrar
+                        p.tags = ids.map((id, i) => ({ id, nombre: nombres[i] })); // para los chips
+                    });
+
                     // Debug de imágenes
                     allProgramas.forEach(programa => {
                         if (programa.foto_portada) {
@@ -2468,6 +2988,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     actualizarEstadisticas();
                     mostrarProgramas();
                     cargarAutoresEnFiltro();
+                    fillDestinoSelects();
 
                     console.log(`${allProgramas.length} programas cargados (${misProgramasFiltrados.length} míos, ${otrosProgramasFiltrados.length} otros)`);
                 } else {
@@ -2481,6 +3002,191 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 showErrorState('plantillas', error.message);
             }
         }
+        async function apiJ(action, body = {}) {
+            try {
+                const r = await fetch(APP_URL + '/modules/itinerarios/tags_api.php?action=' + encodeURIComponent(action), {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                return await r.json();
+            } catch (e) { return { success: false, message: 'Error de red' }; }
+        }
+        // ── CONFIG MODAL (TAGS) ──
+        async function openConfig() {
+            document.getElementById('cfgModal')?.classList.add('open');
+            const rT = await api('get_tags');
+            S.tags = rT.success ? rT.data : S.tags;
+            renderTagMgr();
+        }
+        function closeConfig() { document.getElementById('cfgModal')?.classList.remove('open'); }
+        // Cerrar el modal al hacer clic en el fondo o con Escape
+        document.getElementById('cfgModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeConfig(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeConfig(); });
+        function renderTagMgr() {
+            const el = document.getElementById('tagMgrList'); if (!el) return;
+            if (!S.tags.length) { el.innerHTML = '<span style="font-size:12px;color:#94a3b8;">Sin tags aún</span>'; return; }
+            el.innerHTML = S.tags.map(t => {
+                const c = tagColor(t.id);
+                return `<span class="tag-mgr-chip" style="background:${c}20;color:${c};">
+            <span id="tag-lbl-${t.id}">${esc(t.nombre)}</span>
+            <button class="tag-mgr-del" title="Renombrar" onclick="renameTagInline(${t.id})" style="background:rgba(0,0,0,.1);margin-right:2px;"><i class="fas fa-pen"></i></button>
+            <button class="tag-mgr-del" onclick="deleteTag(${t.id})"><i class="fas fa-xmark"></i></button>
+        </span>`;
+            }).join('');
+        }
+        async function addTag() {
+            const inp = document.getElementById('tagNewInp');
+            const nombre = inp?.value.trim();
+            if (!nombre) return showToast('Escribe un nombre para el tag', 'err');
+            const r = await apiJ('save_tags', { nombre });
+            if (r.success) {
+                inp.value = '';
+                const rT = await api('get_tags');
+                S.tags = rT.success ? rT.data : S.tags;
+                renderTagMgr(); fillSelects();
+                showToast(`Tag "${esc(nombre)}" creado`, 'ok');
+            } else showToast(r.message || 'Error', 'err');
+        }
+        async function deleteTag(id) {
+            const r = await apiJ('delete_tags', { id });
+            if (r.success) {
+                S.tags = S.tags.filter(t => t.id != id);
+                renderTagMgr(); fillSelects();
+                showToast('Tag eliminado', 'ok');
+            } else showToast(r.message || 'Error', 'err');
+        }
+
+        // Renombrado inline de un tag (igual que pipeline, sin referencias a leads)
+        function renameTagInline(id) {
+            const tag = S.tags.find(t => t.id == id); if (!tag) return;
+            const lbl = document.getElementById('tag-lbl-' + id); if (!lbl) return;
+            const oldName = tag.nombre;
+            const inp = document.createElement('input');
+            inp.value = oldName;
+            inp.style.cssText = 'border:none;background:transparent;color:inherit;font-size:12.5px;font-weight:600;width:80px;outline:none;font-family:inherit;';
+            lbl.replaceWith(inp); inp.focus(); inp.select();
+            async function save() {
+                const newName = inp.value.trim();
+                if (!newName || newName === oldName) { renderTagMgr(); return; }
+                const r = await apiJ('update_tags', { id, nombre: newName });
+                if (r.success) {
+                    tag.nombre = newName;
+                    fillSelects();
+                    showToast(`Tag renombrado a "${esc(newName)}"`, 'ok');
+                } else showToast(r.message || 'Error', 'err');
+                renderTagMgr();
+            }
+            inp.addEventListener('blur', save);
+            inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') renderTagMgr(); });
+        }
+
+        // Rellena todos los selectores de tags (uno por tab) conservando su valor actual
+        function fillSelects() {
+            const opciones = '<option value="">Todos los tags</option>' +
+                S.tags.map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('');
+            document.querySelectorAll('.filter-tag').forEach(sel => {
+                const prev = sel.value;
+                sel.innerHTML = opciones;
+                sel.value = prev;
+            });
+        }
+
+        // Puebla los selectores de Destino con los destinos distintos de los programas cargados
+        function fillDestinoSelects() {
+            const destinos = [...new Set(allProgramas.map(p => (p.destino || '').trim()).filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+            const opciones = '<option value="">Todos los destinos</option>' +
+                destinos.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+            document.querySelectorAll('.filter-destino').forEach(sel => {
+                const prev = sel.value;
+                sel.innerHTML = opciones;
+                sel.value = prev; // conserva la selección si sigue existiendo
+            });
+        }
+
+        // ============================================================
+        // PICKER DE ETIQUETAS POR TOUR (asignación en la tarjeta)
+        // ============================================================
+        let tagPickerProgramaId = null;
+        let tagPickerSeleccion = new Set();   // ids de tags marcados
+
+        async function openTagPicker(programaId) {
+            tagPickerProgramaId = programaId;
+
+            // Asegurar que la lista global de tags esté cargada
+            if (!S.tags.length) {
+                const rT = await api('get_tags');
+                S.tags = rT.success ? rT.data : [];
+            }
+
+            // Cargar los tags YA asignados a este tour 
+            const asignados = await fetchTagsDePrograma(programaId);
+            tagPickerSeleccion = new Set((asignados || []).map(t => Number(t.id)));
+
+            renderTagPickerChips();
+            document.getElementById('tagPickerModal')?.classList.add('open');
+        }
+
+        function closeTagPicker() {
+            document.getElementById('tagPickerModal')?.classList.remove('open');
+            tagPickerProgramaId = null;
+        }
+
+        function renderTagPickerChips() {
+            const el = document.getElementById('tagPickerChips');
+            if (!el) return;
+            if (!S.tags.length) {
+                el.innerHTML = '<span style="font-size:12px;color:#94a3b8;">No hay tags. Créalos en <i class="fas fa-gear"></i> Configurar.</span>';
+                return;
+            }
+            el.innerHTML = S.tags.map(t => {
+                const sel = tagPickerSeleccion.has(Number(t.id));
+                const c = tagColor(t.id);
+                return `<span class="tag-chip${sel ? ' selected' : ''}"
+                    style="--c:${c};${sel ? `background:${c}20;color:${c};border-color:${c};` : ''}"
+                    onclick="toggleTagPickerChip(${t.id})">${esc(t.nombre)}</span>`;
+            }).join('');
+        }
+
+        function toggleTagPickerChip(id) {
+            id = Number(id);
+            if (tagPickerSeleccion.has(id)) tagPickerSeleccion.delete(id);
+            else tagPickerSeleccion.add(id);
+            renderTagPickerChips();
+        }
+
+        async function guardarTagPicker() {
+            if (!tagPickerProgramaId) return;
+            const tagIds = [...tagPickerSeleccion];
+
+            // Guardar la asignación  
+            const r = await guardarTagsDePrograma(tagPickerProgramaId, tagIds);
+
+            if (r && r.success) {
+                showToast('Etiquetas actualizadas', 'ok');
+                closeTagPicker();
+                cargarProgramas();   // refresca las tarjetas (mostrará los chips cuando el back los traiga)
+            } else {
+                showToast((r && r.message) || 'Error al guardar', 'err');
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // LLAMADAS AL API
+        // Endpoints disponibles en modules/itinerarios/tags_api.php:
+        //   GET  get_tags_programa?programa_id=ID     → { success, data: [{id,nombre}, ...] }
+        //   POST save_tags_programa { solicitud_id, tag_ids: [..] }  → { success }
+        // ─────────────────────────────────────────────────────────────
+        async function fetchTagsDePrograma(programaId) {
+            $result = await api("get_tags_programa", { programa_id: programaId });
+            return $result.data;
+        }
+        async function guardarTagsDePrograma(programaId, tagIds) {
+            $result = await apiJ('save_tags_programa', { solicitud_id: programaId, tag_id: tagIds })
+            return { success: true, message: 'tags asignados con exito' };
+        }
+        // Cerrar el picker al hacer clic fuera o con Escape
+        document.getElementById('tagPickerModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeTagPicker(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTagPicker(); });
 
         function separarProgramas() {
             const normales = allProgramas.filter(p => !p.plantilla || p.plantilla == 0);
@@ -2504,7 +3210,34 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 filterAuthor.appendChild(option);
             });
         }
-
+        // ── TOAST ── (usa el estilo propio de itinerarios: .toast .show .success/.error)
+        function showToast(msg, type = 'ok', dur = 3500) {
+            const clase = (type === 'err' || type === 'error') ? 'error' : 'success';
+            const t = document.createElement('div');
+            t.className = 'toast ' + clase;
+            t.innerHTML = msg;
+            document.body.appendChild(t);
+            requestAnimationFrame(() => t.classList.add('show'));
+            setTimeout(() => {
+                t.classList.remove('show');
+                setTimeout(() => t.remove(), 300);
+            }, dur);
+        }
+        function showToastUndo(msg, fn, dur = 4500) {
+            const t = document.createElement('div');
+            t.className = 'toast success';
+            t.innerHTML = msg;
+            const btn = document.createElement('button');
+            btn.className = 'toast-undo';
+            btn.textContent = 'Deshacer';
+            btn.style.cssText = 'margin-left:12px;background:rgba(255,255,255,.25);border:none;color:#fff;padding:4px 10px;border-radius:8px;cursor:pointer;font-weight:600;';
+            t.appendChild(btn);
+            document.body.appendChild(t);
+            requestAnimationFrame(() => t.classList.add('show'));
+            const cerrar = () => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); };
+            const timer = setTimeout(cerrar, dur);
+            btn.onclick = () => { clearTimeout(timer); cerrar(); fn(); };
+        }
         // ============================================================
         // FUNCIONES DE VISUALIZACIÓN
         // ============================================================
@@ -2585,6 +3318,26 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 </button>` : '';
             const plantillaPill = esPlantilla ? `<div class="plantilla-pill">Plantilla</div>` : '';
 
+            // Botón para etiquetar (solo dueño o admin, y no en plantillas)
+            const puedeEtiquetar = (esAdmin || esPropietario) && !esPlantilla;
+            const tagBtn = puedeEtiquetar ?
+                `<button class="btn-tag-card" title="Etiquetas" onclick="event.stopPropagation();openTagPicker(${programa.id})">
+                    <i class="fas fa-tags"></i>
+                </button>` : '';
+
+            // Total de viajeros: SIEMPRE adultos + niños (de programa_precios).
+            // Fallback a numero_pasajeros solo si aún no hay precios cargados (evita el "1" por defecto).
+            const totalAdultos = parseInt(programa.cantidad_adultos) || 0;
+            const totalNinos = parseInt(programa.cantidad_ninos) || 0;
+            const totalViajeros = (totalAdultos + totalNinos) || (parseInt(programa.numero_pasajeros) || 0);
+
+            // Chips de etiquetas asignadas (requiere que el programa traiga programa.tags)
+            const tagsCard = (Array.isArray(programa.tags) && programa.tags.length) ?
+                `<div class="card-tags">${programa.tags.map(t => {
+                    const c = tagColor(t.id);
+                    return `<span class="c-tag" style="background:${c}1f;color:${c};">${esc(t.nombre)}</span>`;
+                }).join('')}</div>` : '';
+
             card.innerHTML = `
                 <div class="program-image">
                     ${tieneImagen ?
@@ -2592,6 +3345,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     `<div class="placeholder"><i class="fas fa-map-marked-alt"></i></div>`
                 }
                     ${bookmarkBtn}
+                    ${tagBtn}
                     ${plantillaPill}
                     ${esReadonly ? `<div class="program-owner">${autorPrograma}</div>` : ''}
                 </div>
@@ -2601,6 +3355,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         <h3 class="program-title">
                             ${programa.titulo_programa || `Viaje a ${programa.destino}`}
                         </h3>
+                        ${tagsCard}
                         <div class="program-destination">
                             <i class="fas fa-map-marker-alt"></i>
                             ${programa.destino}
@@ -2618,7 +3373,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Viajeros</div>
-                            <div class="detail-value">${programa.numero_pasajeros}</div>
+                            <div class="detail-value">${totalViajeros}</div>
                         </div>
                     </div>
 
@@ -2813,15 +3568,24 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         // FUNCIONES DE FILTRADO Y BÚSQUEDA
         // ============================================================
 
+        // Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y minúsculas.
+        function normalizar(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
         function filtrarProgramas(tipo) {
             if (tipo === 'mios') {
-                const searchTerm = document.getElementById('searchInputMios').value.toLowerCase().trim();
+                const searchTerm = normalizar(document.getElementById('searchInputMios').value);
 
 
                 const programasBase = allProgramas.filter(p => p.user_id == CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
+                const tagId = document.getElementById('filterTagMios').value;
+                const destinoF = document.getElementById('filterDestinoMios').value;
 
 
                 misProgramasFiltrados = programasBase.filter(programa => {
+                    // Filtro por tag
+                    if (tagId && !(programa.tagIds || []).includes(Number(tagId))) return false;
+                    // Filtro por destino (tolerante a acentos y coincidencia parcial)
+                    if (destinoF && !normalizar(programa.destino).includes(normalizar(destinoF))) return false;
                     if (!searchTerm) return true;
                     const search_term = searchTerm.split(" ").filter(term => term !== '');
 
@@ -2841,7 +3605,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Cada palabra debe coincidir con algún campo (orden indistinto)
                     return search_term.every(term =>
                         searchFields.some(field =>
-                            field && field.toString().toLowerCase().includes(term)
+                            field && normalizar(field).includes(term)
                         )
                     );
                 });
@@ -2850,8 +3614,10 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 mostrarProgramasSeccion('mios', misProgramasFiltrados);
                 actualizarPlaceholderBusqueda('mios');
             } else if (tipo === 'otros') {
-                const searchTerm = document.getElementById('searchInputOtros').value.toLowerCase().trim();
+                const searchTerm = normalizar(document.getElementById('searchInputOtros').value);
                 const authorFilter = document.getElementById('filterAuthor').value;
+                const tagId = document.getElementById('filterTagOtros').value;
+                const destinoF = document.getElementById('filterDestinoOtros').value;
 
 
                 const programasBase = allProgramas.filter(p => p.user_id != CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
@@ -2876,7 +3642,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                         return search_term.every(term =>
                             searchFields.some(field =>
-                                field && field.toString().toLowerCase().includes(term)
+                                field && normalizar(field).includes(term)
                             )
                         );
                     })();
@@ -2885,21 +3651,33 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Filtro de autor
                     const matchesAuthor = !authorFilter || programa.created_by_name === authorFilter;
 
+                    // Filtro por tag
+                    const matchesTag = !tagId || (programa.tagIds || []).includes(Number(tagId));
 
-                    return matchesSearch && matchesAuthor;
+                    // Filtro por destino (tolerante a acentos y coincidencia parcial)
+                    const matchesDestino = !destinoF || normalizar(programa.destino).includes(normalizar(destinoF));
+
+
+                    return matchesSearch && matchesAuthor && matchesTag && matchesDestino;
                 });
 
 
                 mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
                 actualizarPlaceholderBusqueda('otros');
             } else if (tipo === 'plantillas') {
-                const searchTerm = document.getElementById('searchInputPlantillas').value.toLowerCase().trim();
+                const searchTerm = normalizar(document.getElementById('searchInputPlantillas').value);
 
 
                 const programasBase = allProgramas.filter(p => p.plantilla == 1);
+                const tagId = document.getElementById('filterTagPlantillas').value;
+                const destinoF = document.getElementById('filterDestinoPlantillas').value;
 
 
                 plantillas = programasBase.filter(programa => {
+                    // Filtro por tag
+                    if (tagId && !(programa.tagIds || []).includes(Number(tagId))) return false;
+                    // Filtro por destino (tolerante a acentos y coincidencia parcial)
+                    if (destinoF && !normalizar(programa.destino).includes(normalizar(destinoF))) return false;
                     if (!searchTerm) return true;
                     const search_term = searchTerm.split(" ").filter(term => term !== '');
 
@@ -2919,7 +3697,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Cada palabra debe coincidir con algún campo (orden indistinto)
                     return search_term.every(term =>
                         searchFields.some(field =>
-                            field && field.toString().toLowerCase().includes(term)
+                            field && normalizar(field).includes(term)
                         )
                     );
                 });
@@ -3033,15 +3811,17 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             }
 
             const searchInput = document.getElementById(searchId);
-            const searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            // Búsqueda flexible (sin acentos, parcial) por nombre, destino Y etiquetas (#3)
+            const searchTerm = normalizar(searchInput ? searchInput.value : '');
             const grid = document.getElementById(gridId);
             if (!grid) return;
 
             let filtered = programas;
             if (searchTerm) {
                 filtered = programas.filter(p => {
-                    const fields = [p.titulo_programa, p.destino, p.nombre, p.apellido, 'Viaje a ' + p.destino];
-                    return fields.some(f => f && f.toString().toLowerCase().includes(searchTerm));
+                    const tagNames = Array.isArray(p.tags) ? p.tags.map(t => t.nombre).join(' ') : '';
+                    const blob = normalizar([p.titulo_programa, p.destino, p.nombre, p.apellido, 'Viaje a ' + p.destino, tagNames].filter(Boolean).join(' '));
+                    return blob.includes(searchTerm);
                 });
             }
 
@@ -3056,9 +3836,13 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 const dias = p.total_dias_real ? p.total_dias_real + ' días' : '';
                 const fecha = p.fecha_salida ? formatDate(p.fecha_salida) : '';
                 const meta = [p.destino, dias, fecha].filter(Boolean).join(' · ');
+                const chips = (Array.isArray(p.tags) && p.tags.length)
+                    ? `<div class="picker-card-tags">${p.tags.map(t => `<span class="picker-tag-chip" style="--c:${t.color || '#64748b'}">${t.nombre}</span>`).join('')}</div>`
+                    : '';
                 return `<div class="picker-card${isSelected ? ' selected' : ''}" onclick="selectPickerProgram(${p.id},'${tipo}')">
                     <div class="picker-card-title">${titulo}</div>
                     <div class="picker-card-meta">${meta}</div>
+                    ${chips}
                 </div>`;
             }).join('');
         }
@@ -3280,12 +4064,18 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         function limpiarFiltros(tipo) {
             if (tipo === 'mios') {
                 document.getElementById('searchInputMios').value = '';
+                document.getElementById('filterTagMios').value = '';
+                document.getElementById('filterDestinoMios').value = '';
             } else if (tipo === 'otros') {
                 document.getElementById('searchInputOtros').value = '';
                 document.getElementById('filterStatusOtros').value = '';
                 document.getElementById('filterAuthor').value = '';
+                document.getElementById('filterTagOtros').value = '';
+                document.getElementById('filterDestinoOtros').value = '';
             } else if (tipo === 'plantillas') {
                 document.getElementById('searchInputPlantillas').value = '';
+                document.getElementById('filterTagPlantillas').value = '';
+                document.getElementById('filterDestinoPlantillas').value = '';
             }
             filtrarProgramas(tipo);
         }
@@ -3378,7 +4168,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 programa.destino,
                 `${programa.nombre_viajero} ${programa.apellido_viajero}`,
                 formatDateRange(programa.fecha_llegada, programa.fecha_salida),
-                programa.numero_pasajeros,
+                ((parseInt(programa.cantidad_adultos) || 0) + (parseInt(programa.cantidad_ninos) || 0)) || (parseInt(programa.numero_pasajeros) || 0),
                 programa.estado || 'borrador',
                 programa.created_by_name || 'N/A'
             ]);

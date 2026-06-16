@@ -41,6 +41,7 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
 ?>
 
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Colores dinámicos de la agencia */
         :root {
@@ -2101,6 +2102,7 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
     // CARGA Y RENDER DEL HISTORIAL DE CHAT
     // ============================================================
     let _lastMessageCount = 0;
+    let _chatInflight = null; // AbortController de la petición de chat en curso
 
     function fmtMessageTime(ts) {
         if (!ts) return '';
@@ -2136,8 +2138,12 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
     }
 
     async function cargar_chat() {
+        // Evitar peticiones solapadas: cancelar la anterior si sigue en vuelo.
+        if (_chatInflight) { try { _chatInflight.abort(); } catch (_) {} }
+        const ctrl = new AbortController(); _chatInflight = ctrl;
+        const killer = setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, 10000);
         try {
-            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?pipeline_id=${PIPELINE_ID}`);
+            const response = await fetch(`${APP_URL}/modules/gmail/chat_api.php?pipeline_id=${PIPELINE_ID}`, { signal: ctrl.signal });
             if (!response.ok) return;
             const data = await response.json();
 
@@ -2166,7 +2172,11 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
             all.forEach(m => container.appendChild(renderMessage(m)));
             container.scrollTop = container.scrollHeight;
         } catch (error) {
+            if (error.name === 'AbortError') return;
             console.error('Error cargando el chat:', error);
+        } finally {
+            clearTimeout(killer);
+            if (_chatInflight === ctrl) _chatInflight = null;
         }
     }
 
@@ -2250,7 +2260,7 @@ $onPrimary = $primaryIsLight ? '#1e293b' : '#ffffff';      // texto sobre fondo 
             cerrar_modal_itinerario();
             // Feedback visual
             const flash = document.createElement('div');
-            flash.textContent = '✓ Itinerario asignado correctamente';
+            flash.textContent = 'Itinerario asignado correctamente';
             flash.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--primary-gradient);color:var(--on-primary);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(var(--primary-rgb),.35);';
             document.body.appendChild(flash);
             setTimeout(() => flash.remove(), 3000);

@@ -21,17 +21,11 @@ require_once __DIR__ . '/../../config/database.php';
  *   assign_user   → Acumular: asigna el asesor del lead a crear.
  *   add_tag       → Acumular: agrega tag al lead a crear.
  *
- * Deduplicación de leads:
- *   No se crea un lead nuevo si ya existe uno con el mismo email_cliente
- *   para la misma agencia en los últimos 30 días.
- *   En ese caso, el mensaje se vincula al lead existente.
+ * Cada correo entrante genera siempre un lead nuevo (sin deduplicación).
  */
 class RuleEngine {
 
     private Database $db;
-
-    // Ventana de deduplicación de leads (días)
-    private const DEDUP_WINDOW_DAYS = 30;
 
     public function __construct() {
         $this->db = Database::getInstance();
@@ -48,7 +42,7 @@ class RuleEngine {
      * @param  int    $agencyId
      * @param  int    $emailAccountId
      * @return array  [
-     *   'action'   => string,  // 'lead_created' | 'lead_existing' | 'ignored' | 'parse_error' | 'no_action'
+     *   'action'   => string,  // 'lead_created' | 'ignored' | 'parse_error' | 'no_action'
      *   'lead_id'  => int|null,
      *   'detail'   => string   // descripción legible del resultado
      * ]
@@ -129,23 +123,6 @@ class RuleEngine {
 
         $data = $parsed['data'];
 
-        // Verificar deduplicación de leads
-        $existingLead = $this->findExistingLead($data['email_cliente'], $agencyId);
-        if ($existingLead) {
-            // Vincular este mensaje al lead existente
-            $this->db->update(
-                'email_messages',
-                ['pipeline_id' => $existingLead['id']],
-                'id = ?',
-                [$message['id']]
-            );
-            return [
-                'action'  => 'lead_existing',
-                'lead_id' => $existingLead['id'],
-                'detail'  => "Linked to existing lead #{$existingLead['id']} (same email within " . self::DEDUP_WINDOW_DAYS . " days)",
-            ];
-        }
-
         // Resolver estado inicial
         $estadoId = $overrides['estado_id'] ?? $this->getDefaultEstadoId($agencyId);
         if (!$estadoId) {
@@ -164,7 +141,7 @@ class RuleEngine {
             'email_cliente'                 => $data['email_cliente'],
             'destino'                       => $data['destino'],
             'fecha_salida'                  => $data['fecha_salida'],
-            'source'                        => 'email',
+            'source'                        => $this->getOrCreateEmailSourceId($agencyId),
             'created_from_email_message_id' => $message['id'],
         ];
 
@@ -254,19 +231,21 @@ class RuleEngine {
     }
 
     /**
-     * Busca un lead existente para el mismo email dentro de la ventana de dedup.
+     * Devuelve el id del origen "Email" de la agencia (lo crea si no existe).
+     * pipeline.source es un id hacia pipeline_sources (catálogo), no texto libre:
+     * antes se insertaba la cadena 'email', lo que rompía tras pasar source a INT+FK.
      */
-    private function findExistingLead(string $emailCliente, int $agencyId): ?array {
+    private function getOrCreateEmailSourceId(int $agencyId): ?int {
         $row = $this->db->fetch(
-            "SELECT id FROM pipeline
-             WHERE agencia_id    = ?
-               AND email_cliente = ?
-               AND created_at   >= NOW() - INTERVAL " . self::DEDUP_WINDOW_DAYS . " DAY
-             ORDER BY created_at DESC
-             LIMIT 1",
-            [$agencyId, $emailCliente]
+            "SELECT id FROM pipeline_sources WHERE agencia_id = ? AND nombre = 'Email' LIMIT 1",
+            [$agencyId]
         );
-        return $row ?: null;
+        if ($row) return (int) $row['id'];
+        $id = $this->db->insert('pipeline_sources', [
+            'agencia_id' => $agencyId,
+            'nombre'     => 'Email',
+        ]);
+        return $id ? (int) $id : null;
     }
 
     /**

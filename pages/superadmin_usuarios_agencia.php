@@ -1127,7 +1127,7 @@ $agenciaId = intval($_GET['agencia_id']);
                 
                 if (data.success) {
                     if (data.exists) {
-                        errorDiv.textContent = '❌ Este email ya está registrado';
+                        errorDiv.textContent = 'Este email ya está registrado';
                         errorDiv.style.display = 'block';
                     } else {
                         errorDiv.style.display = 'none';

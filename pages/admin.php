@@ -431,6 +431,12 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             border: 1px solid color-mix(in srgb, var(--admin-secondary) 18%, #e5e7eb);
         }
 
+        .role-subagencia {
+            background: color-mix(in srgb, #8b5cf6 12%, #ffffff);
+            color: #7c3aed;
+            border: 1px solid color-mix(in srgb, #8b5cf6 22%, #e5e7eb);
+        }
+
         .status-active {
             background: color-mix(in srgb, var(--admin-primary) 10%, #ffffff);
             color: var(--admin-primary);
@@ -1122,7 +1128,15 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                             <option value="agent">Agente de viajes</option>
                             <option value="admin">Administrador</option>
                             <option value="operador">Operador</option>
+                            <option value="subagencia">Subagencia (B2B)</option>
                         </select>
+                    </div>
+
+                    <div class="form-group" id="nombreComercialGroup" style="display:none;">
+                        <label for="nombre_comercial">Nombre comercial *</label>
+                        <input type="text" id="nombre_comercial" name="nombre_comercial"
+                            placeholder="Viajes Acme S.A." maxlength="200">
+                        <small style="color:#64748b;">Nombre con el que la subagencia comparte sus tours a sus clientes.</small>
                     </div>
 
                     <div class="form-group" id="passwordGroup">
@@ -1221,6 +1235,20 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                         <li>Ve únicamente los traslados (rooming) asignados a él.</li>
                         <li>Edita su propio perfil.</li>
                         <li>No tiene acceso a dashboard, pipeline, itinerarios ni configuración.</li>
+                    </ul>
+                </div>
+
+                <div class="role-help-card">
+                    <div class="role-help-card-head">
+                        <span class="role-badge role-subagencia">Subagencia (B2B)</span>
+                    </div>
+                    <p>Revendedor externo que comercializa tus tours con su propia marca.</p>
+                    <ul>
+                        <li>Ve únicamente los tours que se le <strong>asignan</strong> desde itinerarios.</li>
+                        <li>Edita sus <strong>propios precios</strong> y condiciones de cada tour.</li>
+                        <li>Configura su marca (nombre, logo, colores, divisa, contacto).</li>
+                        <li>Comparte un link público que muestra el itinerario con su marca y precios.</li>
+                        <li>No accede a pipeline, biblioteca, usuarios ni Gmail.</li>
                     </ul>
                 </div>
             </div>
@@ -1459,7 +1487,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const roleMap = {
                 admin: { class: "role-admin", text: "Administrador" },
                 operador: { class: "role-operador", text: "Operador" },
-                agent: { class: "role-agent", text: "Agente" }
+                agent: { class: "role-agent", text: "Agente" },
+                subagencia: { class: "role-subagencia", text: "Subagencia" }
             }
             const { class: roleClass, text: roleText } = roleMap[user.role] || roleMap.agent;
             const statusClass = user.active ? 'status-active' : 'status-inactive';
@@ -1537,6 +1566,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 passwordField.required = true;
                 passwordGroup.style.display = 'block';
                 passwordGroup.querySelector('label').innerHTML = 'Contraseña *';
+                toggleNombreComercial();
             } else if (mode === 'edit' && id) {
                 title.innerHTML = '<span class="modal-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg></span> Editar Usuario';
                 loadUserData(id);
@@ -1551,6 +1581,18 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
         function closeUserModal() {
             document.getElementById('userModal').classList.remove('show');
         }
+
+        // Mostrar/ocultar el campo "Nombre comercial" según el rol seleccionado
+        function toggleNombreComercial() {
+            const role = document.getElementById('role').value;
+            const group = document.getElementById('nombreComercialGroup');
+            const input = document.getElementById('nombre_comercial');
+            const esSub = role === 'subagencia';
+            group.style.display = esSub ? 'block' : 'none';
+            input.required = esSub;
+            if (!esSub) input.value = '';
+        }
+        document.getElementById('role').addEventListener('change', toggleNombreComercial);
 
         function openRoleHelp() {
             document.getElementById('roleHelpModal').classList.add('show');
@@ -1580,6 +1622,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 document.getElementById('role').value = user.role || '';
                 document.getElementById('active').value = user.active ? '1' : '0';
                 document.getElementById('password').value = '';
+                document.getElementById('nombre_comercial').value = user.nombre_comercial || '';
+                toggleNombreComercial();
             } else {
                 console.error('Usuario no encontrado:', id);
                 showToast('Usuario no encontrado', 'error');

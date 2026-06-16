@@ -59,6 +59,18 @@ class PipelineAPI
                 case 'delete_tags':
                     $result = $this->deleteTags();
                     break;
+                case 'get_source':
+                    $result = $this->getSource();
+                    break;
+                case 'save_source':
+                    $result = $this->saveSource();
+                    break;
+                case 'update_source':
+                    $result = $this->updateSource();
+                    break;
+                case 'delete_source':
+                    $result = $this->deleteSource();
+                    break;
                 case 'get_agentes':
                     $result = $this->getAgentes();
                     break;
@@ -100,6 +112,9 @@ class PipelineAPI
                     break;
                 case 'asignar_itinerario':
                     $result = $this->asignar_itinerario();
+                    break;
+                case 'desvincular_itinerario':
+                    $result = $this->desvincular_itinerario();
                     break;
                 case 'asignar_tag':
                     $result = $this->asignarTag();
@@ -163,7 +178,7 @@ class PipelineAPI
         }
 
         $estados = $this->db->fetchAll(
-            "SELECT id, nombre, color, descripcion, posicion
+            "SELECT id, nombre, color, descripcion, posicion, es_final, tipo_final
             FROM pipeline_estados
             WHERE agencia_id = ?
             ORDER BY posicion ASC",
@@ -195,6 +210,9 @@ class PipelineAPI
         );
         $siguiente = $pos['siguiente'];
 
+        $tipo_final = in_array($data['tipo_final'] ?? null, ['ganado', 'perdido'], true) ? $data['tipo_final'] : null;
+        $es_final = (!empty($data['es_final']) || $tipo_final) ? 1 : 0;
+
         $nuevo_id = $this->db->insert(
             'pipeline_estados',
             [
@@ -202,7 +220,8 @@ class PipelineAPI
                 'nombre' => $data['nombre'],
                 'color' => $data['color'] ?? '#6366f1',
                 'descripcion' => $data['descripcion'] ?? null,
-                'es_final' => $data['es_final'] ?? 0,
+                'es_final' => $es_final,
+                'tipo_final' => $tipo_final,
                 'posicion' => $siguiente
             ]
         );
@@ -220,14 +239,28 @@ class PipelineAPI
             throw new Exception('Datos inválidos o vacíos');
         }
 
+        if (empty($data['id'])) {
+            throw new Exception('ID de estado requerido');
+        }
+
+        // Actualización PARCIAL: solo se tocan los campos presentes en el body,
+        // para no pisar es_final/tipo_final al guardar solo nombre/color (ni viceversa).
+        $fields = [];
+        if (array_key_exists('nombre', $data))      $fields['nombre'] = $data['nombre'];
+        if (array_key_exists('color', $data))       $fields['color'] = $data['color'] ?: '#6366f1';
+        if (array_key_exists('descripcion', $data)) $fields['descripcion'] = $data['descripcion'];
+        if (array_key_exists('tipo_final', $data) || array_key_exists('es_final', $data)) {
+            $tipo_final = in_array($data['tipo_final'] ?? null, ['ganado', 'perdido'], true) ? $data['tipo_final'] : null;
+            $fields['tipo_final'] = $tipo_final;
+            $fields['es_final'] = (!empty($data['es_final']) || $tipo_final) ? 1 : 0;
+        }
+        if (!$fields) {
+            throw new Exception('No hay cambios que aplicar');
+        }
+
         $this->db->update(
             'pipeline_estados',
-            [
-                'nombre' => $data['nombre'],
-                'color' => $data['color'] ?? '#6366f1',
-                'descripcion' => $data['descripcion'] ?? null,
-                'es_final' => $data['es_final'] ?? 0,
-            ],
+            $fields,
             'agencia_id = ? AND id=?',
             [$agencia_id, $data['id']]
         );
@@ -330,7 +363,7 @@ class PipelineAPI
         $tags = $this->db->fetchAll(
             "SELECT id, nombre
             FROM tags
-            WHERE agencia_id = ?
+            WHERE agencia_id = ? AND  tipo = 'pipeline'
             ORDER BY id ASC",
             [$agencia_id]
         );
@@ -404,6 +437,94 @@ class PipelineAPI
         );
         return ['success' => true, 'mensaje' => 'tags eliminados exitosamente'];
     }
+
+
+    private function getSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $source = $this->db->fetchAll(
+            "SELECT id, nombre
+            FROM pipeline_sources
+            WHERE agencia_id = ?
+            ORDER BY id ASC",
+            [$agencia_id]
+        );
+
+        return ['success' => true, 'data' => $source];
+    }
+    private function saveSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->insert(
+            'pipeline_sources',
+            [
+                'agencia_id' => $agencia_id,
+                'nombre' => $data['nombre'],
+            ]
+
+        );
+        return ['success' => true, 'mensaje' => 'source guardado exitosamente'];
+    }
+    private function updateSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->update(
+            'pipeline_sources',
+            [
+                'nombre' => $data['nombre'],
+            ],
+            'agencia_id = ? AND id=?',
+            [$agencia_id, $data['id']]
+        );
+        return ['success' => true, 'mensaje' => 'source actualizados exitosamente'];
+    }
+    private function deleteSource()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+        // Leer el cuerpo JSON enviado por el fetch
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (empty($data['id']))
+            throw new Exception('ID requerido');
+        if (!$data) {
+            throw new Exception('Datos inválidos o vacíos');
+        }
+
+        $this->db->delete(
+            'pipeline_sources',
+            'id = ? AND agencia_id = ?',
+
+            [$data['id'], $agencia_id]
+        );
+        return ['success' => true, 'mensaje' => 'tags eliminados exitosamente'];
+    }
+
+
     private function getAgentes()
     {
         $agencia_id = $_SESSION['agencia_id'] ?? null;
@@ -412,10 +533,10 @@ class PipelineAPI
         }
 
         $agentes = $this->db->fetchAll(
-            "SELECT id, username
+            "SELECT id, username, full_name
             FROM users
             WHERE agencia_id = ? AND active=1
-            ORDER BY id ASC",
+            ORDER BY full_name ASC, username ASC",
             [$agencia_id]
         );
 
@@ -433,11 +554,17 @@ class PipelineAPI
             throw new Exception('ID de pipeline requerido');
         }
 
+        // Un agente solo puede ver SUS leads; el admin, todos los de la agencia.
+        $user_id = $_SESSION['user_id'] ?? null;
+        $user_role = $_SESSION['user_role'] ?? 'agent';
+        $where  = $user_role === 'admin' ? "agencia_id = ? AND id = ?" : "agencia_id = ? AND id = ? AND usuario_id = ?";
+        $params = $user_role === 'admin' ? [$agencia_id, $pipeline_id] : [$agencia_id, $pipeline_id, $user_id];
+
         $pipeline = $this->db->fetch(
             "SELECT id, usuario_id, solicitud_id, estado_id, tag_id, nombre_cliente, telefono_cliente, destino, viajeros, budget, fecha_salida, fecha_llegada,descripcion
             FROM pipeline
-            WHERE agencia_id = ? AND id = ?",
-            [$agencia_id, $pipeline_id]
+            WHERE {$where}",
+            $params
         );
 
         return ['success' => true, 'data' => $pipeline];
@@ -487,7 +614,7 @@ class PipelineAPI
             'fecha_salida' => $fecha_salida,
             'fecha_llegada' => $_POST['fecha_llegada'] ?? null,
             'budget' => !empty($_POST['budget']) ? floatval($_POST['budget']) : null,
-            'source' => trim($_POST['source'] ?? '') ?: null,
+            'source' => !empty($_POST['source']) ? intval($_POST['source']) : null,
             'estado_id' => intval($estado_id),
             'usuario_id' => !empty($_POST['usuario_id']) ? intval($_POST['usuario_id']) : null,
             'tag_id' => !empty($_POST['tag_id']) ? intval($_POST['tag_id']) : null,
@@ -727,6 +854,12 @@ class PipelineAPI
             $params[] = $term;
         }
 
+        // Leads vinculados a un itinerario concreto (usado desde el editor de programa)
+        if (!empty($_GET['solicitud_id'])) {
+            $where[] = "p.solicitud_id = ?";
+            $params[] = intval($_GET['solicitud_id']);
+        }
+
         if (!empty($_GET['fecha_desde'])) {
             $where[] = "p.fecha_salida >= ?";
             $params[] = $_GET['fecha_desde'];
@@ -831,6 +964,35 @@ class PipelineAPI
         return ['success' => true, 'message' => 'Itinerario asignado correctamente'];
     }
 
+    // Quita el vínculo lead↔itinerario (pone solicitud_id = NULL). Como el vínculo
+    // vive en pipeline.solicitud_id, esto se refleja igual en el pipeline y en el editor.
+    private function desvincular_itinerario()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        $user_role = $_SESSION['user_role'] ?? 'agent';
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $pipeline_id = $data['pipeline_id'] ?? null;
+        if (!$pipeline_id) {
+            throw new Exception('pipeline_id requerido');
+        }
+
+        // El agente solo puede tocar sus leads; el admin, los de su agencia
+        $where  = $user_role === 'admin' ? "id = ? AND agencia_id = ?" : "id = ? AND agencia_id = ? AND usuario_id = ?";
+        $params = $user_role === 'admin' ? [$pipeline_id, $agencia_id] : [$pipeline_id, $agencia_id, $_SESSION['user_id'] ?? null];
+        $lead = $this->db->fetch("SELECT id FROM pipeline WHERE {$where}", $params);
+        if (!$lead) {
+            throw new Exception('Lead no encontrado o sin permisos');
+        }
+
+        $this->db->update('pipeline', ['solicitud_id' => null], 'id = ?', [$pipeline_id]);
+
+        return ['success' => true, 'message' => 'Itinerario desvinculado'];
+    }
+
     private function editarLead()
     {
         $agencia_id = $_SESSION['agencia_id'] ?? null;
@@ -868,7 +1030,7 @@ class PipelineAPI
             'fecha_llegada' => $data['fecha_llegada'] ?: null,
             'viajeros' => intval($data['viajeros'] ?? 1),
             'budget' => $data['budget'] !== '' && $data['budget'] !== null ? floatval($data['budget']) : null,
-            'source' => trim($data['source'] ?? '') ?: null,
+            'source' => intval($data['source'] ?? '') ?: null,
             'descripcion' => trim($data['descripcion'] ?? '') ?: null,
         ], 'id = ?', [$pipeline_id]);
 
@@ -878,6 +1040,7 @@ class PipelineAPI
     private function asignarTag()
     {
         $agencia_id = $_SESSION['agencia_id'] ?? null;
+        $user_role = $_SESSION['user_role'] ?? 'agent';
         if (!$agencia_id)
             throw new Exception('Usuario sin agencia asignada');
 
@@ -886,10 +1049,10 @@ class PipelineAPI
         if (!$pipeline_id)
             throw new Exception('pipeline_id requerido');
 
-        $lead = $this->db->fetch(
-            "SELECT id FROM pipeline WHERE id = ? AND agencia_id = ?",
-            [$pipeline_id, $agencia_id]
-        );
+        // Un agente solo puede etiquetar SUS leads (antes solo filtraba por agencia → IDOR)
+        $where  = $user_role === 'admin' ? "id = ? AND agencia_id = ?" : "id = ? AND agencia_id = ? AND usuario_id = ?";
+        $params = $user_role === 'admin' ? [$pipeline_id, $agencia_id] : [$pipeline_id, $agencia_id, $_SESSION['user_id'] ?? null];
+        $lead = $this->db->fetch("SELECT id FROM pipeline WHERE {$where}", $params);
         if (!$lead)
             throw new Exception('Lead no encontrado');
 

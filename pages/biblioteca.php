@@ -25,6 +25,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Biblioteca - <?= htmlspecialchars($companyName) ?></title>
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/modern_image_upload.css">
     <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/biblioteca_carousel.css">
@@ -2677,7 +2678,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     
                     ${exists ? `
                         <p style="margin-top: 12px; font-size: 12px; color: #a0aec0;">
-                            ℹ Los cambios se aplicarán solo a nuevos programas
+                            <i class="fas fa-circle-info"></i> Al guardar podrás elegir si aplicarlos también a los itinerarios existentes
                         </p>
                     ` : ''}
                 </div>
@@ -2820,12 +2821,47 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             });
         }
 
+        // #5: diálogo para decidir si las condiciones de la plantilla se aplican a los
+        // itinerarios YA creados. Devuelve 'nuevos' | 'no_editados' | 'todos' | null (cancelar).
+        function pedirModoPropagacion() {
+            return new Promise(resolve => {
+                const ov = document.createElement('div');
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;';
+                const optStyle = 'text-align:left;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;background:#f8fafc;cursor:pointer;font:inherit;color:#1e293b;font-weight:600;display:block;width:100%;';
+                ov.innerHTML = `
+                    <div style="background:#fff;border-radius:14px;max-width:470px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.3);font-family:inherit;">
+                        <h3 style="margin:0 0 6px;font-size:18px;color:#1e293b;">Aplicar a los itinerarios existentes</h3>
+                        <p style="margin:0 0 16px;font-size:14px;color:#64748b;">Actualizaste las condiciones de la plantilla. ¿Cómo quieres aplicarlas a los itinerarios ya creados?</p>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <button type="button" data-m="nuevos" style="${optStyle}">Solo a los nuevos<br><small style="font-weight:400;color:#64748b;">No toca los itinerarios existentes (recomendado)</small></button>
+                            <button type="button" data-m="no_editados" style="${optStyle}">Solo a los no personalizados<br><small style="font-weight:400;color:#64748b;">Actualiza los que aún no editaste a mano</small></button>
+                            <button type="button" data-m="todos" style="${optStyle}">A todos<br><small style="font-weight:400;color:#64748b;">Sobrescribe las condiciones en todos los itinerarios</small></button>
+                        </div>
+                        <div style="text-align:right;margin-top:16px;">
+                            <button type="button" data-m="cancel" style="background:none;border:0;color:#64748b;cursor:pointer;font:inherit;padding:8px 12px;">Cancelar</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(ov);
+                ov.addEventListener('click', e => {
+                    const b = e.target.closest('[data-m]');
+                    if (!b && e.target !== ov) return;
+                    const m = b ? b.dataset.m : 'cancel';
+                    ov.remove();
+                    resolve(m === 'cancel' ? null : m);
+                });
+            });
+        }
+
         async function savePlantillaPrecios(event) {
             event.preventDefault();
 
             const form = event.target;
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
+
+            // Preguntar el modo de propagación antes de guardar (#5)
+            const modo = await pedirModoPropagacion();
+            if (modo === null) return; // el usuario canceló
 
             try {
                 // Deshabilitar botón y mostrar loading
@@ -2834,6 +2870,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
                 const formData = new FormData(form);
                 formData.append('action', 'save_plantilla_precios');
+                formData.append('propagar', modo);
 
                 const response = await fetch(`${APP_URL}/biblioteca/api`, {
                     method: 'POST',
@@ -4253,7 +4290,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 font-size: 12px;
                 font-weight: 500;
             ">
-                🆕 Nueva imagen seleccionada
+                <i class="fas fa-image"></i> Nueva imagen seleccionada
             </div>
             <button type="button" 
                     class="btn-remove-preview" 
@@ -5746,7 +5783,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
 
-            const icon = type === 'success' ? '' : type === 'error' ? '' : 'ℹ';
+            const icon = '<i class="fas ' + (type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-xmark' : 'fa-circle-info') + '"></i>';
             toast.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 20px;">${icon}</span>

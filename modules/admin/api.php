@@ -15,6 +15,7 @@ require_once dirname(__DIR__, 2) . '/config/database.php';
 require_once dirname(__DIR__, 2) . '/config/app.php';
 require_once dirname(__DIR__, 2) . '/config/config_functions.php';
 require_once dirname(__DIR__, 2) . '/classes/OperadorManager.php';
+require_once dirname(__DIR__, 2) . '/classes/SubAgenciaManager.php';
 
 // Verificar sesión y permisos
 App::init();
@@ -177,10 +178,10 @@ class AdminAPI {
                 throw new Exception('El email no tiene un formato válido');
             }
             
-            if (!in_array($role, ['admin', 'agent', 'operador'])) {
+            if (!in_array($role, ['admin', 'agent', 'operador', 'subagencia'])) {
                 throw new Exception('Rol no válido');
             }
-            
+
             // Verificar que no exista username o email duplicado
             $existing = $this->db->fetch(
                 "SELECT id FROM users WHERE username = ? OR email = ?",
@@ -212,6 +213,8 @@ class AdminAPI {
 
             // Sincronizar pool de operadores según el rol
             OperadorManager::sync($this->db, (int) $userId, (int) $agenciaId, $role);
+            // Garantizar fila de marca si es subagencia
+            SubAgenciaManager::sync($this->db, (int) $userId, $role, $_POST['nombre_comercial'] ?? null);
 
             return [
                 'success' => true,
@@ -265,10 +268,10 @@ class AdminAPI {
                 throw new Exception('El email no tiene un formato válido');
             }
             
-            if (!in_array($role, ['admin', 'agent', 'operador'])) {
+            if (!in_array($role, ['admin', 'agent', 'operador', 'subagencia'])) {
                 throw new Exception('Rol no válido');
             }
-            
+
             // Verificar duplicados (excluyendo el usuario actual)
             $duplicate = $this->db->fetch(
                 "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?",
@@ -338,7 +341,9 @@ class AdminAPI {
 
             // Sincronizar pool de operadores según el rol
             OperadorManager::sync($this->db, (int) $id, (int) $agenciaId, $role);
-            
+            // Garantizar fila de marca si es subagencia
+            SubAgenciaManager::sync($this->db, (int) $id, $role, $_POST['nombre_comercial'] ?? null);
+
             if (!$stmt) {
                 throw new Exception('Error al actualizar el usuario en la base de datos');
             }
@@ -470,10 +475,12 @@ private function getUsers() {
         
         // ===== FILTRAR USUARIOS SOLO DE SU AGENCIA =====
         $users = $this->db->fetchAll(
-            "SELECT id, username, email, full_name, role, active, last_login, created_at 
-             FROM users 
-             WHERE agencia_id = ?
-             ORDER BY created_at DESC",
+            "SELECT u.id, u.username, u.email, u.full_name, u.role, u.active, u.last_login, u.created_at,
+                    csa.nombre AS nombre_comercial
+             FROM users u
+             LEFT JOIN config_sub_agencias csa ON csa.user_id = u.id
+             WHERE u.agencia_id = ?
+             ORDER BY u.created_at DESC",
             [$agenciaId]
         );
         

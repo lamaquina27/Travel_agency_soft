@@ -63,16 +63,20 @@ class Database {
     
     public function query($sql, $params = []) {
         try {
-            error_log("Executing SQL: " . $sql);
-            error_log("With params: " . print_r($params, true));
-            
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                error_log("Executing SQL: " . $sql);
+                error_log("With params: " . print_r($params, true));
+            }
+
             $stmt = $this->connection->prepare($sql);
             $stmt->execute($params);
             return $stmt;
         } catch(PDOException $e) {
             error_log("Database query error: " . $e->getMessage());
-            error_log("SQL was: " . $sql);
-            error_log("Params were: " . print_r($params, true));
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                error_log("SQL was: " . $sql);
+                error_log("Params were: " . print_r($params, true));
+            }
             throw new Exception("Error en la consulta de base de datos");
         }
     }
@@ -93,9 +97,11 @@ class Database {
             $placeholders = ':' . implode(', :', array_keys($data));
             $sql = "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})";
             
-            error_log("Insert SQL: " . $sql);
-            error_log("Insert data: " . print_r($data, true));
-            
+            if (defined('APP_DEBUG') && APP_DEBUG) {
+                error_log("Insert SQL: " . $sql);
+                error_log("Insert data: " . print_r($data, true));
+            }
+
             $stmt = $this->query($sql, $data);
             return $this->connection->lastInsertId();
         } catch(Exception $e) {
@@ -125,19 +131,23 @@ class Database {
         // Agregar parámetros del WHERE al final
         $allParams = array_merge($params, $whereParams);
         
-        error_log("Update SQL: " . $sql);
-        error_log("Update params: " . print_r($allParams, true));
-        
+        if (defined('APP_DEBUG') && APP_DEBUG) {
+            error_log("Update SQL: " . $sql);
+            error_log("Update params: " . print_r($allParams, true));
+        }
+
         $stmt = $this->query($sql, $allParams);
         $rowCount = $stmt->rowCount();
-        
-        error_log("Rows affected: " . $rowCount);
+
+        if (defined('APP_DEBUG') && APP_DEBUG) { error_log("Rows affected: " . $rowCount); }
         
         return $rowCount;
     } catch(Exception $e) {
         error_log("Update error: " . $e->getMessage());
-        error_log("Update SQL was: " . ($sql ?? 'N/A'));
-        error_log("Update params were: " . print_r($allParams ?? [], true));
+        if (defined('APP_DEBUG') && APP_DEBUG) {
+            error_log("Update SQL was: " . ($sql ?? 'N/A'));
+            error_log("Update params were: " . print_r($allParams ?? [], true));
+        }
         throw $e;
     }
 }

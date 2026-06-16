@@ -28,6 +28,13 @@ if (!$programa_id) {
     exit;
 }
 
+// Contexto de subagencia: link público compartido por una subagencia.
+// Aplica su marca y precios (espeja la lógica de preview.php).
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$is_sub = isset($_GET['sub']) && $_GET['sub'] == '1'
+       && isset($_SESSION['subagencia_context'])
+       && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int)$programa_id;
+
 try {
     ConfigManager::init();
     $company_name = ConfigManager::getCompanyName();
@@ -103,30 +110,17 @@ try {
 
 
 
-    // Cargar ubicaciones secundarias para cada día
+    // Cargar ubicaciones secundarias del DÍA DEL PROGRAMA (aisladas) para cada día
     foreach ($dias as &$dia) {
         $dia['ubicaciones_secundarias'] = $db->fetchAll(
-            "SELECT ubicacion, latitud, longitud, orden 
-         FROM programa_dias_ubicaciones_secundarias 
-         WHERE programa_dia_id = ? 
+            "SELECT ubicacion, latitud, longitud, orden
+         FROM programa_dias_ubicaciones_secundarias
+         WHERE programa_dia_id = ?
          ORDER BY orden ASC",
             [$dia['id']]
         );
     }
     unset($dia); // Romper la referencia
-// ✅ DESPUÉS (nuevo código - ubicaciones del PROGRAMA, no de biblioteca):
-    foreach ($dias as &$dia) {
-        // Obtener ubicaciones secundarias del DÍA DEL PROGRAMA (aisladas)
-        $dia['ubicaciones_secundarias'] = $db->fetchAll(
-            "SELECT ubicacion, latitud, longitud, orden 
-         FROM programa_dias_ubicaciones_secundarias 
-         WHERE programa_dia_id = ? 
-         ORDER BY orden ASC",
-            [$dia['id']]
-        );
-
-        error_log("DEBUG - Día: " . $dia['titulo'] . " (ID: {$dia['id']}) -> Ubicaciones secundarias: " . count($dia['ubicaciones_secundarias']));
-    }
 
     // Obtener servicios para cada día con todas las alternativas
     foreach ($dias as &$dia) {
@@ -219,33 +213,35 @@ try {
             $origen = trim(($vl['ciudad_origen'] ?? '') . (!empty($vl['codigo_aeropuerto_origen']) ? ' (' . $vl['codigo_aeropuerto_origen'] . ')' : ''));
             $destino = trim(($vl['ciudad_destino'] ?? '') . (!empty($vl['codigo_aeropuerto_destino']) ? ' (' . $vl['codigo_aeropuerto_destino'] . ')' : ''));
             $resumen_vuelos[] = [
-                'dia'       => $d['dia_numero'],
-                'fecha'     => $d['fecha_calculada'] ?? null,
-                'codigo'    => $vl['codigo_vuelo'] ?? '',
+                'dia' => $d['dia_numero'],
+                'fecha' => $d['fecha_calculada'] ?? null,
+                'codigo' => $vl['codigo_vuelo'] ?? '',
                 'aerolinea' => $vl['aerolinea'] ?? '',
-                'origen'    => $origen,
-                'destino'   => $destino,
-                'salida'    => $vl['hora_salida'] ?? '',
-                'llegada'   => $vl['hora_llegada'] ?? '',
-                'terminal'  => $vl['terminal'] ?? '',
+                'origen' => $origen,
+                'destino' => $destino,
+                'salida' => $vl['hora_salida'] ?? '',
+                'llegada' => $vl['hora_llegada'] ?? '',
+                'terminal' => $vl['terminal'] ?? '',
             ];
         }
 
         // Hoteles: desde los servicios de alojamiento del día
-        if (empty($d['servicios'])) continue;
+        if (empty($d['servicios']))
+            continue;
         foreach ($d['servicios'] as $grupo) {
             $s = $grupo['principal'] ?? null;
-            if (!$s) continue;
+            if (!$s)
+                continue;
 
             if ($s['tipo_servicio'] === 'alojamiento') {
                 $resumen_hoteles[] = [
-                    'dia'         => $d['dia_numero'],
-                    'fecha'       => $d['fecha_calculada'] ?? null,
-                    'noches'      => max(1, (int) ($d['duracion_estancia'] ?? 1)),
-                    'nombre'      => $s['nombre'] ?? 'Alojamiento',
-                    'tipo'        => $s['tipo_alojamiento'] ?? '',
-                    'categoria'   => (int) ($s['categoria_alojamiento'] ?? 0),
-                    'ubicacion'   => $s['ubicacion'] ?? ($d['ubicacion'] ?? ''),
+                    'dia' => $d['dia_numero'],
+                    'fecha' => $d['fecha_calculada'] ?? null,
+                    'noches' => max(1, (int) ($d['duracion_estancia'] ?? 1)),
+                    'nombre' => $s['nombre'] ?? 'Alojamiento',
+                    'tipo' => $s['tipo_alojamiento'] ?? '',
+                    'categoria' => (int) ($s['categoria_alojamiento'] ?? 0),
+                    'ubicacion' => $s['ubicacion'] ?? ($d['ubicacion'] ?? ''),
                     'acomodacion' => $s['acomodacion_nombre'] ?? '',
                 ];
             }
@@ -258,10 +254,78 @@ try {
         [$programa_id]
     );
 
+    // Override de precios/marca por subagencia (si se entra por su link público)
+    $sub_config  = null;
+    $sub_precios = null;
+    if ($is_sub) {
+        $subCtx = $_SESSION['subagencia_context'];
+        $sub_config = $db->fetch(
+            "SELECT nombre, logo_url, primary_color, secondary_color, divisa
+             FROM config_sub_agencias WHERE user_id = ?",
+            [(int)$subCtx['user_id']]
+        );
+        $sub_precios = $db->fetch(
+            "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
+            [(int)$subCtx['user_id'], (int)$programa_id]
+        );
+        if ($sub_precios) {
+            $precios = array_merge($precios ?? [], [
+                'precio_adulto'           => $sub_precios['precio_adulto'],
+                'precio_nino'             => $sub_precios['precio_nino'],
+                'cantidad_adultos'        => $sub_precios['cantidad_adultos'],
+                'cantidad_ninos'          => $sub_precios['cantidad_ninos'],
+                'precio_total'            => $sub_precios['precio_total'],
+                'noches_incluidas'        => $sub_precios['noches_incluidas'],
+                'moneda'                  => $sub_config['divisa'] ?? ($precios['moneda'] ?? ''),
+                'precio_incluye'          => $sub_precios['precio_incluye'],
+                'precio_no_incluye'       => $sub_precios['precio_no_incluye'],
+                'condiciones_generales'   => $sub_precios['condiciones_generales'],
+                'movilidad_reducida'      => $sub_precios['movilidad_reducida'],
+                'info_pasaporte'          => $sub_precios['info_pasaporte'],
+                'info_seguros'            => $sub_precios['info_seguros'],
+                'visados_entrada'         => $sub_precios['visados_entrada'],
+                'requisitos_sanitarios'   => $sub_precios['requisitos_sanitarios'],
+                'llegada_punto_encuentro' => $sub_precios['llegada_punto_encuentro'],
+                'asistencia_emergencia'   => $sub_precios['asistencia_emergencia'],
+                'info_hoteles_servicios'  => $sub_precios['info_hoteles_servicios'],
+                'informacion_practica'    => $sub_precios['informacion_practica'],
+                // La subagencia decide de forma independiente; si no eligió (NULL/columna ausente)
+                // hereda el ajuste del tour principal (que ya está en $precios['mostrar_precio']).
+                'mostrar_precio'          => (!array_key_exists('mostrar_precio', $sub_precios) || $sub_precios['mostrar_precio'] === null)
+                    ? ($precios['mostrar_precio'] ?? 1)
+                    : (int) $sub_precios['mostrar_precio'],
+            ]);
+            // Nombre del cliente personalizado por la subagencia
+            if (!empty($sub_precios['nombre_cliente'])) {
+                $programa['nombre']   = $sub_precios['nombre_cliente'];
+                $programa['apellido'] = '';
+            }
+        }
+    }
+
+    // Obtener adjuntos (archivos y enlaces) en orden de subida
+    $adjuntos = $db->fetchAll(
+        "SELECT id, archivo, enlace, titulo FROM programa_adjuntos WHERE solicitud_id = ? ORDER BY created_at ASC, id ASC",
+        [$programa_id]
+    );
+
 
     //Cambio para mostrar los precios o esconderlos
     $mostrar_precios = $precios && (!isset($precios['mostrar_precio']) || (int) $precios['mostrar_precio'] === 1);
     $vendido = ($programa['comprado']) ? 1 : 0;
+
+    // ── Selección de hotel alternativo por el cliente (link compartido) ──
+    $hotelSeleccionDelta = 0.0; // suma de las diferencias de precio de las alternativas elegidas
+    // Token público estable para autorizar la selección desde el link (se genera si falta)
+    $public_token = $programa['public_token'] ?? '';
+    if (empty($public_token)) {
+        try {
+            $public_token = bin2hex(random_bytes(16));
+            $db->query("UPDATE programa_solicitudes SET public_token = ? WHERE id = ?", [$public_token, (int) $programa_id]);
+        } catch (Throwable $e) {
+            $public_token = '';
+        }
+    }
 
     // Preparar datos para el mapa
 // Preparar datos para el mapa - SOLO UBICACIONES DE DÍAS
@@ -382,8 +446,14 @@ if ($nombre_viajero === '') {
 // con APP_URL local. Funciona con BD del hosting o local sin cambios.
 $_foto_raw = $programa['foto_portada'] ?? '';
 if ($_foto_raw) {
+    $_foto_raw = str_replace('\\', '/', $_foto_raw);
     if (str_starts_with($_foto_raw, 'http://') || str_starts_with($_foto_raw, 'https://')) {
-        $_foto_raw = parse_url($_foto_raw, PHP_URL_PATH); // → /assets/uploads/...
+        $_foto_raw = parse_url($_foto_raw, PHP_URL_PATH); // → /.../assets/uploads/...
+    }
+    // Recortar desde /assets/ (ignora subdirectorios del hosting viejo), igual que preview
+    $_assetsPos = strpos($_foto_raw, '/assets/');
+    if ($_assetsPos !== false) {
+        $_foto_raw = substr($_foto_raw, $_assetsPos);
     }
     $_foto_raw = rtrim(APP_URL, '/') . '/' . ltrim($_foto_raw, '/');
 }
@@ -400,7 +470,7 @@ if ($num_dias == 0) {
     $num_dias = count($dias);
 }
 
-$num_noches = $num_dias - 1;
+$num_noches = max(0, $num_dias - 1);
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
@@ -445,6 +515,40 @@ $brand_secondary = ts_safe_hex_color(
     ?? '',
     $brand_primary
 );
+
+// Marca real de la agencia dueña del programa (programa_solicitudes.agencia_id).
+// $config (ConfigManager) no expone estas claves de color y en el link público (sin sesión)
+// caía al branding por defecto; por eso "a veces" salía el default en vez del de la empresa.
+// Tomamos la paleta de la agencia: agente y, si falta, admin (igual que el renderer del PDF).
+try {
+    $agenciaBrand = $db->fetch(
+        "SELECT nombre, agent_primary_color, admin_primary_color, agent_secondary_color, admin_secondary_color
+         FROM agencias WHERE id = ? LIMIT 1",
+        [(int) ($programa['agencia_id'] ?? 0)]
+    );
+} catch (Throwable $e) {
+    $agenciaBrand = null;
+}
+if ($agenciaBrand) {
+    if (!empty($agenciaBrand['nombre'])) { $company_name = $agenciaBrand['nombre']; }
+    $agPrim = $agenciaBrand['agent_primary_color'] ?: ($agenciaBrand['admin_primary_color'] ?? '');
+    $agSec  = $agenciaBrand['agent_secondary_color'] ?: ($agenciaBrand['admin_secondary_color'] ?? '');
+    if (!empty($agPrim)) {
+        $brand_primary   = ts_safe_hex_color($agPrim, $brand_primary);
+        $brand_secondary = ts_safe_hex_color($agSec, $brand_primary);
+    }
+}
+
+// Si se entra por el link de una subagencia, su marca manda
+if (!empty($is_sub) && !empty($sub_config)) {
+    if (!empty($sub_config['nombre'])) {
+        $company_name = $sub_config['nombre'];
+    }
+    if (!empty($sub_config['primary_color'])) {
+        $brand_primary   = ts_safe_hex_color($sub_config['primary_color'], $brand_primary);
+        $brand_secondary = ts_safe_hex_color($sub_config['secondary_color'] ?? '', $brand_primary);
+    }
+}
 
 function ts_spanish_day_name($date)
 {
@@ -550,7 +654,9 @@ if ($programa['fecha_llegada']) {
 
     // Calcular fecha de salida: fecha_llegada + duración_días (incluye día adicional de regreso)
     $fecha_fin = clone $fecha_inicio;
-    $fecha_fin->add(new DateInterval('P' . $duracion_dias . 'D'));
+    if ($duracion_dias > 0) {
+        $fecha_fin->add(new DateInterval('P' . $duracion_dias . 'D'));
+    }
     $fecha_fin_formatted = $fecha_fin->format('d M Y');
 }
 
@@ -563,6 +669,12 @@ if ($programa['fecha_llegada']) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($titulo_programa) ?> - <?= $company_name ?></title>
+    <!-- Preconexión a CDN externos para acelerar la primera carga -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://translate.google.com">
     <!-- Google Translate -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -592,7 +704,7 @@ if ($programa['fecha_llegada']) {
             --brand-surface-soft: #f8f9fa;
             --brand-border: #e9ecef;
             --brand-text: #2f3437;
-            --brand-muted: var(--brand-muted);
+            --brand-muted: #6b7280;
             --brand-soft: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
             --brand-soft-strong: color-mix(in srgb, var(--brand-primary) 14%, #ffffff);
             --brand-shadow: 0 18px 45px rgba(20, 24, 28, 0.08);
@@ -610,6 +722,13 @@ if ($programa['fecha_llegada']) {
             line-height: 1.6;
             color: var(--brand-text);
             background: #ffffff;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        /* Red de seguridad: ningún desborde puntual arrastra scroll horizontal en móvil */
+        html {
+            overflow-x: hidden;
         }
 
         /* ========================================
@@ -801,7 +920,7 @@ if ($programa['fecha_llegada']) {
             font-weight: 600;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -869,6 +988,131 @@ if ($programa['fecha_llegada']) {
             color: var(--brand-muted);
             max-width: 600px;
             margin: 0 auto;
+        }
+
+        /* ===== Adjuntos: archivos y enlaces ===== */
+        .adj-downloads {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        /* Botones de descarga más discretos que el CTA del footer */
+        .adj-downloads .btn {
+            padding: 11px 20px;
+            font-size: .92rem;
+        }
+
+        .adj-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .adj-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+            border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, #e8e8e8);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            text-decoration: none;
+            color: var(--brand-text);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .adj-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+            border-color: var(--brand-primary);
+        }
+
+        .adj-card.adj-hidden {
+            display: none;
+        }
+
+        .adj-card-icon {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .adj-card-icon.adj-file {
+            background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        }
+
+        .adj-card-icon.adj-link {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+        }
+
+        .adj-card-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .adj-card-name {
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .adj-card-meta {
+            font-size: 13px;
+            color: var(--brand-muted);
+        }
+
+        .adj-card-action {
+            flex-shrink: 0;
+            color: var(--brand-primary);
+            font-size: 15px;
+            opacity: 0.7;
+        }
+
+        .adj-more-wrap {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .adj-more-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            border: 1px solid var(--brand-primary);
+            border-radius: 30px;
+            background: transparent;
+            color: var(--brand-primary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .adj-more-btn:hover {
+            background: var(--brand-primary);
+            color: #fff;
+        }
+
+        .adj-more-btn.is-open i {
+            transform: rotate(180deg);
+        }
+
+        .adj-more-btn i {
+            transition: transform 0.2s ease;
         }
 
         /* ===== SELECTOR DE IDIOMA ELEGANTE ===== */
@@ -1386,7 +1630,7 @@ if ($programa['fecha_llegada']) {
 
         .secondary-header h4 {
             margin: 0;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             font-size: 14px;
             font-weight: 600;
         }
@@ -1601,7 +1845,7 @@ if ($programa['fecha_llegada']) {
         }
 
         .day-image::before {
-            content: '🔍 Ver imagen';
+            content: 'Ver imagen';
             position: absolute;
             top: 0;
             left: 0;
@@ -1844,7 +2088,7 @@ if ($programa['fecha_llegada']) {
         }
 
         .service-image::before {
-            content: '🔍 Ver imagen';
+            content: 'Ver imagen';
             position: absolute;
             top: 0;
             left: 0;
@@ -1899,7 +2143,7 @@ if ($programa['fecha_llegada']) {
 
         .day-meals h4 {
             margin-bottom: 15px;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             font-size: 1.1rem;
             display: flex;
             align-items: center;
@@ -2215,10 +2459,17 @@ if ($programa['fecha_llegada']) {
             line-height: 1.5;
         }
 
+        .conditions-text {
+            height: 380px;
+            overflow-y: scroll;
+        }
+
         .conditions-text,
-        .passport-info,
-        .insurance-info,
+        .passport-text,
+        .insurance-text,
         .additional-info {
+            height: 380px;
+            overflow-y: scroll;
             background: #f8f9fa;
             padding: 20px;
             border-radius: 10px;
@@ -2535,7 +2786,7 @@ if ($programa['fecha_llegada']) {
             gap: 8px;
             margin-bottom: 12px;
             font-weight: 600;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             font-size: 0.9rem;
         }
 
@@ -3983,14 +4234,15 @@ if ($programa['fecha_llegada']) {
             --ts-brand-dark:
                 <?= htmlspecialchars($brand_secondary) ?>
             ;
-            --ts-bg: color-mix(in srgb, var(--ts-brand) 7%, #ffffff);
+            /* Neutros REALES (antes derivaban un tinte del color de marca → todo se veía colorido) */
+            --ts-bg: #f7f8fa;
             --ts-surface: #ffffff;
-            --ts-surface-soft: color-mix(in srgb, var(--ts-brand) 4%, #ffffff);
+            --ts-surface-soft: #f7f8fa;
             --ts-text: #20292d;
             --ts-muted: #6b7478;
-            --ts-line: color-mix(in srgb, var(--ts-brand) 14%, #e9e9e9);
-            --ts-brand-soft: color-mix(in srgb, var(--ts-brand) 12%, #ffffff);
-            --ts-brand-faint: color-mix(in srgb, var(--ts-brand) 6%, #ffffff);
+            --ts-line: #e6e8ec;
+            --ts-brand-soft: #eef1f5;
+            --ts-brand-faint: #f3f4f6;
             --ts-radius-lg: 28px;
             --ts-radius-md: 18px;
             --ts-shadow-soft: 0 18px 50px rgba(32, 41, 45, .10);
@@ -4097,7 +4349,7 @@ if ($programa['fecha_llegada']) {
 
         .hero-stat-number {
             font-size: 1.8rem !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
         }
 
         .hero-stat-label,
@@ -4179,7 +4431,7 @@ if ($programa['fecha_llegada']) {
             height: 42px !important;
             border-radius: 14px !important;
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
             font-size: 1rem !important;
         }
 
@@ -4203,7 +4455,7 @@ if ($programa['fecha_llegada']) {
         }
 
         .overview-summary h3 {
-            color: var(--ts-brand-dark) !important;
+            color: var(--ts-text) !important;
         }
 
         #map.section {
@@ -4258,7 +4510,7 @@ if ($programa['fecha_llegada']) {
 
         .day-number-main {
             font-size: .92rem !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
             font-weight: 900 !important;
         }
 
@@ -4317,7 +4569,7 @@ if ($programa['fecha_llegada']) {
 
         .day-meta-pill-primary {
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand-dark) !important;
+            color: var(--ts-muted) !important;
             border-color: var(--ts-line) !important;
         }
 
@@ -4425,8 +4677,8 @@ if ($programa['fecha_llegada']) {
 
         .stay-info-box {
             background: var(--ts-brand-soft) !important;
-            border: 1px solid #d7ebe8 !important;
-            color: var(--ts-brand-dark) !important;
+            border: 1px solid var(--ts-line) !important;
+            color: var(--ts-text) !important;
             border-radius: 18px !important;
             padding: 16px !important;
         }
@@ -4471,14 +4723,14 @@ if ($programa['fecha_llegada']) {
             height: 42px !important;
             border-radius: 14px !important;
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
         }
 
         .service-icon.actividad,
         .service-icon.transporte,
         .service-icon.alojamiento {
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
         }
 
         .service-details h4 {
@@ -4549,6 +4801,7 @@ if ($programa['fecha_llegada']) {
 
         .pricing-accordion {
             overflow: hidden !important;
+
         }
 
         .accordion-header {
@@ -4730,12 +4983,12 @@ if ($programa['fecha_llegada']) {
             --ts-brand-dark:
                 <?= htmlspecialchars($brand_secondary) ?>
                 !important;
-            --ts-bg: color-mix(in srgb, var(--ts-brand) 5%, #fff) !important;
+            --ts-bg: #f7f8fa !important;
             --ts-surface: #fff !important;
-            --ts-surface-soft: color-mix(in srgb, var(--ts-brand) 4%, #fff) !important;
-            --ts-brand-soft: color-mix(in srgb, var(--ts-brand) 10%, #fff) !important;
-            --ts-brand-faint: color-mix(in srgb, var(--ts-brand) 6%, #fff) !important;
-            --ts-line: color-mix(in srgb, var(--ts-brand) 15%, #e9e9e9) !important;
+            --ts-surface-soft: #f7f8fa !important;
+            --ts-brand-soft: #eef1f5 !important;
+            --ts-brand-faint: #f3f4f6 !important;
+            --ts-line: #e6e8ec !important;
             --ts-text: #20292d !important;
             --ts-muted: #687276 !important;
         }
@@ -4777,18 +5030,8 @@ if ($programa['fecha_llegada']) {
             border-color: var(--ts-line) !important;
         }
 
-        .hero-stat-number,
         .navbar-brand,
         .navbar-nav a:hover,
-        .section-title,
-        .overview-summary h3,
-        .day-title,
-        .day-main-title,
-        .service-title,
-        .accommodation-title,
-        .price-amount,
-        .clean-flight-time,
-        .day-flight-header small,
         .day-flights-title i,
         .day-flight-route i,
         .day-flight-meta i,
@@ -4801,6 +5044,24 @@ if ($programa['fecha_llegada']) {
         .accordion-header i,
         .footer a {
             color: var(--ts-brand) !important;
+        }
+
+        /* Títulos y cifras en color neutro (no usar el color de marca) */
+        .section-title,
+        .overview-summary h3,
+        .day-title,
+        .day-main-title,
+        .service-title,
+        .accommodation-title,
+        .price-amount,
+        .clean-flight-time,
+        .day-flight-header small {
+            color: var(--ts-text) !important;
+        }
+
+        /* Stats del hero (cards blancas: Duración/Viajeros/Fecha) → gris oscuro, no marca */
+        .hero-stat-number {
+            color: var(--ts-text) !important;
         }
 
         .detail-icon,
@@ -4867,7 +5128,7 @@ if ($programa['fecha_llegada']) {
         .day-number-main {
             font-size: .98rem !important;
             line-height: 1 !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
         }
 
         .day-number-label {
@@ -5025,12 +5286,18 @@ if ($programa['fecha_llegada']) {
         .tag,
         .badge {
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
             border-color: var(--ts-line) !important;
         }
 
+        /* El botón primario (CTA) sí conserva la marca, sólido, para destacar */
+        .btn-primary {
+            background: var(--ts-brand) !important;
+            color: #ffffff !important;
+        }
+
         [class*="info"] {
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
             border-color: var(--ts-line) !important;
         }
 
@@ -5081,6 +5348,38 @@ if ($programa['fecha_llegada']) {
             .clean-flights-section {
                 padding-left: 20px !important;
                 padding-right: 20px !important;
+            }
+        }
+
+        /* ─── Ajustes finales de responsive móvil (#3) ─── */
+        @media (max-width: 768px) {
+
+            /* Barra de acciones (Bono / Descargar PDF): en columna y a ancho completo,
+               antes se salían de pantalla al ser 2 botones anchos */
+            .footer-actions {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+                padding: 0 20px !important;
+            }
+
+            .footer-actions .btn {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+
+            /* Texto sobre la imagen del día: más compacto y legible en pantallas pequeñas */
+            .day-image-overlay {
+                padding: 30px 14px 14px !important;
+            }
+
+            .day-image-overlay .dih-title {
+                font-size: 16px !important;
+            }
+
+            .day-image-overlay .dih-date,
+            .day-image-overlay .dih-locs {
+                font-size: 12px !important;
             }
         }
     </style>
@@ -5302,6 +5601,78 @@ if ($programa['fecha_llegada']) {
             </div>
         </section>
 
+        <!-- Adjuntos: archivos y enlaces -->
+        <?php if (!empty($adjuntos) || !empty($programa_id)):
+            $adj_limite = 6; // a partir de aquí se ocultan tras "Ver más"
+        ?>
+            <section id="adjuntos" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Documentos y enlaces</h2>
+                    <p class="section-subtitle">
+                        Archivos y recursos relacionados con tu viaje
+                    </p>
+                </div>
+
+                <!-- Descargas rápidas (#4): el PDF del itinerario y el bono/voucher también aquí -->
+                <?php if (!empty($programa_id)): ?>
+                    <div class="adj-downloads">
+                        <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?><?= $is_sub ? '&sub=1' : '' ?>"
+                            class="btn btn-primary" target="_blank">
+                            <i class="fas fa-download"></i> Descargar PDF
+                        </a>
+                        <?php if ($vendido): ?>
+                            <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int) $programa_id ?>"
+                                class="btn btn-primary" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Bono / voucher de hoteles
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="adj-grid" id="adjGrid">
+                    <?php foreach ($adjuntos as $i => $adj):
+                        $es_enlace = !empty($adj['enlace']);
+                        $url = $es_enlace ? $adj['enlace'] : $adj['archivo'];
+                        $titulo = trim($adj['titulo'] ?? '');
+                        if ($es_enlace) {
+                            $nombreReal = $adj['enlace'];
+                            // Con título, el nombre es el título y la URL pasa a ser el dato secundario.
+                            $meta = $titulo !== '' ? $adj['enlace'] : 'Enlace';
+                            $icono = 'fa-link';
+                        } else {
+                            $nombreReal = rawurldecode(basename(parse_url($adj['archivo'], PHP_URL_PATH)));
+                            $ext = strtoupper(pathinfo($nombreReal, PATHINFO_EXTENSION));
+                            $meta = ($titulo !== '' ? $nombreReal : 'Archivo') . ($ext ? ' · ' . $ext : '');
+                            $icono = 'fa-file';
+                        }
+                        $nombre = $titulo !== '' ? $titulo : $nombreReal;
+                        $oculto = $i >= $adj_limite ? ' adj-hidden' : '';
+                    ?>
+                        <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener"
+                           class="adj-card<?= $oculto ?>"<?= $es_enlace ? '' : ' download' ?>>
+                            <div class="adj-card-icon <?= $es_enlace ? 'adj-link' : 'adj-file' ?>">
+                                <i class="fas <?= $icono ?>"></i>
+                            </div>
+                            <div class="adj-card-info">
+                                <span class="adj-card-name"><?= htmlspecialchars($nombre) ?></span>
+                                <span class="adj-card-meta"><?= htmlspecialchars($meta) ?></span>
+                            </div>
+                            <i class="fas <?= $es_enlace ? 'fa-external-link-alt' : 'fa-download' ?> adj-card-action"></i>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+
+                <?php if (count($adjuntos) > $adj_limite): ?>
+                    <div class="adj-more-wrap">
+                        <button type="button" class="adj-more-btn" id="adjMoreBtn" onclick="toggleAdjuntos()">
+                            <span class="adj-more-text">Ver más (<?= count($adjuntos) - $adj_limite ?>)</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </section>
+        <?php endif; ?>
+
         <!-- Map Section -->
         <?php if (!empty($puntos_mapa)): ?>
             <section id="map" class="section">
@@ -5430,8 +5801,8 @@ if ($programa['fecha_llegada']) {
                                             }, $dia['ubicaciones_secundarias'] ?? [])
                                         )));
                                         ?>
-                                        <div class="day-image day-image-hero"
-                                            style="background-image: url('<?= htmlspecialchars($dia['imagen1']) ?>')"
+                                        <div class="day-image day-image-hero lazy-bg"
+                                            data-bg="<?= htmlspecialchars($dia['imagen1']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 0, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                             <div class="day-image-overlay">
                                                 <h3 class="dih-title"><?= htmlspecialchars($dia['titulo'] ?: $rangoTexto) ?></h3>
@@ -5448,15 +5819,15 @@ if ($programa['fecha_llegada']) {
                                     <?php endif; ?>
 
                                     <?php if ($dia['imagen2']): ?>
-                                        <div class="day-image"
-                                            style="background-image: url('<?= htmlspecialchars($dia['imagen2']) ?>')"
+                                        <div class="day-image lazy-bg"
+                                            data-bg="<?= htmlspecialchars($dia['imagen2']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 1, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if ($dia['imagen3']): ?>
-                                        <div class="day-image"
-                                            style="background-image: url('<?= htmlspecialchars($dia['imagen3']) ?>')"
+                                        <div class="day-image lazy-bg"
+                                            data-bg="<?= htmlspecialchars($dia['imagen3']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 2, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                         </div>
                                     <?php endif; ?>
@@ -5775,8 +6146,63 @@ if ($programa['fecha_llegada']) {
                                                         </div>
                                                     </div>
 
-                                                    <!-- Alternativas -->
-                                                    <?php if (!empty($servicio_grupo['alternativas'])): ?>
+                                                    <!-- Selector de hotel (alojamiento con alternativas): el cliente elige y el precio se actualiza -->
+                                                    <?php if ($servicio['tipo_servicio'] === 'alojamiento' && !empty($servicio_grupo['alternativas'])):
+                                                        $hsCard = function ($s, $principal) {
+                                                            return [
+                                                                'id' => (int) $s['id'],
+                                                                'nombre' => $s['nombre'],
+                                                                'delta' => $principal ? 0.0 : (float) ($s['variacion_precio'] ?? 0),
+                                                                'sel' => ((int) ($s['seleccionado'] ?? 0) === 1),
+                                                                'principal' => $principal,
+                                                                'img' => $s['alojamiento_imagen_principal'] ?? '',
+                                                                'ubicacion' => $s['ubicacion'] ?? '',
+                                                                'acomodacion' => $s['acomodacion_nombre'] ?? '',
+                                                                'capacidad' => $s['acomodacion_capacidad'] ?? '',
+                                                            ];
+                                                        };
+                                                        $hsOpciones = [$hsCard($servicio, true)];
+                                                        foreach ($servicio_grupo['alternativas'] as $hsAlt) {
+                                                            $hsOpciones[] = $hsCard($hsAlt, false);
+                                                        }
+                                                        $hsHaySel = false;
+                                                        foreach ($hsOpciones as $o) { if ($o['sel']) { $hsHaySel = true; break; } }
+                                                        foreach ($hsOpciones as $o) {
+                                                            if ($o['sel'] || (!$hsHaySel && $o['principal'])) { $hotelSeleccionDelta += (float) $o['delta']; break; }
+                                                        }
+                                                        $hsMoneda = $precios['moneda'] ?? '';
+                                                        ?>
+                                                        <div class="hotel-selector" data-grupo="<?= (int) $servicio['id'] ?>">
+                                                            <div class="hotel-selector-title"><i class="fas fa-hotel"></i> Elige tu alojamiento</div>
+                                                            <?php foreach ($hsOpciones as $o):
+                                                                $checked = $o['sel'] || (!$hsHaySel && $o['principal']);
+                                                                $d = (float) $o['delta'];
+                                                                $deltaLabel = $d > 0 ? ('+ ' . number_format($d, 0, ',', '.') . ' ' . htmlspecialchars($hsMoneda))
+                                                                    : ($d < 0 ? ('− ' . number_format(abs($d), 0, ',', '.') . ' ' . htmlspecialchars($hsMoneda))
+                                                                        : 'Sin coste adicional');
+                                                                ?>
+                                                                <label class="hotel-option<?= $checked ? ' selected' : '' ?>">
+                                                                    <input type="radio" name="hotel-<?= (int) $servicio['id'] ?>" value="<?= (int) $o['id'] ?>"
+                                                                        data-grupo="<?= (int) $servicio['id'] ?>" data-delta="<?= htmlspecialchars((string) $d) ?>"
+                                                                        <?= $checked ? 'checked' : '' ?> <?= $vendido ? 'disabled' : '' ?>
+                                                                        onchange="seleccionarHotel(this)">
+                                                                    <?php if (!empty($o['img'])): ?>
+                                                                        <span class="hotel-option-media"><img src="<?= htmlspecialchars($o['img']) ?>" alt="<?= htmlspecialchars($o['nombre']) ?>" loading="lazy"></span>
+                                                                    <?php endif; ?>
+                                                                    <span class="hotel-option-info">
+                                                                        <span class="hotel-option-name"><?= htmlspecialchars($o['nombre']) ?><?= $o['principal'] ? ' <em>(incluido)</em>' : '' ?></span>
+                                                                        <?php if (!empty($o['ubicacion'])): ?><span class="hotel-option-loc"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($o['ubicacion']) ?></span><?php endif; ?>
+                                                                        <?php if (!empty($o['acomodacion'])): ?><span class="hotel-option-room"><i class="fas fa-bed"></i> <?= htmlspecialchars($o['acomodacion']) ?><?= !empty($o['capacidad']) ? ' · ' . (int) $o['capacidad'] . ' pax' : '' ?></span><?php endif; ?>
+                                                                    </span>
+                                                                    <span class="hotel-option-delta <?= $d > 0 ? 'pos' : ($d < 0 ? 'neg' : 'zero') ?>"><?= $deltaLabel ?></span>
+                                                                </label>
+                                                            <?php endforeach; ?>
+                                                            <?php if ($vendido): ?><div class="hotel-locked"><i class="fas fa-lock"></i> Selección confirmada</div><?php endif; ?>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- Alternativas (otros servicios: lista informativa) -->
+                                                    <?php if (!empty($servicio_grupo['alternativas']) && $servicio['tipo_servicio'] !== 'alojamiento'): ?>
                                                         <div class="alternatives-header"
                                                             onclick="toggleAlternatives(<?= $servicio['id'] ?>)">
                                                             <i class="fas fa-sync-alt"></i>
@@ -5942,12 +6368,17 @@ if ($programa['fecha_llegada']) {
                                 <!-- Precio Total -->
                                 <div class="price-total-section">
                                     <div class="total-divider"></div>
+                                    <!-- Desglose: solo visible cuando el cliente eligió un hotel con variación -->
+                                    <div class="price-breakdown" id="priceBreakdown" data-moneda="<?= htmlspecialchars($precios['moneda']) ?>" style="<?= abs($hotelSeleccionDelta) > 0.001 ? '' : 'display:none;' ?>margin-bottom:6px;font-size:.9rem;color:#475569;">
+                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Precio base</span><span><?= htmlspecialchars($precios['moneda']) ?> <?= number_format($precios['precio_total'], 0, ',', '.') ?></span></div>
+                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Ajuste por hotel elegido</span><span id="priceAdjustValue" style="font-weight:700;"><?= ($hotelSeleccionDelta >= 0 ? '+ ' : '− ') . htmlspecialchars($precios['moneda']) . ' ' . number_format(abs($hotelSeleccionDelta), 0, ',', '.') ?></span></div>
+                                    </div>
                                     <div class="price-total">
                                         <span class="total-label">Precio Total</span>
                                         <div class="total-amount">
                                             <span class="price-currency"><?= htmlspecialchars($precios['moneda']) ?></span>
-                                            <span
-                                                class="price-value"><?= number_format($precios['precio_total'], 0, ',', '.') ?></span>
+                                            <span class="price-value" id="pricingTotalValue"
+                                                data-base="<?= (float) $precios['precio_total'] ?>"><?= number_format($precios['precio_total'] + $hotelSeleccionDelta, 0, ',', '.') ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -6133,7 +6564,7 @@ if ($programa['fecha_llegada']) {
                 <?php endif; ?>
 
                 <?php if (!empty($programa_id)): ?>
-                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?>"
+                    <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?><?= $is_sub ? '&sub=1' : '' ?>"
                         class="btn btn-outline" target="_blank">
                         <i class="fas fa-download"></i>
                         Descargar PDF
@@ -6232,7 +6663,7 @@ if ($programa['fecha_llegada']) {
                                 border: 3px solid white;
                                 box-shadow: 0 3px 10px rgba(0,0,0,0.4);
                             ">
-                                ${punto.tipo === 'dia' ? '📍' : punto.dia}
+                                ${punto.tipo === 'dia' ? '<i class="fas fa-map-marker-alt"></i>' : punto.dia}
                             </div>
                         `,
                             className: 'custom-marker',
@@ -6326,6 +6757,30 @@ if ($programa['fecha_llegada']) {
             }
         }
 
+        function toggleAdjuntos() {
+            const btn = document.getElementById('adjMoreBtn');
+            const ocultos = document.querySelectorAll('#adjGrid .adj-card.adj-hidden');
+            const texto = btn.querySelector('.adj-more-text');
+            const expandido = btn.classList.toggle('is-open');
+
+            document.querySelectorAll('#adjGrid .adj-card').forEach(card => {
+                if (card.dataset.adjBase === undefined) {
+                    // marca las tarjetas que arrancan ocultas para poder re-ocultarlas
+                    card.dataset.adjBase = card.classList.contains('adj-hidden') ? 'hidden' : 'visible';
+                }
+            });
+
+            document.querySelectorAll('#adjGrid .adj-card').forEach(card => {
+                if (card.dataset.adjBase === 'hidden') {
+                    card.classList.toggle('adj-hidden', !expandido);
+                }
+            });
+
+            texto.textContent = expandido
+                ? 'Ver menos'
+                : 'Ver más (' + document.querySelectorAll('#adjGrid .adj-card[data-adj-base="hidden"]').length + ')';
+        }
+
         function toggleAccordion(element) {
             // Obtener el header desde el elemento clickeado
             const header = element.closest ? element.closest('.accordion-header') : element;
@@ -6410,7 +6865,7 @@ if ($programa['fecha_llegada']) {
                     text-align: center;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 ">
-                    <div style="font-size: 2.5rem; margin-bottom: 15px;">✈️</div>
+                    <div style="font-size: 2.5rem; margin-bottom: 15px; color: var(--brand-primary);"><i class="fas fa-plane"></i></div>
                     <h3 style="margin-bottom: 10px; color: var(--brand-text);">¡Solicita tu cotización!</h3>
                     <p style="color: var(--brand-muted); margin-bottom: 25px; font-size: 0.9rem;">
                         Nos pondremos en contacto contigo para personalizar este increíble viaje
@@ -6932,130 +7387,409 @@ if ($programa['fecha_llegada']) {
     </script>
 
     <?php if (!empty($resumen_vuelos) || !empty($resumen_hoteles)): ?>
-    <!-- ── Accesos rápidos: resumen de vuelos y hoteles ── -->
-    <style>
-        .quick-access { position: fixed; right: 20px; bottom: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 9000; }
-        .qa-btn { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border: none; border-radius: 50px; background: var(--primary-color, #1a5276); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,.22); transition: transform .2s, box-shadow .2s; }
-        .qa-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.3); }
-        .qa-btn .qa-count { background: rgba(255,255,255,.25); border-radius: 50px; padding: 1px 9px; font-size: 12px; }
-        .resumen-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); backdrop-filter: blur(4px); z-index: 9500; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .resumen-overlay.active { display: flex; }
-        .resumen-card { background: #fff; border-radius: 20px; width: 100%; max-width: 620px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 70px rgba(0,0,0,.3); }
-        .resumen-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: var(--primary-color, #1a5276); color: #fff; }
-        .resumen-head h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-        .resumen-close { background: rgba(255,255,255,.2); border: none; color: #fff; width: 34px; height: 34px; border-radius: 10px; font-size: 20px; cursor: pointer; line-height: 1; }
-        .resumen-body { padding: 18px 24px; overflow-y: auto; }
-        .resumen-item { border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; }
-        .resumen-item:last-child { margin-bottom: 0; }
-        .resumen-item-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
-        .resumen-item-title { font-weight: 700; color: #1f2937; font-size: 15px; }
-        .resumen-daychip { background: #eef2ff; color: #4338ca; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 50px; white-space: nowrap; }
-        .resumen-route { display: flex; align-items: center; gap: 8px; color: #374151; font-size: 14px; flex-wrap: wrap; }
-        .resumen-route i { color: var(--primary-color, #1a5276); }
-        .resumen-meta { color: #6b7280; font-size: 13px; margin-top: 4px; }
-        .resumen-stars { color: #f59e0b; }
-        @media print { .quick-access, .resumen-overlay { display: none !important; } }
-    </style>
+        <!-- ── Accesos rápidos: resumen de vuelos y hoteles ── -->
+        <style>
+            .quick-access {
+                position: fixed;
+                right: 20px;
+                bottom: 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                z-index: 9000;
+            }
 
-    <div class="quick-access">
+            .qa-btn {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 18px;
+                border: none;
+                border-radius: 50px;
+                background: var(--primary-color, #1a5276);
+                color: #fff;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 8px 22px rgba(0, 0, 0, .22);
+                transition: transform .2s, box-shadow .2s;
+            }
+
+            .qa-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(0, 0, 0, .3);
+            }
+
+            .qa-btn .qa-count {
+                background: rgba(255, 255, 255, .25);
+                border-radius: 50px;
+                padding: 1px 9px;
+                font-size: 12px;
+            }
+
+            .resumen-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, .55);
+                backdrop-filter: blur(4px);
+                z-index: 9500;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .resumen-overlay.active {
+                display: flex;
+            }
+
+            .resumen-card {
+                background: #fff;
+                border-radius: 20px;
+                width: 100%;
+                max-width: 620px;
+                max-height: 85vh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 30px 70px rgba(0, 0, 0, .3);
+            }
+
+            .resumen-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px 24px;
+                background: var(--primary-color, #1a5276);
+                color: #fff;
+            }
+
+            .resumen-head h3 {
+                margin: 0;
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .resumen-close {
+                background: rgba(255, 255, 255, .2);
+                border: none;
+                color: #fff;
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                font-size: 20px;
+                cursor: pointer;
+                line-height: 1;
+            }
+
+            .resumen-body {
+                padding: 18px 24px;
+                overflow-y: auto;
+            }
+
+            .resumen-item {
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+                padding: 14px 16px;
+                margin-bottom: 12px;
+            }
+
+            .resumen-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .resumen-item-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                margin-bottom: 6px;
+            }
+
+            .resumen-item-title {
+                font-weight: 700;
+                color: #1f2937;
+                font-size: 15px;
+            }
+
+            .resumen-daychip {
+                background: #eef2ff;
+                color: #4338ca;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 3px 10px;
+                border-radius: 50px;
+                white-space: nowrap;
+            }
+
+            .resumen-route {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #374151;
+                font-size: 14px;
+                flex-wrap: wrap;
+            }
+
+            .resumen-route i {
+                color: var(--primary-color, #1a5276);
+            }
+
+            .resumen-meta {
+                color: #6b7280;
+                font-size: 13px;
+                margin-top: 4px;
+            }
+
+            .resumen-stars {
+                color: #f59e0b;
+            }
+
+            @media print {
+
+                .quick-access,
+                .resumen-overlay {
+                    display: none !important;
+                }
+            }
+        </style>
+
+        <div class="quick-access">
+            <?php if (!empty($resumen_vuelos)): ?>
+                <button type="button" class="qa-btn" onclick="abrirResumen('resumen-vuelos')">
+                    <i class="fas fa-plane"></i> Vuelos <span class="qa-count"><?= count($resumen_vuelos) ?></span>
+                </button>
+            <?php endif; ?>
+            <?php if (!empty($resumen_hoteles)): ?>
+                <button type="button" class="qa-btn" onclick="abrirResumen('resumen-hoteles')">
+                    <i class="fas fa-hotel"></i> Hoteles <span class="qa-count"><?= count($resumen_hoteles) ?></span>
+                </button>
+            <?php endif; ?>
+        </div>
+
         <?php if (!empty($resumen_vuelos)): ?>
-            <button type="button" class="qa-btn" onclick="abrirResumen('resumen-vuelos')">
-                <i class="fas fa-plane"></i> Vuelos <span class="qa-count"><?= count($resumen_vuelos) ?></span>
-            </button>
-        <?php endif; ?>
-        <?php if (!empty($resumen_hoteles)): ?>
-            <button type="button" class="qa-btn" onclick="abrirResumen('resumen-hoteles')">
-                <i class="fas fa-hotel"></i> Hoteles <span class="qa-count"><?= count($resumen_hoteles) ?></span>
-            </button>
-        <?php endif; ?>
-    </div>
-
-    <?php if (!empty($resumen_vuelos)): ?>
-        <div class="resumen-overlay" id="resumen-vuelos" onclick="if(event.target===this)cerrarResumen()">
-            <div class="resumen-card">
-                <div class="resumen-head">
-                    <h3><i class="fas fa-plane"></i> Resumen de vuelos</h3>
-                    <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
-                </div>
-                <div class="resumen-body">
-                    <?php foreach ($resumen_vuelos as $v): ?>
-                        <div class="resumen-item">
-                            <div class="resumen-item-top">
-                                <span class="resumen-item-title">
-                                    <?= htmlspecialchars($v['aerolinea'] ?: 'Vuelo') ?>
-                                    <?php if (!empty($v['codigo'])): ?>
-                                        <span style="color:#6b7280;font-weight:600;">· <?= htmlspecialchars($v['codigo']) ?></span>
-                                    <?php endif; ?>
-                                </span>
-                                <span class="resumen-daychip">Día <?= (int) $v['dia'] ?><?= $v['fecha'] ? ' · ' . date('d/m/Y', strtotime($v['fecha'])) : '' ?></span>
-                            </div>
-                            <div class="resumen-route">
-                                <i class="fas fa-plane-departure"></i> <?= htmlspecialchars($v['origen'] ?: '—') ?>
-                                <i class="fas fa-arrow-right"></i>
-                                <i class="fas fa-plane-arrival"></i> <?= htmlspecialchars($v['destino'] ?: '—') ?>
-                            </div>
-                            <?php if (!empty($v['salida']) || !empty($v['llegada'])): ?>
-                                <div class="resumen-meta">
-                                    <i class="far fa-clock"></i>
-                                    <?= htmlspecialchars($v['salida'] ?: '—') ?> → <?= htmlspecialchars($v['llegada'] ?: '—') ?>
-                                    <?= !empty($v['terminal']) ? ' · Terminal ' . htmlspecialchars($v['terminal']) : '' ?>
+            <div class="resumen-overlay" id="resumen-vuelos" onclick="if(event.target===this)cerrarResumen()">
+                <div class="resumen-card">
+                    <div class="resumen-head">
+                        <h3><i class="fas fa-plane"></i> Resumen de vuelos</h3>
+                        <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
+                    </div>
+                    <div class="resumen-body">
+                        <?php foreach ($resumen_vuelos as $v): ?>
+                            <div class="resumen-item">
+                                <div class="resumen-item-top">
+                                    <span class="resumen-item-title">
+                                        <?= htmlspecialchars($v['aerolinea'] ?: 'Vuelo') ?>
+                                        <?php if (!empty($v['codigo'])): ?>
+                                            <span style="color:#6b7280;font-weight:600;">· <?= htmlspecialchars($v['codigo']) ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                    <span class="resumen-daychip">Día
+                                        <?= (int) $v['dia'] ?>
+                                        <?= $v['fecha'] ? ' · ' . date('d/m/Y', strtotime($v['fecha'])) : '' ?></span>
                                 </div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <?php if (!empty($resumen_hoteles)): ?>
-        <div class="resumen-overlay" id="resumen-hoteles" onclick="if(event.target===this)cerrarResumen()">
-            <div class="resumen-card">
-                <div class="resumen-head">
-                    <h3><i class="fas fa-hotel"></i> Resumen de hoteles</h3>
-                    <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
-                </div>
-                <div class="resumen-body">
-                    <?php foreach ($resumen_hoteles as $h): ?>
-                        <div class="resumen-item">
-                            <div class="resumen-item-top">
-                                <span class="resumen-item-title"><?= htmlspecialchars($h['nombre']) ?></span>
-                                <span class="resumen-daychip">Día <?= (int) $h['dia'] ?><?= $h['fecha'] ? ' · ' . date('d/m/Y', strtotime($h['fecha'])) : '' ?></span>
-                            </div>
-                            <div class="resumen-meta">
-                                <?= htmlspecialchars(formatAccommodationType($h['tipo'])) ?>
-                                <?php if ($h['tipo'] === 'hotel' && $h['categoria'] > 0): ?>
-                                    <span class="resumen-stars"><?= str_repeat('★', $h['categoria']) ?></span>
+                                <div class="resumen-route">
+                                    <i class="fas fa-plane-departure"></i> <?= htmlspecialchars($v['origen'] ?: '—') ?>
+                                    <i class="fas fa-arrow-right"></i>
+                                    <i class="fas fa-plane-arrival"></i> <?= htmlspecialchars($v['destino'] ?: '—') ?>
+                                </div>
+                                <?php if (!empty($v['salida']) || !empty($v['llegada'])): ?>
+                                    <div class="resumen-meta">
+                                        <i class="far fa-clock"></i>
+                                        <?= htmlspecialchars($v['salida'] ?: '—') ?> → <?= htmlspecialchars($v['llegada'] ?: '—') ?>
+                                        <?= !empty($v['terminal']) ? ' · Terminal ' . htmlspecialchars($v['terminal']) : '' ?>
+                                    </div>
                                 <?php endif; ?>
-                                · <?= (int) $h['noches'] ?> <?= $h['noches'] == 1 ? 'noche' : 'noches' ?>
                             </div>
-                            <?php if (!empty($h['ubicacion'])): ?>
-                                <div class="resumen-meta"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($h['ubicacion']) ?></div>
-                            <?php endif; ?>
-                            <?php if (!empty($h['acomodacion'])): ?>
-                                <div class="resumen-meta"><i class="fas fa-bed"></i> <?= htmlspecialchars($h['acomodacion']) ?></div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($resumen_hoteles)): ?>
+            <div class="resumen-overlay" id="resumen-hoteles" onclick="if(event.target===this)cerrarResumen()">
+                <div class="resumen-card">
+                    <div class="resumen-head">
+                        <h3><i class="fas fa-hotel"></i> Resumen de hoteles</h3>
+                        <button class="resumen-close" onclick="cerrarResumen()">&times;</button>
+                    </div>
+                    <div class="resumen-body">
+                        <?php foreach ($resumen_hoteles as $h): ?>
+                            <div class="resumen-item">
+                                <div class="resumen-item-top">
+                                    <span class="resumen-item-title"><?= htmlspecialchars($h['nombre']) ?></span>
+                                    <span class="resumen-daychip">Día
+                                        <?= (int) $h['dia'] ?>
+                                        <?= $h['fecha'] ? ' · ' . date('d/m/Y', strtotime($h['fecha'])) : '' ?></span>
+                                </div>
+                                <div class="resumen-meta">
+                                    <?= htmlspecialchars(formatAccommodationType($h['tipo'])) ?>
+                                    <?php if ($h['tipo'] === 'hotel' && $h['categoria'] > 0): ?>
+                                        <span class="resumen-stars"><?= str_repeat('★', $h['categoria']) ?></span>
+                                    <?php endif; ?>
+                                    · <?= (int) $h['noches'] ?>             <?= $h['noches'] == 1 ? 'noche' : 'noches' ?>
+                                </div>
+                                <?php if (!empty($h['ubicacion'])): ?>
+                                    <div class="resumen-meta"><i class="fas fa-map-marker-alt"></i>
+                                        <?= htmlspecialchars($h['ubicacion']) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($h['acomodacion'])): ?>
+                                    <div class="resumen-meta"><i class="fas fa-bed"></i> <?= htmlspecialchars($h['acomodacion']) ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <script>
+            function abrirResumen(id) {
+                const el = document.getElementById(id);
+                if (el) { el.classList.add('active'); document.body.style.overflow = 'hidden'; }
+            }
+            function cerrarResumen() {
+                document.querySelectorAll('.resumen-overlay').forEach(o => o.classList.remove('active'));
+                document.body.style.overflow = 'auto';
+            }
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') cerrarResumen();
+            });
+        </script>
     <?php endif; ?>
 
+    <!-- ── Selector de hotel alternativo (cliente elige, precio en tiempo real) ── -->
+    <style>
+        .hotel-selector {
+            margin-top: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(var(--brand-rgb), .18);
+            border-radius: 14px;
+            background: rgba(var(--brand-rgb), .04);
+        }
+
+        .hotel-selector-title {
+            font-weight: 700;
+            font-size: .95rem;
+            color: var(--brand-text);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hotel-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 13px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 11px;
+            background: #fff;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .hotel-option:last-of-type { margin-bottom: 0; }
+
+        .hotel-option.selected {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(var(--brand-rgb), .12);
+        }
+
+        .hotel-option input[type=radio] { accent-color: var(--brand-primary); flex-shrink: 0; }
+
+        /* Tarjeta tipo Evaneos: cada hotel con su foto e info */
+        .hotel-option-media { flex-shrink: 0; }
+        .hotel-option-media img { width: 92px; height: 66px; object-fit: cover; border-radius: 9px; display: block; }
+        .hotel-option-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .hotel-option-loc, .hotel-option-room { font-size: .8rem; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .hotel-option-loc i, .hotel-option-room i { color: var(--brand-primary); font-size: .72rem; flex-shrink: 0; }
+
+        .hotel-option-name { font-weight: 700; font-size: .92rem; }
+        .hotel-option-name em { color: #94a3b8; font-style: normal; font-weight: 500; font-size: .82rem; }
+
+        .hotel-option-delta { font-weight: 800; font-size: .9rem; white-space: nowrap; }
+        .hotel-option-delta.pos { color: #b45309; }
+        .hotel-option-delta.neg { color: #15803d; }
+        .hotel-option-delta.zero { color: #94a3b8; font-weight: 600; }
+
+        .hotel-locked {
+            margin-top: 8px;
+            font-size: .82rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
     <script>
-        function abrirResumen(id) {
-            const el = document.getElementById(id);
-            if (el) { el.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        }
-        function cerrarResumen() {
-            document.querySelectorAll('.resumen-overlay').forEach(o => o.classList.remove('active'));
-            document.body.style.overflow = 'auto';
-        }
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') cerrarResumen();
-        });
+        (function () {
+            const SEL_PROG = <?= (int) $programa_id ?>;
+            const SEL_TOKEN = '<?= htmlspecialchars($public_token, ENT_QUOTES) ?>';
+            const SEL_API = '<?= APP_URL ?>/modules/itinerary/seleccionar_alternativa.php';
+
+            function selFmt(n) { try { return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(n); } catch (e) { return Math.round(n); } }
+
+            function recomputeTotal() {
+                let delta = 0;
+                document.querySelectorAll('.hotel-selector input[type=radio]:checked').forEach(r => { delta += parseFloat(r.dataset.delta) || 0; });
+                const el = document.getElementById('pricingTotalValue');
+                if (el) { const base = parseFloat(el.dataset.base) || 0; el.textContent = selFmt(base + delta); }
+                // Desglose: mostrar el ajuste (+/-) solo si hay variación de hotel
+                const bd = document.getElementById('priceBreakdown');
+                const adj = document.getElementById('priceAdjustValue');
+                if (bd && adj) {
+                    if (Math.abs(delta) > 0.001) {
+                        const mon = bd.dataset.moneda || '';
+                        adj.textContent = (delta >= 0 ? '+ ' : '− ') + mon + ' ' + selFmt(Math.abs(delta));
+                        bd.style.display = '';
+                    } else {
+                        bd.style.display = 'none';
+                    }
+                }
+            }
+
+            window.seleccionarHotel = function (radio) {
+                const grupo = radio.dataset.grupo;
+                document.querySelectorAll('.hotel-selector[data-grupo="' + grupo + '"] .hotel-option').forEach(l => l.classList.remove('selected'));
+                const lbl = radio.closest('.hotel-option'); if (lbl) lbl.classList.add('selected');
+                recomputeTotal();
+                fetch(SEL_API, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ programa_id: SEL_PROG, token: SEL_TOKEN, grupo_principal_id: parseInt(grupo, 10), servicio_id: parseInt(radio.value, 10) })
+                }).then(r => r.json()).then(d => { if (!d || !d.success) { console.warn('Selección no guardada:', d && d.message); } }).catch(() => { });
+            };
+
+            document.addEventListener('DOMContentLoaded', recomputeTotal);
+        })();
     </script>
-    <?php endif; ?>
+
+    <!-- Carga diferida de imágenes de día (background): solo cargan al acercarse al viewport.
+         En hosts lentos con muchas imágenes, evita que la página "cargue eternamente". -->
+    <style>
+        .lazy-bg[data-bg] { background-color: #e6e8ec; }
+    </style>
+    <script>
+        (function () {
+            var els = document.querySelectorAll('.lazy-bg[data-bg]');
+            function load(el) {
+                var u = el.getAttribute('data-bg');
+                if (u) { el.style.backgroundImage = "url('" + u.replace(/'/g, "\\'") + "')"; }
+                el.removeAttribute('data-bg');
+            }
+            if (!('IntersectionObserver' in window)) { els.forEach(load); return; }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) { if (e.isIntersecting) { load(e.target); io.unobserve(e.target); } });
+            }, { rootMargin: '600px 0px' });
+            els.forEach(function (el) { io.observe(el); });
+        })();
+    </script>
 
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

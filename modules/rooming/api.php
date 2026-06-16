@@ -354,6 +354,10 @@ class RoomingAPI
             'flight_code', 'arrival_time', 'departure_time', 'pickup_time', 'pickup_location',
             'dropoff_location', 'hotel_id', 'guide_name', 'status', 'internal_notes', 'operator_notes'
         ];
+        // El operador SOLO puede tocar estado + sus notas (la restricción no puede vivir solo en el front)
+        if ($this->esOperador()) {
+            $campos = ['status', 'operator_notes'];
+        }
         $data = [];
         foreach ($campos as $c) {
             if (array_key_exists($c, $_POST)) {

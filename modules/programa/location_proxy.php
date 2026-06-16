@@ -4,15 +4,13 @@
 // PROPÓSITO: Proxy para búsqueda de ubicaciones (evitar CORS)
 // ====================================================================
 
+require_once dirname(__DIR__, 2) . '/config/app.php';
+App::init();
+App::requireLogin(); // solo usuarios autenticados pueden usar el proxy
+
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
-
-// Manejar preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
-}
 
 $query = $_GET['q'] ?? '';
 

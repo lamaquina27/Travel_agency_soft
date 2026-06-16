@@ -174,25 +174,25 @@ $lastActivity = date('d/m/Y H:i:s', strtotime($existingSession['started_at']));
 </head>
 <body>
     <div class="container">
-        <div class="icon">⚠️</div>
+        <div class="icon"></div>
         <h1>Sesión Activa Detectada</h1>
         <p class="subtitle">Ya tienes una sesión abierta en otro dispositivo</p>
         
         <div class="session-info">
             <div class="session-info-item">
-                <strong>🖥️ Dispositivo:</strong>
+                <strong>Dispositivo:</strong>
                 <span><?= htmlspecialchars($osInfo) ?></span>
             </div>
             <div class="session-info-item">
-                <strong>🌐 Navegador:</strong>
+                <strong>Navegador:</strong>
                 <span><?= htmlspecialchars($browserInfo) ?></span>
             </div>
             <div class="session-info-item">
-                <strong>📍 Dirección IP:</strong>
+                <strong>Dirección IP:</strong>
                 <span><?= htmlspecialchars($existingSession['ip']) ?></span>
             </div>
             <div class="session-info-item">
-                <strong>🕐 Última actividad:</strong>
+                <strong>Última actividad:</strong>
                 <span><?= htmlspecialchars($lastActivity) ?></span>
             </div>
         </div>
@@ -200,12 +200,12 @@ $lastActivity = date('d/m/Y H:i:s', strtotime($existingSession['started_at']));
         <div class="buttons">
             <form action="<?= APP_URL ?>/auth/force-close-session" method="POST">
                 <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    ✅ Sí, cerrar sesión anterior e iniciar aquí
+                    Sí, cerrar sesión anterior e iniciar aquí
                 </button>
             </form>
             
             <a href="<?= APP_URL ?>/login" class="btn btn-secondary">
-                ❌ Cancelar y volver al login
+                Cancelar y volver al login
             </a>
         </div>
     </div>

@@ -533,14 +533,14 @@ $loginHeroImage2 = APP_URL . '/assets/uploads/hero_login2.webp';
                     $errorDate = isset($matches[1]) ? $matches[1] : '';
                 ?>
                     <div class="message error-message" data-error-date="<?= htmlspecialchars($errorDate) ?>">
-                        🚫 <span class="error-text"><?= htmlspecialchars($errorMsg) ?></span>
+                        <span class="error-text"><?= htmlspecialchars($errorMsg) ?></span>
                     </div>
                     <?php unset($_SESSION['error']); ?>
                 <?php endif; ?>
 
                 <?php if (isset($_SESSION['success'])): ?>
                     <div class="message success-message">
-                        ✅ <?= htmlspecialchars($_SESSION['success']) ?>
+                        <?= htmlspecialchars($_SESSION['success']) ?>
                     </div>
                     <?php unset($_SESSION['success']); ?>
                 <?php endif; ?>
