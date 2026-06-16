@@ -114,6 +114,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293
 .sa-form-card{background:#fff;border:1px solid #e8edf2;border-radius:14px;padding:24px;max-width:640px;box-shadow:0 1px 4px rgba(15,23,42,.05);}
 .sa-fg{margin-bottom:16px;}
 .sa-fg label{display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;}
+/* Toggle switch (más estético que un checkbox) */
+.sa-toggle{display:flex;align-items:center;gap:10px;}
+.sa-switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.sa-switch input{opacity:0;width:0;height:0;}
+.sa-switch .sa-slider{position:absolute;inset:0;cursor:pointer;background:#cbd5e1;border-radius:999px;transition:.2s;}
+.sa-switch .sa-slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.sa-switch input:checked + .sa-slider{background:var(--grad,#16a34a);}
+.sa-switch input:checked + .sa-slider:before{transform:translateX(20px);}
+.sa-toggle > label[for]{margin:0;font-size:13px;font-weight:600;color:#334155;cursor:pointer;}
 .sa-fg input{width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 12px;font-size:14px;}
 .sa-fg input[type=color]{padding:2px;height:42px;cursor:pointer;}
 .sa-row{display:flex;gap:14px;flex-wrap:wrap;}
@@ -150,10 +159,11 @@ textarea.sa-ta{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10p
 
 <div class="header">
   <div class="header-left">
-    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
     <span class="header-title">Mis Tours</span>
   </div>
   <div class="header-right">
+    <div id="google_translate_element"></div>
     <div class="header-user">
       <div class="header-avatar"><?= strtoupper(substr($nombreComercial,0,2)) ?></div>
       <span class="header-name"><?= htmlspecialchars($nombreComercial) ?></span>
@@ -266,6 +276,13 @@ textarea.sa-ta{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10p
         <div class="sa-fg"><label>Precio total</label><input type="number" step="0.01" id="pm_precio_total"><small style="color:#94a3b8;font-size:11px;">Se calcula solo; puedes sobrescribirlo.</small></div>
         <div class="sa-fg"><label>Noches incluidas</label><input type="number" id="pm_noches_incluidas"></div>
       </div>
+      <div class="sa-fg sa-toggle">
+        <label class="sa-switch">
+          <input type="checkbox" id="pm_mostrar_precio" checked>
+          <span class="sa-slider"></span>
+        </label>
+        <label for="pm_mostrar_precio">Mostrar el precio al cliente en este enlace</label>
+      </div>
       <div class="sa-fg"><label>Incluye</label><textarea class="sa-ta" id="pm_precio_incluye"></textarea></div>
       <div class="sa-fg"><label>No incluye</label><textarea class="sa-ta" id="pm_precio_no_incluye"></textarea></div>
       <div class="sa-fg"><label>Condiciones generales</label><textarea class="sa-ta" id="pm_condiciones_generales"></textarea></div>
@@ -303,6 +320,20 @@ function showToast(msg, type='ok'){
   clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),3000);
 }
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// URL de imagen de portada del tour: recorta desde /assets/ (ignora subdirectorios del
+// hosting viejo) y reconstruye con APP_URL, igual que preview/listado de itinerarios.
+function saFotoUrl(p){
+  p = String(p||'').trim();
+  if(!p) return '';
+  if(/^data:/i.test(p)) return p;
+  try{
+    p = p.replace(/\\/g,'/');
+    if(p.startsWith('http://')||p.startsWith('https://')) p = new URL(p).pathname;
+    const i = p.indexOf('/assets/');
+    if(i!==-1) p = p.substring(i);
+    return APP_URL + (p.startsWith('/') ? p : '/'+p);
+  }catch(e){ return APP_URL + '/' + p; }
+}
 
 // API helper (modules/subagencias/api.php)
 async function subApi(action, params={}, method='GET'){
@@ -339,8 +370,9 @@ async function cargarTours(){
     const precio=t.precio_total!=null?Number(t.precio_total).toLocaleString():(t.precio_adulto!=null?Number(t.precio_adulto).toLocaleString():'—');
     const fechas=[t.fecha_inicio,t.fecha_fin].filter(Boolean).join(' → ');
     const token = esc(t.public_token||'');
+    const foto = saFotoUrl(t.foto_portada);
     return `<div class="sa-card" onclick="abrirPrecioModal(${t.solicitud_id})" title="Clic para editar">
-      <div class="sa-card-img"><div class="ph"><i class="fas fa-map-marked-alt"></i></div></div>
+      <div class="sa-card-img"${foto?` style="background-image:url('${encodeURI(foto)}')"`:''}>${foto?'':`<div class="ph"><i class="fas fa-map-marked-alt"></i></div>`}</div>
       <div class="sa-card-body">
         <div class="sa-card-title">${titulo}</div>
         <div class="sa-card-meta"><i class="fas fa-map-marker-alt"></i> ${esc(t.destino||'')}</div>
@@ -403,6 +435,8 @@ async function abrirPrecioModal(solicitudId){
   set('pm_llegada_punto_encuentro',p.llegada_punto_encuentro); set('pm_asistencia_emergencia',p.asistencia_emergencia);
   set('pm_info_hoteles_servicios',p.info_hoteles_servicios); set('pm_informacion_practica',p.informacion_practica);
   document.getElementById('pm_movilidad_reducida').checked=Number(p.movilidad_reducida)===1;
+  // null/ausente = hereda del tour principal → se muestra marcado (mostrar) por defecto
+  document.getElementById('pm_mostrar_precio').checked = (p.mostrar_precio==null) ? true : (Number(p.mostrar_precio)===1);
   document.getElementById('precioModal').classList.add('open');
 }
 function cerrarPrecioModal(){ document.getElementById('precioModal').classList.remove('open'); }
@@ -421,7 +455,8 @@ async function guardarPrecios(){
     visados_entrada:g('pm_visados_entrada'), requisitos_sanitarios:g('pm_requisitos_sanitarios'),
     llegada_punto_encuentro:g('pm_llegada_punto_encuentro'), asistencia_emergencia:g('pm_asistencia_emergencia'),
     info_hoteles_servicios:g('pm_info_hoteles_servicios'), informacion_practica:g('pm_informacion_practica'),
-    movilidad_reducida:document.getElementById('pm_movilidad_reducida').checked?1:0
+    movilidad_reducida:document.getElementById('pm_movilidad_reducida').checked?1:0,
+    mostrar_precio:document.getElementById('pm_mostrar_precio').checked?1:0
   };
   const r=await subApi('update_precio',params,'POST');
   if(r&&r.success){ showToast('Precios actualizados'); cerrarPrecioModal(); cargarTours(); }
@@ -480,5 +515,17 @@ async function guardarMarca(){
 
 document.addEventListener('DOMContentLoaded',()=>{ cargarTours(); cargarMarca(); });
 </script>
+<!-- Google Translate -->
+<script type="text/javascript">
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'es',
+        includedLanguages: 'en,fr,pt,it,de,es',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+    }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

@@ -275,7 +275,11 @@ if ($is_sub && $sub_precios) {
         'movilidad_reducida'    => $sub_precios['movilidad_reducida'],
         'info_pasaporte'        => $sub_precios['info_pasaporte'],
         'info_seguros'          => $sub_precios['info_seguros'],
-        'mostrar_precio'        => 1,
+        // La subagencia decide de forma independiente; si no eligió (NULL/columna ausente)
+        // hereda el ajuste del tour principal.
+        'mostrar_precio'        => (!array_key_exists('mostrar_precio', $sub_precios) || $sub_precios['mostrar_precio'] === null)
+            ? ($precios['mostrar_precio'] ?? 1)
+            : (int) $sub_precios['mostrar_precio'],
     ]);
     // Nombre del cliente personalizado por la subagencia
     if (!empty($sub_precios['nombre_cliente'])) {
@@ -398,8 +402,8 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             ;
             --surface: rgba(255, 255, 255, 0.94);
             --surface-soft: rgba(255, 255, 255, 0.72);
-            --text-main: color-mix(in srgb, var(--brand-primary) 70%, black 30%);
-            --text-soft: color-mix(in srgb, var(--brand-primary) 55%, white 45%);
+            --text-main: #1f2937;
+            --text-soft: #64748b;
             --border-soft: rgba(var(--brand-rgb), 0.14);
             --shadow-soft: 0 24px 70px rgba(var(--brand-rgb), 0.18);
         }
@@ -429,7 +433,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             display: grid;
             grid-template-columns: minmax(360px, 430px) 1fr;
             background:
-                linear-gradient(90deg, rgba(var(--brand-rgb), 0.78) 0%, rgba(var(--brand-rgb), 0.42) 43%, rgba(var(--brand-secondary-rgb), 0.12) 100%),
+                linear-gradient(rgba(15, 23, 42, 0.30), rgba(15, 23, 42, 0.30)),
                 url('<?= addslashes($imagen_portada) ?>') center / cover no-repeat;
         }
 
@@ -451,6 +455,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             align-items: center;
             gap: 12px;
             min-height: 42px;
+            flex-shrink: 0;
         }
 
         .brand-logo {
@@ -484,6 +489,11 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         .content {
             display: grid;
             gap: 16px;
+            /* Absorbe el sobrante: si el contenido (título/nombre muy largos) no cabe,
+               el scroll ocurre AQUÍ dentro y el botón de abajo nunca se recorta ni se va de pantalla. */
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
         }
 
         .eyebrow {
@@ -502,6 +512,11 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
             letter-spacing: -0.05em;
             color: var(--text-main);
             margin-bottom: 10px;
+            /* Tope de líneas para que un destino larguísimo no empuje el resto del panel */
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .traveler {
@@ -566,6 +581,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
         .actions {
             display: grid;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .primary-button,
@@ -688,7 +704,7 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
                 min-height: 100svh;
                 overflow: visible;
                 background:
-                    linear-gradient(180deg, rgba(var(--brand-rgb), 0.55), rgba(var(--brand-rgb), 0.18)),
+                    linear-gradient(180deg, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.18)),
                     url('<?= addslashes($imagen_portada) ?>') center / cover no-repeat;
             }
 
@@ -701,6 +717,12 @@ $idioma = $programa['idioma_predeterminado'] ?? 'es';
                 margin: 0;
                 padding: 34px 26px;
                 gap: 24px;
+            }
+
+            /* En móvil el contenido fluye con el scroll natural de la página, sin scroll interno */
+            .content {
+                overflow: visible;
+                min-height: auto;
             }
 
             .visual {

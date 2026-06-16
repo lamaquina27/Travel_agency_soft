@@ -643,6 +643,10 @@ class ProgramaAPI
                     'es_alternativa' => $servicio_original['es_alternativa'],
                     'orden_alternativa' => $servicio_original['orden_alternativa'],
                     'notas_alternativa' => $servicio_original['notas_alternativa'],
+                    // Alternativas de hotel: sin estos dos campos la copia perdía el precio
+                    // diferencial y la opción elegida por el cliente (#3).
+                    'variacion_precio' => $servicio_original['variacion_precio'],
+                    'seleccionado' => $servicio_original['seleccionado'],
 
                     // ✅ DATOS COPIADOS DEL SERVICIO
                     'nombre_servicio' => $servicio_original['nombre_servicio'],

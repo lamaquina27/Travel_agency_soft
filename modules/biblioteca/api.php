@@ -955,48 +955,87 @@ class BibliotecaAPI
                 'user_id' => $user_id
             ];
 
-            // Verificar si existe plantilla
+            // Verificar si existe plantilla (traemos TODO para poder comparar al propagar)
             $existe = $this->db->fetch(
-                "SELECT id FROM biblioteca_plantillas_precios WHERE agencia_id = ?",
+                "SELECT * FROM biblioteca_plantillas_precios WHERE agencia_id = ?",
                 [$agencia_id]
             );
 
+            $resp = ['success' => true];
             if ($existe) {
-                // UPDATE - La plantilla ya existe
                 error_log("🔄 Actualizando plantilla existente ID: " . $existe['id']);
-
-                $this->db->update(
-                    'biblioteca_plantillas_precios',
-                    $data,
-                    'agencia_id = ?',
-                    [$agencia_id]
-                );
-
-                return [
-                    'success' => true,
-                    'message' => 'Plantilla actualizada exitosamente'
-                ];
-
+                $this->db->update('biblioteca_plantillas_precios', $data, 'agencia_id = ?', [$agencia_id]);
+                $resp['message'] = 'Plantilla actualizada exitosamente';
             } else {
-                // INSERT - Primera vez que se crea la plantilla
                 error_log("➕ Creando nueva plantilla");
-
                 $data['agencia_id'] = $agencia_id;
-
-                $id = $this->db->insert('biblioteca_plantillas_precios', $data);
-
-                return [
-                    'success' => true,
-                    'message' => 'Plantilla creada exitosamente',
-                    'id' => $id
-                ];
+                $resp['id'] = $this->db->insert('biblioteca_plantillas_precios', $data);
+                $resp['message'] = 'Plantilla creada exitosamente';
             }
+
+            // #5: propagar (opcional) las condiciones/info a los itinerarios YA creados.
+            //   propagar = 'nuevos' (no tocar lo existente, por defecto) | 'todos' | 'no_editados'
+            $modo = $_POST['propagar'] ?? 'nuevos';
+            if (in_array($modo, ['todos', 'no_editados'], true)) {
+                $n = $this->propagarCondicionesPrograma($agencia_id, is_array($existe) ? $existe : [], $data, $modo);
+                $resp['propagados'] = $n;
+                $resp['message'] .= ($modo === 'todos')
+                    ? " · Aplicado a {$n} itinerario(s) existente(s)."
+                    : " · Aplicado a los itinerarios sin personalizar.";
+            }
+            return $resp;
 
         } catch (Exception $e) {
             error_log("❌ Error en savePlantillaPrecios: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             throw new Exception('Error guardando plantilla: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Propaga los campos de la plantilla de precios/condiciones a los programa_precios
+     * de los itinerarios YA creados de la agencia.
+     *   - 'todos'        -> sobrescribe esos campos en TODOS los itinerarios.
+     *   - 'no_editados'  -> solo donde el campo está vacío o sigue igual al valor anterior
+     *                       de la plantilla (es decir, nunca fue personalizado en el itinerario).
+     * Devuelve el nº de itinerarios afectados (para 'todos'; en 'no_editados' devuelve
+     * los afectados en 'condiciones_generales', como referencia).
+     */
+    private function propagarCondicionesPrograma($agencia_id, array $old, array $new, string $modo): int
+    {
+        $campos = [
+            'precio_incluye', 'precio_no_incluye', 'condiciones_generales', 'info_pasaporte',
+            'info_seguros', 'visados_entrada', 'requisitos_sanitarios', 'llegada_punto_encuentro',
+            'asistencia_emergencia', 'info_hoteles_servicios', 'informacion_practica',
+        ];
+
+        if ($modo === 'todos') {
+            $set = implode(', ', array_map(fn($c) => "pp.`$c` = ?", $campos));
+            $params = array_map(fn($c) => $new[$c] ?? null, $campos);
+            $params[] = $agencia_id;
+            $stmt = $this->db->query(
+                "UPDATE programa_precios pp
+                 JOIN programa_solicitudes ps ON ps.id = pp.solicitud_id
+                 SET $set
+                 WHERE ps.agencia_id = ?",
+                $params
+            );
+            return $stmt->rowCount();
+        }
+
+        // 'no_editados': por campo, solo si está vacío o sigue igual al valor anterior de la plantilla.
+        $afectadosRef = 0;
+        foreach ($campos as $c) {
+            $stmt = $this->db->query(
+                "UPDATE programa_precios pp
+                 JOIN programa_solicitudes ps ON ps.id = pp.solicitud_id
+                 SET pp.`$c` = ?
+                 WHERE ps.agencia_id = ? AND (pp.`$c` IS NULL OR pp.`$c` = '' OR pp.`$c` = ?)",
+                [$new[$c] ?? null, $agencia_id, $old[$c] ?? null]
+            );
+            if ($c === 'condiciones_generales') { $afectadosRef = $stmt->rowCount(); }
+        }
+        return $afectadosRef;
     }
 }
 

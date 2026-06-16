@@ -225,7 +225,7 @@ $companyName = App::getCompanyName();
     <div class="main-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <h1 class="welcome-title">¡Bienvenido, <?= htmlspecialchars($user['name']) ?>! 👋</h1>
+            <h1 class="welcome-title">¡Bienvenido, <?= htmlspecialchars($user['name']) ?>!</h1>
             <p class="welcome-text">
                 Desde este panel puedes gestionar todas las agencias del sistema, crear y administrar usuarios, 
                 y tener control total sobre la plataforma. Selecciona una opción del menú para comenzar.

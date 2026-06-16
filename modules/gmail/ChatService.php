@@ -55,8 +55,10 @@ class ChatService {
         // Si ya hay mensajes en el chat, reutilizar el subject del primero
         $subject = $this->getThreadSubject($pipelineId, $lead);
 
-        // El cuerpo que se guarda parte del texto saneado del agente
-        $storedBody = nl2br(htmlspecialchars($messageBody, ENT_QUOTES, 'UTF-8'));
+        // El cuerpo que se guarda conserva el formato (negrita, etc.) que el agente
+        // escribió en el editor; se sanea sin convertir el HTML a entidades, porque
+        // el historial se pinta con innerHTML (htmlspecialchars haría visibles las etiquetas).
+        $storedBody = $this->sanitizeChatHtml($messageBody);
 
         // Procesar adjuntos: guardarlos en disco (para mostrarlos en el historial)
         // y preparar el payload binario para Gmail.
@@ -79,6 +81,12 @@ class ChatService {
             $saved = $this->storeAttachment((int) $lead['agencia_id'], $tmp, $filename);
             if ($saved) {
                 $savedFiles[] = ['url' => $saved, 'name' => $filename];
+            } else {
+                // No se pudo guardar en disco (permisos/ruta): el archivo SÍ se envió por
+                // Gmail, así que al menos dejamos constancia del nombre para no mostrar
+                // una burbuja "vacía" en el historial.
+                error_log("ChatService: no se pudo guardar el adjunto '$filename' (agencia {$lead['agencia_id']})");
+                $savedFiles[] = ['url' => null, 'name' => $filename];
             }
         }
 
@@ -167,11 +175,35 @@ class ChatService {
     private function renderAttachmentsHtml(array $files): string {
         $items = '';
         foreach ($files as $f) {
-            $url  = htmlspecialchars($f['url'], ENT_QUOTES, 'UTF-8');
             $name = htmlspecialchars($f['name'], ENT_QUOTES, 'UTF-8');
-            $items .= "<div class=\"chat-attachment\">📎 <a href=\"$url\" target=\"_blank\" rel=\"noopener\">$name</a></div>";
+            $icon = '<i class="fas fa-paperclip"></i> ';
+            if (!empty($f['url'])) {
+                $url = htmlspecialchars($f['url'], ENT_QUOTES, 'UTF-8');
+                $items .= "<div class=\"chat-attachment\">$icon<a href=\"$url\" target=\"_blank\" rel=\"noopener\">$name</a></div>";
+            } else {
+                // Sin URL (fallo al guardar en disco): mostrar el nombre sin enlace.
+                $items .= "<div class=\"chat-attachment\">$icon<span>$name</span></div>";
+            }
         }
         return "<div class=\"chat-attachments\">$items</div>";
+    }
+
+    /**
+     * Sanea el HTML de un mensaje de chat conservando solo etiquetas de formato
+     * seguras. No convierte el HTML a entidades (el historial se pinta con innerHTML).
+     */
+    private function sanitizeChatHtml(string $html): string {
+        $allowed = '<b><strong><i><em><u><s><strike><br><div><span><p><a><ul><ol><li><blockquote>';
+        $clean = strip_tags($html, $allowed);
+        // Defensa XSS: quitar manejadores de eventos (onclick, onmouseover, …)
+        $clean = preg_replace('/\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $clean);
+        // Neutralizar href/src con javascript:
+        $clean = preg_replace('/(href|src)\s*=\s*("javascript:[^"]*"|\'javascript:[^\']*\')/i', '$1="#"', $clean);
+        // Si el agente escribió texto plano (sin etiquetas), respetar los saltos de línea.
+        if ($clean === strip_tags($clean)) {
+            $clean = nl2br($clean);
+        }
+        return $clean;
     }
 
     // =========================================================

@@ -58,6 +58,7 @@ if (!function_exists('adminConfigIcon')) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Configuración - <?= htmlspecialchars($companyName) ?></title>
 
     <!-- Incluir estilos de componentes -->
@@ -1041,6 +1042,13 @@ if (!function_exists('adminConfigIcon')) {
                     </div>
                 </div>
 
+                <div class="save-section">
+                    <button type="submit" id="saveBtn" class="save-btn">
+                        <span id="loadingSpinner" style="display:none;">⏳</span>
+                        Guardar configuración
+                    </button>
+                </div>
+
             </form>
 
             <!-- ============================================================ -->
@@ -1073,7 +1081,7 @@ if (!function_exists('adminConfigIcon')) {
                         <div style="display:flex;align-items:center;gap:12px;">
                             <div
                                 style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">
-                                ✉️</div>
+                                <i class="fas fa-envelope"></i></div>
                             <div>
                                 <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
                                 <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?>
@@ -1092,7 +1100,7 @@ if (!function_exists('adminConfigIcon')) {
                         <div style="display:flex;align-items:center;gap:12px;">
                             <div
                                 style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">
-                                ✉️</div>
+                                <i class="fas fa-envelope"></i></div>
                             <div>
                                 <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
                                 <div style="font-size:13px;color:#94a3b8;">Conecta Gmail para capturar leads y responder

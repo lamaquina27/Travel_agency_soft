@@ -27,6 +27,7 @@ $pRgb = rm_rgb($userColors['primary']);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <title>Traslados / Rooming — <?= htmlspecialchars($companyName) ?></title>
 <?= UIComponents::getComponentStyles() ?>
 <style>
@@ -174,11 +175,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293
 
 <div class="header">
   <div class="header-left">
-    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
     <?= UIComponents::renderLogo('small',['gradient'=>'transparent','class'=>'header-logo']) ?>
     <span class="header-title"><?= $isOperador ? 'Mis Traslados' : 'Traslados / Rooming' ?></span>
   </div>
   <div class="header-right">
+    <div id="google_translate_element"></div>
     <div class="header-user">
       <div class="header-avatar"><?= strtoupper(substr($user['name']??'U',0,2)) ?></div>
       <span class="header-name"><?= htmlspecialchars($user['name']??'') ?></span>
@@ -454,8 +456,21 @@ let toastT;
 function toast(msg, type){ const t=document.getElementById('rmToast'); t.textContent=msg; t.className=(type||'')+' show'; clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
 
 // ── API helpers ──
-async function apiGet(action, params={}){ const q=new URLSearchParams({action,...params}); const r=await fetch(API+'?'+q.toString()); return r.json(); }
-async function apiPost(action, data={}){ const r=await fetch(API+'?action='+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); return r.json(); }
+// Endurecidos (#25): timeout + try/catch para que un fallo de red NO deje la pantalla
+// vacía en silencio; devuelven {success:false} (los callers ya lo manejan) y avisan.
+async function apiGet(action, params={}){
+  const q=new URLSearchParams({action,...params});
+  const ctrl=new AbortController(); const killer=setTimeout(()=>{ try{ctrl.abort();}catch(_){} },12000);
+  try{ const r=await fetch(API+'?'+q.toString(),{signal:ctrl.signal}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+  catch(e){ toast('No se pudo cargar la información (revisa tu conexión)','err'); return {success:false,message:String((e&&e.message)||e)}; }
+  finally{ clearTimeout(killer); }
+}
+async function apiPost(action, data={}){
+  const ctrl=new AbortController(); const killer=setTimeout(()=>{ try{ctrl.abort();}catch(_){} },12000);
+  try{ const r=await fetch(API+'?action='+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+  catch(e){ toast('No se pudo guardar (revisa tu conexión)','err'); return {success:false,message:String((e&&e.message)||e)}; }
+  finally{ clearTimeout(killer); }
+}
 
 // ── Carga inicial ──
 async function rmInit(){
@@ -476,12 +491,15 @@ async function rmInit(){
   rmApplyFilters();
 }
 
+// Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y pasa a minúsculas.
+function normalizar(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
 // ── Filtros + orden ──
 function rmApplyFilters(){
-  const q=document.getElementById('fSearch').value.trim().toLowerCase();
+  const q=normalizar(document.getElementById('fSearch').value);
   const opEl=document.getElementById('fOperador'); const op=opEl?opEl.value:'';
-  const ciudad=document.getElementById('fCiudad').value.trim().toLowerCase();
-  const aero=document.getElementById('fAero').value.trim().toLowerCase();
+  const ciudad=normalizar(document.getElementById('fCiudad').value);
+  const aero=normalizar(document.getElementById('fAero').value);
   const tipo=document.getElementById('fTipo').value;
   const estado=document.getElementById('fEstado').value;
   const desde=document.getElementById('fDesde').value;
@@ -491,12 +509,12 @@ function rmApplyFilters(){
 
   R.filtered = R.all.filter(r=>{
     if(q){
-      const blob=[trCode(r.id),r.reserva_codigo,titular(r),r.flight_code,r.city,r.pickup_location,r.dropoff_location,aeroCol(r)].join(' ').toLowerCase();
+      const blob=normalizar([trCode(r.id),r.reserva_codigo,titular(r),r.flight_code,r.city,r.pickup_location,r.dropoff_location,aeroCol(r)].join(' '));
       if(!blob.includes(q)) return false;
     }
     if(op){ const ids=(r.operadores_ids||'').split(','); if(!ids.includes(String(op))) return false; }
-    if(ciudad && !(r.city||'').toLowerCase().includes(ciudad)) return false;
-    if(aero){ if(!aeroCol(r).toLowerCase().includes(aero)) return false; }
+    if(ciudad && !normalizar(r.city).includes(ciudad)) return false;
+    if(aero){ if(!normalizar(aeroCol(r)).includes(aero)) return false; }
     if(tipo && r.service_type!==tipo) return false;
     if(estado && r.status!==estado) return false;
     if(desde && (!r.service_date || r.service_date < desde)) return false;
@@ -935,5 +953,17 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ rmCerrarModal(); 
 
 rmInit();
 </script>
+<!-- Google Translate -->
+<script type="text/javascript">
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+        pageLanguage: 'es',
+        includedLanguages: 'en,fr,pt,it,de,es',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+    }, 'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

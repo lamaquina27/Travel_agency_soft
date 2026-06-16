@@ -50,6 +50,7 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Mi Perfil - <?= htmlspecialchars($companyName) ?></title>
 
     <!-- Incluir estilos de componentes UI (igual que dashboard) -->
@@ -655,56 +656,56 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
         <div class="content-grid">
             <!-- Información Personal -->
             <div class="card">
-                <h2>📋 Información Personal</h2>
+                <h2><i class="fas fa-id-card"></i> Información Personal</h2>
 
                 <div class="info-note">
-                    💡 <strong>Información de solo lectura:</strong> Esta información no puede ser modificada. Para
+                    <strong>Información de solo lectura:</strong> Esta información no puede ser modificada. Para
                     cambios, contacte al administrador.
                 </div>
 
                 <div class="info-grid">
                     <div class="info-field">
-                        <div class="info-label">👤 Nombre de Usuario</div>
+                        <div class="info-label">Nombre de Usuario</div>
                         <div class="info-value"><?= htmlspecialchars($userInfo['username']) ?></div>
                     </div>
 
                     <div class="info-field">
-                        <div class="info-label">🏷️ Nombre Completo</div>
+                        <div class="info-label">Nombre Completo</div>
                         <div class="info-value"><?= htmlspecialchars($userInfo['full_name']) ?></div>
                     </div>
 
                     <div class="info-field">
-                        <div class="info-label">✉️ Correo Electrónico</div>
+                        <div class="info-label">Correo Electrónico</div>
                         <div class="info-value"><?= htmlspecialchars($userInfo['email']) ?></div>
                     </div>
 
                     <div class="info-field">
-                        <div class="info-label">🎭 Rol del Sistema</div>
+                        <div class="info-label">Rol del Sistema</div>
                         <div>
                             <span class="badge badge-role">
-                                ✈️ Agente de Viajes
+                                Agente de Viajes
                             </span>
                         </div>
                     </div>
 
                     <div class="info-field">
-                        <div class="info-label">📊 Estado de la Cuenta</div>
+                        <div class="info-label">Estado de la Cuenta</div>
                         <div>
                             <span class="badge badge-status">
-                                ✅ Activa
+                                Activa
                             </span>
                         </div>
                     </div>
 
                     <div class="info-field">
-                        <div class="info-label">🕐 Último Acceso</div>
+                        <div class="info-label">Último Acceso</div>
                         <div class="info-value">
                             <?= $userInfo['last_login'] ? date('d/m/Y H:i', strtotime($userInfo['last_login'])) : 'Primer acceso' ?>
                         </div>
                     </div>
 
                     <div class="info-field">
-                        <div class="info-label">📅 Miembro Desde</div>
+                        <div class="info-label">Miembro Desde</div>
                         <div class="info-value">
                             <?= date('d/m/Y', strtotime($userInfo['created_at'])) ?>
                         </div>
@@ -714,26 +715,26 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
 
             <!-- Cambio de Contraseña -->
             <div class="card">
-                <h2>🔒 Cambiar Contraseña</h2>
+                <h2><i class="fas fa-lock"></i> Cambiar Contraseña</h2>
 
                 <form id="passwordForm">
                     <div class="form-group">
-                        <label for="current_password">🔐 Contraseña Actual *</label>
+                        <label for="current_password">Contraseña Actual *</label>
                         <div class="password-container">
                             <input type="password" id="current_password" name="current_password" required
                                 placeholder="Ingrese su contraseña actual">
                             <button type="button" class="password-toggle"
-                                onclick="togglePassword('current_password')">👁️</button>
+                                onclick="togglePassword('current_password')"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="new_password">🆕 Nueva Contraseña *</label>
+                        <label for="new_password">Nueva Contraseña *</label>
                         <div class="password-container">
                             <input type="password" id="new_password" name="new_password" required
                                 placeholder="Ingrese su nueva contraseña">
                             <button type="button" class="password-toggle"
-                                onclick="togglePassword('new_password')">👁️</button>
+                                onclick="togglePassword('new_password')"><i class="fas fa-eye"></i></button>
                         </div>
                         <div class="password-help">
                             <div class="requirement invalid" id="req-length">Mínimo 8 caracteres</div>
@@ -745,24 +746,24 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
                     </div>
 
                     <div class="form-group">
-                        <label for="confirm_password">✅ Confirmar Nueva Contraseña *</label>
+                        <label for="confirm_password">Confirmar Nueva Contraseña *</label>
                         <div class="password-container">
                             <input type="password" id="confirm_password" name="confirm_password" required
                                 placeholder="Confirme su nueva contraseña">
                             <button type="button" class="password-toggle"
-                                onclick="togglePassword('confirm_password')">👁️</button>
+                                onclick="togglePassword('confirm_password')"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
 
                     <button type="submit" class="btn-primary" id="passwordSubmitBtn">
-                        🔒 Cambiar Contraseña
+                        <i class="fas fa-lock"></i> Cambiar Contraseña
                     </button>
                 </form>
             </div>
 
             <!-- Cuenta Gmail -->
             <div class="card">
-                <h2>✉️ Cuenta Gmail</h2>
+                <h2><i class="fas fa-envelope"></i> Cuenta Gmail</h2>
                 <p style="font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6;">
                     Conecta tu cuenta de Gmail para enviar correos directamente desde el pipeline de ventas. Cada asesor conecta su propia cuenta.
                 </p>
@@ -770,7 +771,7 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
                 <?php if ($gmailAccount && $gmailAccount['status'] === 'active'): ?>
                 <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">✉️</div>
+                        <div style="width:38px;height:38px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="fas fa-envelope"></i></div>
                         <div>
                             <div style="font-size:13px;font-weight:700;color:#166534;">Gmail conectado</div>
                             <div style="font-size:14px;color:#15803d;"><?= htmlspecialchars($gmailAccount['email']) ?></div>
@@ -786,7 +787,7 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
                 <?php else: ?>
                 <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;flex-wrap:wrap;gap:12px;">
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">✉️</div>
+                        <div style="width:38px;height:38px;background:#f1f5f9;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="fas fa-envelope"></i></div>
                         <div>
                             <div style="font-size:13px;font-weight:700;color:#475569;">Sin cuenta Gmail</div>
                             <div style="font-size:13px;color:#94a3b8;">Conecta tu cuenta para enviar correos desde el pipeline</div>
@@ -893,22 +894,22 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
 
             // Validaciones
             if (!currentPassword || !newPassword || !confirmPassword) {
-                showMessage('❌ Todos los campos son obligatorios', 'error');
+                showMessage('Todos los campos son obligatorios', 'error');
                 return;
             }
 
             if (!validatePasswordRealTime(newPassword)) {
-                showMessage('❌ La nueva contraseña no cumple con los requisitos de seguridad', 'error');
+                showMessage('La nueva contraseña no cumple con los requisitos de seguridad', 'error');
                 return;
             }
 
             if (newPassword !== confirmPassword) {
-                showMessage('❌ Las contraseñas no coinciden', 'error');
+                showMessage('Las contraseñas no coinciden', 'error');
                 return;
             }
 
             if (currentPassword === newPassword) {
-                showMessage('❌ La nueva contraseña debe ser diferente a la actual', 'error');
+                showMessage('La nueva contraseña debe ser diferente a la actual', 'error');
                 return;
             }
 
@@ -941,7 +942,7 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
                 }
 
                 if (data.success) {
-                    showMessage('✅ Contraseña cambiada correctamente', 'success');
+                    showMessage('Contraseña cambiada correctamente', 'success');
                     document.getElementById('passwordForm').reset();
                     // Reset password requirements display
                     document.querySelectorAll('.requirement').forEach(req => {
@@ -953,10 +954,10 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
 
             } catch (error) {
                 console.error('Error:', error);
-                showMessage('❌ Error al cambiar contraseña: ' + error.message, 'error');
+                showMessage('Error al cambiar contraseña: ' + error.message, 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '🔒 Cambiar Contraseña';
+                submitBtn.innerHTML = '<i class="fas fa-lock"></i> Cambiar Contraseña';
             }
         }
 
@@ -967,10 +968,10 @@ $flashError   = $_SESSION['flash_error']   ?? null; unset($_SESSION['flash_error
 
             if (input.type === 'password') {
                 input.type = 'text';
-                button.innerHTML = '🙈';
+                button.innerHTML = '<i class="fas fa-eye-slash"></i>';
             } else {
                 input.type = 'password';
-                button.innerHTML = '👁️';
+                button.innerHTML = '<i class="fas fa-eye"></i>';
             }
         }
 

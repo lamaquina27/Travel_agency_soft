@@ -38,3 +38,5 @@ assets/uploads/agencia_1
 pages/old
 .claude/
 .vendor/
+
+tmp/

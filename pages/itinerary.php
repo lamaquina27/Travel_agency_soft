@@ -103,30 +103,17 @@ try {
 
 
 
-    // Cargar ubicaciones secundarias para cada día
+    // Cargar ubicaciones secundarias del DÍA DEL PROGRAMA (aisladas) para cada día
     foreach ($dias as &$dia) {
         $dia['ubicaciones_secundarias'] = $db->fetchAll(
-            "SELECT ubicacion, latitud, longitud, orden 
-         FROM programa_dias_ubicaciones_secundarias 
-         WHERE programa_dia_id = ? 
+            "SELECT ubicacion, latitud, longitud, orden
+         FROM programa_dias_ubicaciones_secundarias
+         WHERE programa_dia_id = ?
          ORDER BY orden ASC",
             [$dia['id']]
         );
     }
     unset($dia); // Romper la referencia
-// ✅ DESPUÉS (nuevo código - ubicaciones del PROGRAMA, no de biblioteca):
-    foreach ($dias as &$dia) {
-        // Obtener ubicaciones secundarias del DÍA DEL PROGRAMA (aisladas)
-        $dia['ubicaciones_secundarias'] = $db->fetchAll(
-            "SELECT ubicacion, latitud, longitud, orden 
-         FROM programa_dias_ubicaciones_secundarias 
-         WHERE programa_dia_id = ? 
-         ORDER BY orden ASC",
-            [$dia['id']]
-        );
-
-        error_log("DEBUG - Día: " . $dia['titulo'] . " (ID: {$dia['id']}) -> Ubicaciones secundarias: " . count($dia['ubicaciones_secundarias']));
-    }
 
     // Obtener servicios para cada día con todas las alternativas
     foreach ($dias as &$dia) {
@@ -295,7 +282,11 @@ try {
                 'asistencia_emergencia'   => $sub_precios['asistencia_emergencia'],
                 'info_hoteles_servicios'  => $sub_precios['info_hoteles_servicios'],
                 'informacion_practica'    => $sub_precios['informacion_practica'],
-                'mostrar_precio'          => 1,
+                // La subagencia decide de forma independiente; si no eligió (NULL/columna ausente)
+                // hereda el ajuste del tour principal (que ya está en $precios['mostrar_precio']).
+                'mostrar_precio'          => (!array_key_exists('mostrar_precio', $sub_precios) || $sub_precios['mostrar_precio'] === null)
+                    ? ($precios['mostrar_precio'] ?? 1)
+                    : (int) $sub_precios['mostrar_precio'],
             ]);
             // Nombre del cliente personalizado por la subagencia
             if (!empty($sub_precios['nombre_cliente'])) {
@@ -307,7 +298,7 @@ try {
 
     // Obtener adjuntos (archivos y enlaces) en orden de subida
     $adjuntos = $db->fetchAll(
-        "SELECT id, archivo, enlace FROM programa_adjuntos WHERE solicitud_id = ? ORDER BY created_at ASC, id ASC",
+        "SELECT id, archivo, enlace, titulo FROM programa_adjuntos WHERE solicitud_id = ? ORDER BY created_at ASC, id ASC",
         [$programa_id]
     );
 
@@ -448,8 +439,14 @@ if ($nombre_viajero === '') {
 // con APP_URL local. Funciona con BD del hosting o local sin cambios.
 $_foto_raw = $programa['foto_portada'] ?? '';
 if ($_foto_raw) {
+    $_foto_raw = str_replace('\\', '/', $_foto_raw);
     if (str_starts_with($_foto_raw, 'http://') || str_starts_with($_foto_raw, 'https://')) {
-        $_foto_raw = parse_url($_foto_raw, PHP_URL_PATH); // → /assets/uploads/...
+        $_foto_raw = parse_url($_foto_raw, PHP_URL_PATH); // → /.../assets/uploads/...
+    }
+    // Recortar desde /assets/ (ignora subdirectorios del hosting viejo), igual que preview
+    $_assetsPos = strpos($_foto_raw, '/assets/');
+    if ($_assetsPos !== false) {
+        $_foto_raw = substr($_foto_raw, $_assetsPos);
     }
     $_foto_raw = rtrim(APP_URL, '/') . '/' . ltrim($_foto_raw, '/');
 }
@@ -469,7 +466,7 @@ if ($num_dias == 0) {
 $num_noches = max(0, $num_dias - 1);
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
-$imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
+$imagen_portada = $_foto_raw ?: (rtrim(APP_URL, '/') . '/assets/images/default-travel.jpg');
 $num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
 if ($num_pasajeros <= 0)
     $num_pasajeros = 1;
@@ -660,6 +657,12 @@ if ($programa['fecha_llegada']) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($titulo_programa) ?> - <?= $company_name ?></title>
+    <!-- Preconexión a CDN externos para acelerar la primera carga -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://translate.google.com">
     <!-- Google Translate -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -689,7 +692,7 @@ if ($programa['fecha_llegada']) {
             --brand-surface-soft: #f8f9fa;
             --brand-border: #e9ecef;
             --brand-text: #2f3437;
-            --brand-muted: var(--brand-muted);
+            --brand-muted: #6b7280;
             --brand-soft: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
             --brand-soft-strong: color-mix(in srgb, var(--brand-primary) 14%, #ffffff);
             --brand-shadow: 0 18px 45px rgba(20, 24, 28, 0.08);
@@ -905,7 +908,7 @@ if ($programa['fecha_llegada']) {
             font-weight: 600;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -976,6 +979,19 @@ if ($programa['fecha_llegada']) {
         }
 
         /* ===== Adjuntos: archivos y enlaces ===== */
+        .adj-downloads {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        /* Botones de descarga más discretos que el CTA del footer */
+        .adj-downloads .btn {
+            padding: 11px 20px;
+            font-size: .92rem;
+        }
+
         .adj-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1602,7 +1618,7 @@ if ($programa['fecha_llegada']) {
 
         .secondary-header h4 {
             margin: 0;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             font-size: 14px;
             font-weight: 600;
         }
@@ -1817,7 +1833,7 @@ if ($programa['fecha_llegada']) {
         }
 
         .day-image::before {
-            content: '🔍 Ver imagen';
+            content: 'Ver imagen';
             position: absolute;
             top: 0;
             left: 0;
@@ -2060,7 +2076,7 @@ if ($programa['fecha_llegada']) {
         }
 
         .service-image::before {
-            content: '🔍 Ver imagen';
+            content: 'Ver imagen';
             position: absolute;
             top: 0;
             left: 0;
@@ -2115,7 +2131,7 @@ if ($programa['fecha_llegada']) {
 
         .day-meals h4 {
             margin-bottom: 15px;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             font-size: 1.1rem;
             display: flex;
             align-items: center;
@@ -2758,7 +2774,7 @@ if ($programa['fecha_llegada']) {
             gap: 8px;
             margin-bottom: 12px;
             font-weight: 600;
-            color: var(--brand-primary);
+            color: var(--brand-text);
             font-size: 0.9rem;
         }
 
@@ -4206,14 +4222,15 @@ if ($programa['fecha_llegada']) {
             --ts-brand-dark:
                 <?= htmlspecialchars($brand_secondary) ?>
             ;
-            --ts-bg: color-mix(in srgb, var(--ts-brand) 7%, #ffffff);
+            /* Neutros REALES (antes derivaban un tinte del color de marca → todo se veía colorido) */
+            --ts-bg: #f7f8fa;
             --ts-surface: #ffffff;
-            --ts-surface-soft: color-mix(in srgb, var(--ts-brand) 4%, #ffffff);
+            --ts-surface-soft: #f7f8fa;
             --ts-text: #20292d;
             --ts-muted: #6b7478;
-            --ts-line: color-mix(in srgb, var(--ts-brand) 14%, #e9e9e9);
-            --ts-brand-soft: color-mix(in srgb, var(--ts-brand) 12%, #ffffff);
-            --ts-brand-faint: color-mix(in srgb, var(--ts-brand) 6%, #ffffff);
+            --ts-line: #e6e8ec;
+            --ts-brand-soft: #eef1f5;
+            --ts-brand-faint: #f3f4f6;
             --ts-radius-lg: 28px;
             --ts-radius-md: 18px;
             --ts-shadow-soft: 0 18px 50px rgba(32, 41, 45, .10);
@@ -4320,7 +4337,7 @@ if ($programa['fecha_llegada']) {
 
         .hero-stat-number {
             font-size: 1.8rem !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
         }
 
         .hero-stat-label,
@@ -4402,7 +4419,7 @@ if ($programa['fecha_llegada']) {
             height: 42px !important;
             border-radius: 14px !important;
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
             font-size: 1rem !important;
         }
 
@@ -4426,7 +4443,7 @@ if ($programa['fecha_llegada']) {
         }
 
         .overview-summary h3 {
-            color: var(--ts-brand-dark) !important;
+            color: var(--ts-text) !important;
         }
 
         #map.section {
@@ -4481,7 +4498,7 @@ if ($programa['fecha_llegada']) {
 
         .day-number-main {
             font-size: .92rem !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
             font-weight: 900 !important;
         }
 
@@ -4540,7 +4557,7 @@ if ($programa['fecha_llegada']) {
 
         .day-meta-pill-primary {
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand-dark) !important;
+            color: var(--ts-muted) !important;
             border-color: var(--ts-line) !important;
         }
 
@@ -4648,8 +4665,8 @@ if ($programa['fecha_llegada']) {
 
         .stay-info-box {
             background: var(--ts-brand-soft) !important;
-            border: 1px solid #d7ebe8 !important;
-            color: var(--ts-brand-dark) !important;
+            border: 1px solid var(--ts-line) !important;
+            color: var(--ts-text) !important;
             border-radius: 18px !important;
             padding: 16px !important;
         }
@@ -4694,14 +4711,14 @@ if ($programa['fecha_llegada']) {
             height: 42px !important;
             border-radius: 14px !important;
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
         }
 
         .service-icon.actividad,
         .service-icon.transporte,
         .service-icon.alojamiento {
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
         }
 
         .service-details h4 {
@@ -4954,12 +4971,12 @@ if ($programa['fecha_llegada']) {
             --ts-brand-dark:
                 <?= htmlspecialchars($brand_secondary) ?>
                 !important;
-            --ts-bg: color-mix(in srgb, var(--ts-brand) 5%, #fff) !important;
+            --ts-bg: #f7f8fa !important;
             --ts-surface: #fff !important;
-            --ts-surface-soft: color-mix(in srgb, var(--ts-brand) 4%, #fff) !important;
-            --ts-brand-soft: color-mix(in srgb, var(--ts-brand) 10%, #fff) !important;
-            --ts-brand-faint: color-mix(in srgb, var(--ts-brand) 6%, #fff) !important;
-            --ts-line: color-mix(in srgb, var(--ts-brand) 15%, #e9e9e9) !important;
+            --ts-surface-soft: #f7f8fa !important;
+            --ts-brand-soft: #eef1f5 !important;
+            --ts-brand-faint: #f3f4f6 !important;
+            --ts-line: #e6e8ec !important;
             --ts-text: #20292d !important;
             --ts-muted: #687276 !important;
         }
@@ -5001,18 +5018,8 @@ if ($programa['fecha_llegada']) {
             border-color: var(--ts-line) !important;
         }
 
-        .hero-stat-number,
         .navbar-brand,
         .navbar-nav a:hover,
-        .section-title,
-        .overview-summary h3,
-        .day-title,
-        .day-main-title,
-        .service-title,
-        .accommodation-title,
-        .price-amount,
-        .clean-flight-time,
-        .day-flight-header small,
         .day-flights-title i,
         .day-flight-route i,
         .day-flight-meta i,
@@ -5025,6 +5032,24 @@ if ($programa['fecha_llegada']) {
         .accordion-header i,
         .footer a {
             color: var(--ts-brand) !important;
+        }
+
+        /* Títulos y cifras en color neutro (no usar el color de marca) */
+        .section-title,
+        .overview-summary h3,
+        .day-title,
+        .day-main-title,
+        .service-title,
+        .accommodation-title,
+        .price-amount,
+        .clean-flight-time,
+        .day-flight-header small {
+            color: var(--ts-text) !important;
+        }
+
+        /* Stats del hero (cards blancas: Duración/Viajeros/Fecha) → gris oscuro, no marca */
+        .hero-stat-number {
+            color: var(--ts-text) !important;
         }
 
         .detail-icon,
@@ -5091,7 +5116,7 @@ if ($programa['fecha_llegada']) {
         .day-number-main {
             font-size: .98rem !important;
             line-height: 1 !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
         }
 
         .day-number-label {
@@ -5249,12 +5274,18 @@ if ($programa['fecha_llegada']) {
         .tag,
         .badge {
             background: var(--ts-brand-soft) !important;
-            color: var(--ts-brand) !important;
+            color: var(--ts-muted) !important;
             border-color: var(--ts-line) !important;
         }
 
+        /* El botón primario (CTA) sí conserva la marca, sólido, para destacar */
+        .btn-primary {
+            background: var(--ts-brand) !important;
+            color: #ffffff !important;
+        }
+
         [class*="info"] {
-            color: var(--ts-brand) !important;
+            color: var(--ts-text) !important;
             border-color: var(--ts-line) !important;
         }
 
@@ -5559,7 +5590,7 @@ if ($programa['fecha_llegada']) {
         </section>
 
         <!-- Adjuntos: archivos y enlaces -->
-        <?php if (!empty($adjuntos)):
+        <?php if (!empty($adjuntos) || !empty($programa_id)):
             $adj_limite = 6; // a partir de aquí se ocultan tras "Ver más"
         ?>
             <section id="adjuntos" class="section">
@@ -5570,20 +5601,39 @@ if ($programa['fecha_llegada']) {
                     </p>
                 </div>
 
+                <!-- Descargas rápidas (#4): el PDF del itinerario y el bono/voucher también aquí -->
+                <?php if (!empty($programa_id)): ?>
+                    <div class="adj-downloads">
+                        <a href="<?= APP_URL ?>/modules/itinerary/pdf.php?programa_id=<?= (int) $programa_id ?><?= $is_public ? '&public=1' : '' ?><?= $is_sub ? '&sub=1' : '' ?>"
+                            class="btn btn-primary" target="_blank">
+                            <i class="fas fa-download"></i> Descargar PDF
+                        </a>
+                        <?php if ($vendido): ?>
+                            <a href="<?= APP_URL ?>/modules/bonos/preview.php?programa_id=<?= (int) $programa_id ?>"
+                                class="btn btn-primary" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Bono / voucher de hoteles
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <div class="adj-grid" id="adjGrid">
                     <?php foreach ($adjuntos as $i => $adj):
                         $es_enlace = !empty($adj['enlace']);
                         $url = $es_enlace ? $adj['enlace'] : $adj['archivo'];
+                        $titulo = trim($adj['titulo'] ?? '');
                         if ($es_enlace) {
-                            $nombre = $adj['enlace'];
-                            $meta = 'Enlace';
+                            $nombreReal = $adj['enlace'];
+                            // Con título, el nombre es el título y la URL pasa a ser el dato secundario.
+                            $meta = $titulo !== '' ? $adj['enlace'] : 'Enlace';
                             $icono = 'fa-link';
                         } else {
-                            $nombre = rawurldecode(basename(parse_url($adj['archivo'], PHP_URL_PATH)));
-                            $ext = strtoupper(pathinfo($nombre, PATHINFO_EXTENSION));
-                            $meta = 'Archivo' . ($ext ? ' · ' . $ext : '');
+                            $nombreReal = rawurldecode(basename(parse_url($adj['archivo'], PHP_URL_PATH)));
+                            $ext = strtoupper(pathinfo($nombreReal, PATHINFO_EXTENSION));
+                            $meta = ($titulo !== '' ? $nombreReal : 'Archivo') . ($ext ? ' · ' . $ext : '');
                             $icono = 'fa-file';
                         }
+                        $nombre = $titulo !== '' ? $titulo : $nombreReal;
                         $oculto = $i >= $adj_limite ? ' adj-hidden' : '';
                     ?>
                         <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener"
@@ -5739,8 +5789,8 @@ if ($programa['fecha_llegada']) {
                                             }, $dia['ubicaciones_secundarias'] ?? [])
                                         )));
                                         ?>
-                                        <div class="day-image day-image-hero"
-                                            style="background-image: url('<?= htmlspecialchars($dia['imagen1']) ?>')"
+                                        <div class="day-image day-image-hero lazy-bg"
+                                            data-bg="<?= htmlspecialchars($dia['imagen1']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 0, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                             <div class="day-image-overlay">
                                                 <h3 class="dih-title"><?= htmlspecialchars($dia['titulo'] ?: $rangoTexto) ?></h3>
@@ -5757,15 +5807,15 @@ if ($programa['fecha_llegada']) {
                                     <?php endif; ?>
 
                                     <?php if ($dia['imagen2']): ?>
-                                        <div class="day-image"
-                                            style="background-image: url('<?= htmlspecialchars($dia['imagen2']) ?>')"
+                                        <div class="day-image lazy-bg"
+                                            data-bg="<?= htmlspecialchars($dia['imagen2']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 1, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if ($dia['imagen3']): ?>
-                                        <div class="day-image"
-                                            style="background-image: url('<?= htmlspecialchars($dia['imagen3']) ?>')"
+                                        <div class="day-image lazy-bg"
+                                            data-bg="<?= htmlspecialchars($dia['imagen3']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 2, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                         </div>
                                     <?php endif; ?>
@@ -6086,9 +6136,22 @@ if ($programa['fecha_llegada']) {
 
                                                     <!-- Selector de hotel (alojamiento con alternativas): el cliente elige y el precio se actualiza -->
                                                     <?php if ($servicio['tipo_servicio'] === 'alojamiento' && !empty($servicio_grupo['alternativas'])):
-                                                        $hsOpciones = [['id' => (int) $servicio['id'], 'nombre' => $servicio['nombre'], 'delta' => 0.0, 'sel' => ((int) ($servicio['seleccionado'] ?? 0) === 1), 'principal' => true]];
+                                                        $hsCard = function ($s, $principal) {
+                                                            return [
+                                                                'id' => (int) $s['id'],
+                                                                'nombre' => $s['nombre'],
+                                                                'delta' => $principal ? 0.0 : (float) ($s['variacion_precio'] ?? 0),
+                                                                'sel' => ((int) ($s['seleccionado'] ?? 0) === 1),
+                                                                'principal' => $principal,
+                                                                'img' => $s['alojamiento_imagen_principal'] ?? '',
+                                                                'ubicacion' => $s['ubicacion'] ?? '',
+                                                                'acomodacion' => $s['acomodacion_nombre'] ?? '',
+                                                                'capacidad' => $s['acomodacion_capacidad'] ?? '',
+                                                            ];
+                                                        };
+                                                        $hsOpciones = [$hsCard($servicio, true)];
                                                         foreach ($servicio_grupo['alternativas'] as $hsAlt) {
-                                                            $hsOpciones[] = ['id' => (int) $hsAlt['id'], 'nombre' => $hsAlt['nombre'], 'delta' => (float) ($hsAlt['variacion_precio'] ?? 0), 'sel' => ((int) ($hsAlt['seleccionado'] ?? 0) === 1), 'principal' => false];
+                                                            $hsOpciones[] = $hsCard($hsAlt, false);
                                                         }
                                                         $hsHaySel = false;
                                                         foreach ($hsOpciones as $o) { if ($o['sel']) { $hsHaySel = true; break; } }
@@ -6111,7 +6174,14 @@ if ($programa['fecha_llegada']) {
                                                                         data-grupo="<?= (int) $servicio['id'] ?>" data-delta="<?= htmlspecialchars((string) $d) ?>"
                                                                         <?= $checked ? 'checked' : '' ?> <?= $vendido ? 'disabled' : '' ?>
                                                                         onchange="seleccionarHotel(this)">
-                                                                    <span class="hotel-option-name"><?= htmlspecialchars($o['nombre']) ?><?= $o['principal'] ? ' <em>(incluido)</em>' : '' ?></span>
+                                                                    <?php if (!empty($o['img'])): ?>
+                                                                        <span class="hotel-option-media"><img src="<?= htmlspecialchars($o['img']) ?>" alt="<?= htmlspecialchars($o['nombre']) ?>" loading="lazy"></span>
+                                                                    <?php endif; ?>
+                                                                    <span class="hotel-option-info">
+                                                                        <span class="hotel-option-name"><?= htmlspecialchars($o['nombre']) ?><?= $o['principal'] ? ' <em>(incluido)</em>' : '' ?></span>
+                                                                        <?php if (!empty($o['ubicacion'])): ?><span class="hotel-option-loc"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($o['ubicacion']) ?></span><?php endif; ?>
+                                                                        <?php if (!empty($o['acomodacion'])): ?><span class="hotel-option-room"><i class="fas fa-bed"></i> <?= htmlspecialchars($o['acomodacion']) ?><?= !empty($o['capacidad']) ? ' · ' . (int) $o['capacidad'] . ' pax' : '' ?></span><?php endif; ?>
+                                                                    </span>
                                                                     <span class="hotel-option-delta <?= $d > 0 ? 'pos' : ($d < 0 ? 'neg' : 'zero') ?>"><?= $deltaLabel ?></span>
                                                                 </label>
                                                             <?php endforeach; ?>
@@ -6286,6 +6356,11 @@ if ($programa['fecha_llegada']) {
                                 <!-- Precio Total -->
                                 <div class="price-total-section">
                                     <div class="total-divider"></div>
+                                    <!-- Desglose: solo visible cuando el cliente eligió un hotel con variación -->
+                                    <div class="price-breakdown" id="priceBreakdown" data-moneda="<?= htmlspecialchars($precios['moneda']) ?>" style="<?= abs($hotelSeleccionDelta) > 0.001 ? '' : 'display:none;' ?>margin-bottom:6px;font-size:.9rem;color:#475569;">
+                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Precio base</span><span><?= htmlspecialchars($precios['moneda']) ?> <?= number_format($precios['precio_total'], 0, ',', '.') ?></span></div>
+                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Ajuste por hotel elegido</span><span id="priceAdjustValue" style="font-weight:700;"><?= ($hotelSeleccionDelta >= 0 ? '+ ' : '− ') . htmlspecialchars($precios['moneda']) . ' ' . number_format(abs($hotelSeleccionDelta), 0, ',', '.') ?></span></div>
+                                    </div>
                                     <div class="price-total">
                                         <span class="total-label">Precio Total</span>
                                         <div class="total-amount">
@@ -6576,7 +6651,7 @@ if ($programa['fecha_llegada']) {
                                 border: 3px solid white;
                                 box-shadow: 0 3px 10px rgba(0,0,0,0.4);
                             ">
-                                ${punto.tipo === 'dia' ? '📍' : punto.dia}
+                                ${punto.tipo === 'dia' ? '<i class="fas fa-map-marker-alt"></i>' : punto.dia}
                             </div>
                         `,
                             className: 'custom-marker',
@@ -6778,7 +6853,7 @@ if ($programa['fecha_llegada']) {
                     text-align: center;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 ">
-                    <div style="font-size: 2.5rem; margin-bottom: 15px;">✈️</div>
+                    <div style="font-size: 2.5rem; margin-bottom: 15px; color: var(--brand-primary);"><i class="fas fa-plane"></i></div>
                     <h3 style="margin-bottom: 10px; color: var(--brand-text);">¡Solicita tu cotización!</h3>
                     <p style="color: var(--brand-muted); margin-bottom: 25px; font-size: 0.9rem;">
                         Nos pondremos en contacto contigo para personalizar este increíble viaje
@@ -7617,7 +7692,14 @@ if ($programa['fecha_llegada']) {
 
         .hotel-option input[type=radio] { accent-color: var(--brand-primary); flex-shrink: 0; }
 
-        .hotel-option-name { flex: 1; font-weight: 600; font-size: .92rem; }
+        /* Tarjeta tipo Evaneos: cada hotel con su foto e info */
+        .hotel-option-media { flex-shrink: 0; }
+        .hotel-option-media img { width: 92px; height: 66px; object-fit: cover; border-radius: 9px; display: block; }
+        .hotel-option-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .hotel-option-loc, .hotel-option-room { font-size: .8rem; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .hotel-option-loc i, .hotel-option-room i { color: var(--brand-primary); font-size: .72rem; flex-shrink: 0; }
+
+        .hotel-option-name { font-weight: 700; font-size: .92rem; }
         .hotel-option-name em { color: #94a3b8; font-style: normal; font-weight: 500; font-size: .82rem; }
 
         .hotel-option-delta { font-weight: 800; font-size: .9rem; white-space: nowrap; }
@@ -7647,6 +7729,18 @@ if ($programa['fecha_llegada']) {
                 document.querySelectorAll('.hotel-selector input[type=radio]:checked').forEach(r => { delta += parseFloat(r.dataset.delta) || 0; });
                 const el = document.getElementById('pricingTotalValue');
                 if (el) { const base = parseFloat(el.dataset.base) || 0; el.textContent = selFmt(base + delta); }
+                // Desglose: mostrar el ajuste (+/-) solo si hay variación de hotel
+                const bd = document.getElementById('priceBreakdown');
+                const adj = document.getElementById('priceAdjustValue');
+                if (bd && adj) {
+                    if (Math.abs(delta) > 0.001) {
+                        const mon = bd.dataset.moneda || '';
+                        adj.textContent = (delta >= 0 ? '+ ' : '− ') + mon + ' ' + selFmt(Math.abs(delta));
+                        bd.style.display = '';
+                    } else {
+                        bd.style.display = 'none';
+                    }
+                }
             }
 
             window.seleccionarHotel = function (radio) {
@@ -7661,6 +7755,27 @@ if ($programa['fecha_llegada']) {
             };
 
             document.addEventListener('DOMContentLoaded', recomputeTotal);
+        })();
+    </script>
+
+    <!-- Carga diferida de imágenes de día (background): solo cargan al acercarse al viewport.
+         En hosts lentos con muchas imágenes, evita que la página "cargue eternamente". -->
+    <style>
+        .lazy-bg[data-bg] { background-color: #e6e8ec; }
+    </style>
+    <script>
+        (function () {
+            var els = document.querySelectorAll('.lazy-bg[data-bg]');
+            function load(el) {
+                var u = el.getAttribute('data-bg');
+                if (u) { el.style.backgroundImage = "url('" + u.replace(/'/g, "\\'") + "')"; }
+                el.removeAttribute('data-bg');
+            }
+            if (!('IntersectionObserver' in window)) { els.forEach(load); return; }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) { if (e.isIntersecting) { load(e.target); io.unobserve(e.target); } });
+            }, { rootMargin: '600px 0px' });
+            els.forEach(function (el) { io.observe(el); });
         })();
     </script>
 

@@ -70,6 +70,11 @@ class ProgramaArchivosAPI
                     $result = $this->deleteArchivo($_POST['id'] ?? null);
                     break;
 
+                case 'update_titulo':
+                    // Cambiar el título (nombre legible) de un adjunto
+                    $result = $this->actualizarTitulo($_POST['id'] ?? null, $_POST['titulo'] ?? '');
+                    break;
+
                 default:
                     throw new Exception('Acción no válida: ' . $action);
             }
@@ -114,14 +119,18 @@ class ProgramaArchivosAPI
         $enlace = trim($_POST['enlace'] ?? '');
 
 
+        $titulo = trim($_POST['titulo'] ?? '');
+
         if ($enlace && filter_var($enlace, FILTER_VALIDATE_URL)) {
-            $id = $this->db->insert(
-                'programa_adjuntos',
-                [
-                    'solicitud_id' => $programaId,
-                    'enlace' => $enlace,
-                ]
-            );
+            $datos = [
+                'solicitud_id' => $programaId,
+                'enlace' => $enlace,
+            ];
+            // El título solo se guarda si ya se corrió la migración 030 (columna presente).
+            if ($titulo !== '' && $this->tieneColumnaTitulo()) {
+                $datos['titulo'] = mb_substr($titulo, 0, 255);
+            }
+            $id = $this->db->insert('programa_adjuntos', $datos);
             if (!$id) {
                 throw new Exception('Error al insertar en base de datos');
             }
@@ -187,6 +196,54 @@ class ProgramaArchivosAPI
             'success' => true,
             'message' => 'Adjunto eliminado'
         ];
+    }
+
+    // ================================================================
+    // UPDATE — cambiar el título de un adjunto
+    // ================================================================
+    private function actualizarTitulo($id, $titulo)
+    {
+        if (!$id) {
+            throw new Exception('ID de adjunto requerido');
+        }
+        if (!$this->tieneColumnaTitulo()) {
+            throw new Exception('La función de títulos requiere correr la migración 030.');
+        }
+
+        $data = $this->db->fetch("SELECT solicitud_id FROM programa_adjuntos WHERE id = ?", [$id]);
+        if (!$data) {
+            throw new Exception('Adjunto no encontrado');
+        }
+        $this->verificarPermiso($data['solicitud_id']); // dueño o agencia
+
+        $titulo = mb_substr(trim((string) $titulo), 0, 255);
+        $this->db->update(
+            'programa_adjuntos',
+            ['titulo' => ($titulo !== '' ? $titulo : null)],
+            'id = ? AND solicitud_id = ?',
+            [$id, $data['solicitud_id']]
+        );
+
+        return ['success' => true, 'message' => 'Título actualizado', 'titulo' => $titulo];
+    }
+
+    /**
+     * ¿Existe la columna `titulo`? (migración 030). Se memoiza para no consultar
+     * el esquema en cada operación. Permite que subir archivos/enlaces siga
+     * funcionando aunque la migración aún no se haya corrido.
+     */
+    private function tieneColumnaTitulo()
+    {
+        static $existe = null;
+        if ($existe === null) {
+            try {
+                $col = $this->db->fetchAll("SHOW COLUMNS FROM programa_adjuntos LIKE 'titulo'");
+                $existe = !empty($col);
+            } catch (Exception $e) {
+                $existe = false;
+            }
+        }
+        return $existe;
     }
 
     // ================================================================

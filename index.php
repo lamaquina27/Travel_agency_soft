@@ -173,6 +173,16 @@ switch ($path) {
         include 'modules/admin/api.php';
         break;
 
+    case '/reportes':
+        App::requireRole('admin');
+        include 'pages/reportes.php';
+        break;
+
+    case '/reportes/api':
+        App::requireRole('admin');
+        include 'modules/reportes/api.php';
+        break;
+
     case '/perfil':
         App::requireLogin();
         // Solo permitir acceso a agentes y operadores

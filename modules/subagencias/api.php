@@ -393,6 +393,7 @@ class SubagenciasAPI {
             $tours = $this->db->fetchAll(
                 "SELECT stp.id, stp.solicitud_id, stp.precio_total, stp.public_token,
                         COALESCE(pp.titulo_programa, ps.destino) AS titulo,
+                        pp.foto_portada,
                         ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin
                  FROM subagencia_tour_precios stp
                  JOIN programa_solicitudes ps ON ps.id = stp.solicitud_id
@@ -405,6 +406,7 @@ class SubagenciasAPI {
             $tours = $this->db->fetchAll(
                 "SELECT stp.id, stp.solicitud_id, stp.precio_total, stp.public_token,
                         COALESCE(pp.titulo_programa, ps.destino) AS titulo,
+                        pp.foto_portada,
                         ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin
                  FROM subagencia_tour_precios stp
                  JOIN programa_solicitudes ps ON ps.id = stp.solicitud_id
@@ -451,6 +453,7 @@ class SubagenciasAPI {
             "SELECT stp.id, stp.solicitud_id, stp.precio_adulto, stp.precio_nino,
                     stp.precio_total, stp.public_token,
                     COALESCE(pp.titulo_programa, ps.destino) AS titulo,
+                    pp.foto_portada,
                     ps.destino, ps.fecha_llegada AS fecha_inicio, ps.fecha_salida AS fecha_fin
              FROM subagencia_tour_precios stp
              JOIN programa_solicitudes ps ON ps.id = stp.solicitud_id
@@ -530,6 +533,7 @@ class SubagenciasAPI {
             'condiciones_generales', 'movilidad_reducida', 'info_pasaporte', 'info_seguros',
             'visados_entrada', 'requisitos_sanitarios', 'llegada_punto_encuentro',
             'asistencia_emergencia', 'info_hoteles_servicios', 'informacion_practica',
+            'mostrar_precio', // 0 oculta / 1 muestra (independiente del tour principal)
         ];
 
         $data = [];
@@ -537,6 +541,15 @@ class SubagenciasAPI {
             if (array_key_exists($campo, $_POST)) {
                 $data[$campo] = $_POST[$campo] === '' ? null : $_POST[$campo];
             }
+        }
+
+        // El toggle de precio debe quedar como 0/1 entero.
+        if (array_key_exists('mostrar_precio', $data) && $data['mostrar_precio'] !== null) {
+            $data['mostrar_precio'] = ((int) $data['mostrar_precio'] === 1) ? 1 : 0;
+        }
+        // Si aún no se corrió la migración 031, no romper el guardado de precios.
+        if (array_key_exists('mostrar_precio', $data) && !$this->columnaExiste('subagencia_tour_precios', 'mostrar_precio')) {
+            unset($data['mostrar_precio']);
         }
 
         if (empty($data)) {
@@ -551,6 +564,30 @@ class SubagenciasAPI {
         );
 
         return ['success' => true, 'message' => 'Precios actualizados correctamente'];
+    }
+
+    /**
+     * ¿Existe una columna en una tabla? Memoizado por tabla.columna. Permite que el
+     * guardado de precios siga funcionando aunque una migración aún no se haya corrido.
+     */
+    private function columnaExiste(string $tabla, string $columna): bool {
+        static $cache = [];
+        $key = $tabla . '.' . $columna;
+        if (!array_key_exists($key, $cache)) {
+            try {
+                // information_schema admite placeholders (SHOW COLUMNS ... LIKE ? NO los soporta
+                // bien en prepared statements y devolvía vacío → el guard borraba el campo).
+                $col = $this->db->fetchAll(
+                    "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                    [$tabla, $columna]
+                );
+                $cache[$key] = !empty($col);
+            } catch (Exception $e) {
+                $cache[$key] = false;
+            }
+        }
+        return $cache[$key];
     }
 
     private function getConfig(): array {

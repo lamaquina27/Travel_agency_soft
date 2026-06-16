@@ -33,6 +33,7 @@ $pRgb = pl_rgb($userColors['primary']);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <title>Pipeline — <?= htmlspecialchars($companyName) ?></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
@@ -2720,7 +2721,7 @@ $pRgb = pl_rgb($userColors['primary']);
   <!-- Header -->
   <div class="header">
     <div class="header-left">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
       <?= UIComponents::renderLogo('small', ['gradient' => 'transparent', 'class' => 'header-logo']) ?>
       <span class="header-title">Pipeline Comercial</span>
     </div>
@@ -2791,7 +2792,7 @@ $pRgb = pl_rgb($userColors['primary']);
         <input type="date" class="pl-date" id="filtFecDesde" onchange="applyFilter()" title="Fecha de salida desde">
         <span class="pl-date-sep">→</span>
         <input type="date" class="pl-date" id="filtFecHasta" onchange="applyFilter()" title="Fecha de salida hasta">
-        <button class="pl-date-clear" id="btnClearDates" onclick="clearDateFilters()" title="Limpiar fechas">✕</button>
+        <button class="pl-date-clear" id="btnClearDates" onclick="clearDateFilters()" title="Limpiar fechas"><i class="fas fa-xmark"></i></button>
       </div>
 
       <div class="toolbar-divider"></div>
@@ -3496,7 +3497,7 @@ $pRgb = pl_rgb($userColors['primary']);
     function fillSelects() {
       // toolbar asesor
       const sA = document.getElementById('selAsesor');
-      if (sA) { sA.innerHTML = '<option value="">Todos los asesores</option>'; S.agentes.forEach(a => sA.innerHTML += `<option value="${a.id}">${esc(a.username)}</option>`); }
+      if (sA) { sA.innerHTML = '<option value="">Todos los asesores</option>'; S.agentes.forEach(a => sA.innerHTML += `<option value="${a.id}">${esc(a.full_name || a.username)}</option>`); }
       // toolbar tag
       const sT = document.getElementById('selTag');
       if (sT) { sT.innerHTML = '<option value="">Todos los tags</option>'; S.tags.forEach(t => sT.innerHTML += `<option value="${t.id}">${esc(t.nombre)}</option>`); }
@@ -3510,7 +3511,7 @@ $pRgb = pl_rgb($userColors['primary']);
       if (fE) { fE.innerHTML = '<option value="">Seleccionar…</option>'; S.estados.forEach(e => fE.innerHTML += `<option value="${e.id}">${esc(e.nombre)}</option>`); }
       // modal asesor
       const fA = document.getElementById('fAsesor');
-      if (fA) { fA.innerHTML = '<option value="">Sin asignar</option>'; S.agentes.forEach(a => fA.innerHTML += `<option value="${a.id}">${esc(a.username)}</option>`); }
+      if (fA) { fA.innerHTML = '<option value="">Sin asignar</option>'; S.agentes.forEach(a => fA.innerHTML += `<option value="${a.id}">${esc(a.full_name || a.username)}</option>`); }
       // modal tag chips
       renderTagChips();
       renderModalTagChips();
@@ -3519,14 +3520,14 @@ $pRgb = pl_rgb($userColors['primary']);
       if (lE) { lE.innerHTML = '<option value="">Seleccionar…</option>'; S.estados.forEach(e => lE.innerHTML += `<option value="${e.id}">${esc(e.nombre)}</option>`); }
       // lead modal asesor
       const lA = document.getElementById('lmAsesorSel');
-      if (lA) { lA.innerHTML = '<option value="">Sin asignar</option>'; S.agentes.forEach(a => lA.innerHTML += `<option value="${a.id}">${esc(a.username)}</option>`); }
+      if (lA) { lA.innerHTML = '<option value="">Sin asignar</option>'; S.agentes.forEach(a => lA.innerHTML += `<option value="${a.id}">${esc(a.full_name || a.username)}</option>`); }
     }
     function renderTagChips() {
       const el = document.getElementById('fTagChips');
       if (!el) return;
       const s1 = document.getElementById('fTagId')?.value || '';
       const s2 = document.getElementById('fTagId2')?.value || '';
-      if (!S.tags.length) { el.innerHTML = '<span style="font-size:12px;color:#cbd5e1;">Sin tags creados. Créalos en ⚙ Configurar.</span>'; return; }
+      if (!S.tags.length) { el.innerHTML = '<span style="font-size:12px;color:#cbd5e1;">Sin tags creados. Créalos en <i class="fas fa-gear"></i> Configurar.</span>'; return; }
       el.innerHTML = S.tags.map(t => {
         const c = tagColor(t.id);
         const active = String(s1) === String(t.id) || String(s2) === String(t.id);
@@ -3561,7 +3562,7 @@ $pRgb = pl_rgb($userColors['primary']);
         board.innerHTML = `<div style="text-align:center;padding:60px 30px;color:#94a3b8;min-width:300px;">
             <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#dde3eb" stroke-width="1.3" style="margin-bottom:14px;"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
             <div style="font-size:16px;font-weight:600;color:#64748b;margin-bottom:6px;">Sin estados</div>
-            <div style="font-size:13px;">${IS_ADMIN ? 'Crea los estados del pipeline en ⚙ Configurar.' : 'Contacta al administrador.'}</div></div>`;
+            <div style="font-size:13px;">${IS_ADMIN ? 'Crea los estados del pipeline en <i class="fas fa-gear"></i> Configurar.' : 'Contacta al administrador.'}</div></div>`;
         return;
       }
       board.innerHTML = S.estados.map((est, idx) => {
@@ -3569,9 +3570,9 @@ $pRgb = pl_rgb($userColors['primary']);
         const c = est.color || '#6366f1';
         const esEntrada = idx === 0;
         const finalTag = est.tipo_final === 'ganado'
-          ? `<span class="k-final-tag k-final-ganado" title="Estado final: ganado">✓ Ganado</span>`
+          ? `<span class="k-final-tag k-final-ganado" title="Estado final: ganado"><i class="fas fa-check"></i> Ganado</span>`
           : est.tipo_final === 'perdido'
-            ? `<span class="k-final-tag k-final-perdido" title="Estado final: perdido">✕ Perdido</span>`
+            ? `<span class="k-final-tag k-final-perdido" title="Estado final: perdido"><i class="fas fa-xmark"></i> Perdido</span>`
             : '';
         const entradaTag = esEntrada ? `<span class="k-entrada-tag" title="Aquí caen los leads nuevos y los de Gmail">Entrada</span>` : '';
         return `<div class="k-col" style="--cc:${c};">
@@ -3642,11 +3643,14 @@ $pRgb = pl_rgb($userColors['primary']);
     }
     function sortBy(k) { S.sortDir = (S.sortKey === k && S.sortDir === 'asc') ? 'desc' : 'asc'; S.sortKey = k; renderList(); }
 
+    // Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y minúsculas.
+    function normalizar(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
     // ── FILTERS ──
     function filtered() {
       const { buscar, usuario_id, tag_id } = S.filters;
       return S.leads.filter(l => {
-        if (buscar) { const q = buscar.toLowerCase(); if (!(l.nombre_cliente || '').toLowerCase().includes(q) && !(l.email_cliente || '').toLowerCase().includes(q) && !(l.destino || '').toLowerCase().includes(q)) return false; }
+        if (buscar) { const q = normalizar(buscar); if (!normalizar(l.nombre_cliente).includes(q) && !normalizar(l.email_cliente).includes(q) && !normalizar(l.destino).includes(q)) return false; }
         if (usuario_id && l.usuario_id != usuario_id) return false;
         if (tag_id && l.tag_id != tag_id && l.tag_id2 != tag_id) return false;
         const desde = document.getElementById('filtFecDesde')?.value || '';
@@ -3815,13 +3819,14 @@ $pRgb = pl_rgb($userColors['primary']);
       if (d.success) {
         const lead = S.leads.find(l => l.id == S.currentLeadId);
         const asesor = S.agentes.find(a => a.id == userId);
-        if (lead) { lead.usuario_id = userId ? +userId : null; lead.asesor_nombre = asesor?.username || null; }
+        if (lead) { lead.usuario_id = userId ? +userId : null; lead.asesor_nombre = asesor ? (asesor.full_name || asesor.username) : null; }
         renderModalInfo(lead); render();
         showToast('Asesor asignado', 'ok');
       } else showToast(d.message || 'Error', 'err');
     }
     // ── LEAD MODAL — CHAT PANEL ──
     let _lmEmailAccountId = 0, _lmLastCount = -1, _lmPollTimer = null, _lmAttachedFiles = [], _lmTemplatesData = [];
+    let _lmInflight = null; // AbortController de la petición de chat en curso
 
     function lmStripQuoted(html) {
       const tmp = document.createElement('div'); tmp.innerHTML = html || '';
@@ -3847,8 +3852,12 @@ $pRgb = pl_rgb($userColors['primary']);
     }
     async function lmLoadChat(pipelineId) {
       const msgs = document.getElementById('lmChatMsgs');
+      // Evitar peticiones solapadas: cancelar la anterior si sigue en vuelo.
+      if (_lmInflight) { try { _lmInflight.abort(); } catch (_) {} }
+      const ctrl = new AbortController(); _lmInflight = ctrl;
+      const killer = setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, 10000); // timeout duro 10s
       try {
-        const r = await fetch(APP_URL + '/modules/gmail/chat_api.php?pipeline_id=' + pipelineId);
+        const r = await fetch(APP_URL + '/modules/gmail/chat_api.php?pipeline_id=' + pipelineId, { signal: ctrl.signal });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
         document.getElementById('lmChatEmail').textContent = data.lead?.email_cliente || '—';
@@ -3872,10 +3881,19 @@ $pRgb = pl_rgb($userColors['primary']);
         if (!all.length) { msgs.innerHTML = '<div class="lm-chat-empty"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>Sin mensajes aún. Escribe el primero.</p></div>'; return; }
         all.forEach(m => msgs.appendChild(lmRenderMessage(m)));
         msgs.scrollTop = msgs.scrollHeight;
-      } catch (e) { console.error('lmLoadChat', e); msgs.innerHTML = '<div class="lm-chat-empty"><p>Error cargando mensajes</p></div>'; }
+      } catch (e) {
+        // Si se abortó porque entró otra petición más nueva, no pisar la UI.
+        if (e.name === 'AbortError') return;
+        console.error('lmLoadChat', e);
+        // No dejar el spinner "Cargando…" perpetuo: mostrar error reintentable.
+        msgs.innerHTML = '<div class="lm-chat-empty"><p>No se pudieron cargar los mensajes. Reintentando…</p></div>';
+      } finally {
+        clearTimeout(killer);
+        if (_lmInflight === ctrl) _lmInflight = null;
+      }
     }
     function lmStartPolling(pid) { lmStopPolling(); _lmPollTimer = setInterval(() => { if (S.currentLeadId === pid) lmLoadChat(pid); }, 15000); }
-    function lmStopPolling() { if (_lmPollTimer) { clearInterval(_lmPollTimer); _lmPollTimer = null; } }
+    function lmStopPolling() { if (_lmPollTimer) { clearInterval(_lmPollTimer); _lmPollTimer = null; } if (_lmInflight) { try { _lmInflight.abort(); } catch (_) {} _lmInflight = null; } }
     function lmApplyFormat(cmd) { document.getElementById('lmEditor').focus(); document.execCommand(cmd, false, null); }
     function lmGetContent() { return document.getElementById('lmEditor').innerHTML.trim(); }
     function lmClearComposer() {
@@ -3968,7 +3986,7 @@ $pRgb = pl_rgb($userColors['primary']);
         row.appendChild(name); row.appendChild(acts); el.appendChild(row);
       });
     }
-    function lmFiltrarTemplates() { const q = document.getElementById('lmTplSearch').value.toLowerCase(); lmRenderTemplates(_lmTemplatesData.filter(t => (t.nombre || '').toLowerCase().includes(q))); }
+    function lmFiltrarTemplates() { const q = normalizar(document.getElementById('lmTplSearch').value); lmRenderTemplates(_lmTemplatesData.filter(t => normalizar(t.nombre).includes(q))); }
     function lmUsarTemplate(t) { const ed = document.getElementById('lmEditor'); ed.innerHTML = t.texto || ''; ed.focus(); document.getElementById('lmTplOverlay').classList.remove('active'); }
     function lmAbrirFormTemplate(t) {
       const f = document.getElementById('lmTplForm');
@@ -4147,7 +4165,7 @@ $pRgb = pl_rgb($userColors['primary']);
       } else showToast(r.message || 'Error', 'err');
     }
     async function deleteEstado(id) {
-      const confirmed = await showConfirmModal({ title: 'Eliminar estado', message: '¿Seguro que deseas eliminar este estado? Solo se puede si no tiene leads asignados.', icon: '🗑️', confirmText: 'Eliminar', confirmButtonStyle: 'danger' });
+      const confirmed = await showConfirmModal({ title: 'Eliminar estado', message: '¿Seguro que deseas eliminar este estado? Solo se puede si no tiene leads asignados.', icon: '<i class="fas fa-trash"></i>', confirmText: 'Eliminar', confirmButtonStyle: 'danger' });
       if (!confirmed) return;
       const r = await apiJ('delete_estados', { id });
       if (r.success) {
@@ -4194,8 +4212,8 @@ $pRgb = pl_rgb($userColors['primary']);
         const c = tagColor(t.id);
         return `<span class="tag-mgr-chip" style="background:${c}20;color:${c};">
             <span id="tag-lbl-${t.id}">${esc(t.nombre)}</span>
-            <button class="tag-mgr-del" title="Renombrar" onclick="renameTagInline(${t.id})" style="background:rgba(0,0,0,.1);margin-right:2px;">✎</button>
-            <button class="tag-mgr-del" onclick="deleteTag(${t.id})">✕</button>
+            <button class="tag-mgr-del" title="Renombrar" onclick="renameTagInline(${t.id})" style="background:rgba(0,0,0,.1);margin-right:2px;"><i class="fas fa-pen"></i></button>
+            <button class="tag-mgr-del" onclick="deleteTag(${t.id})"><i class="fas fa-xmark"></i></button>
         </span>`;
       }).join('');
     }
@@ -4227,8 +4245,8 @@ $pRgb = pl_rgb($userColors['primary']);
       el.innerHTML = S.source.map(s => {
         return `<span class="tag-mgr-chip" style="background:#64748b20;color:#475569;">
             <span id="src-lbl-${s.id}">${esc(s.nombre)}</span>
-            <button class="tag-mgr-del" title="Renombrar" onclick="renameSourceInline(${s.id})" style="background:rgba(0,0,0,.1);margin-right:2px;">✎</button>
-            <button class="tag-mgr-del" onclick="deleteSource(${s.id})">✕</button>
+            <button class="tag-mgr-del" title="Renombrar" onclick="renameSourceInline(${s.id})" style="background:rgba(0,0,0,.1);margin-right:2px;"><i class="fas fa-pen"></i></button>
+            <button class="tag-mgr-del" onclick="deleteSource(${s.id})"><i class="fas fa-xmark"></i></button>
         </span>`;
       }).join('');
     }
@@ -4440,7 +4458,7 @@ $pRgb = pl_rgb($userColors['primary']);
               _vincProgramasData = r.data;
               _renderVincPicker('existente');
             } else {
-              if (grid) grid.innerHTML = `<div class="vinc-pempty">⚠ ${esc(r.message || 'Error')}</div>`;
+              if (grid) grid.innerHTML = `<div class="vinc-pempty"><i class="fas fa-triangle-exclamation"></i> ${esc(r.message || 'Error')}</div>`;
               _programasLoaded = false;
             }
           } catch (e) {
@@ -4487,7 +4505,7 @@ $pRgb = pl_rgb($userColors['primary']);
           _vincPlantillasData = r.data;
           _renderVincPicker('plantilla');
         } else if (!r.success) {
-          if (grid) grid.innerHTML = `<div class="vinc-pempty">⚠ ${esc(r.message || 'Error')}</div>`;
+          if (grid) grid.innerHTML = `<div class="vinc-pempty"><i class="fas fa-triangle-exclamation"></i> ${esc(r.message || 'Error')}</div>`;
           _plantillasLoaded = false;
         } else {
           if (grid) grid.innerHTML = '<div class="vinc-pempty">No hay plantillas creadas aún</div>';
@@ -4505,10 +4523,10 @@ $pRgb = pl_rgb($userColors['primary']);
       const searchId = isPlant ? 'vincPlantSearch' : 'vincProgSearch';
       const grid = document.getElementById(gridId);
       if (!grid) return;
-      const term = ((document.getElementById(searchId) || {}).value || '').toLowerCase().trim();
+      const term = normalizar((document.getElementById(searchId) || {}).value || '');
       const filtered = term ? data.filter(p => {
         const fields = [p.titulo_programa, p.nombre, p.destino, 'Viaje a ' + (p.destino || '')];
-        return fields.some(f => f && f.toLowerCase().includes(term));
+        return fields.some(f => f && normalizar(f).includes(term));
       }) : data;
       if (!filtered.length) { grid.innerHTML = '<div class="vinc-pempty">No se encontraron programas</div>'; return; }
       grid.innerHTML = filtered.map(p => {
@@ -4549,7 +4567,7 @@ $pRgb = pl_rgb($userColors['primary']);
       const tieneItinerario = !!(lead && lead.solicitud_id);
       const badge = document.getElementById('lmVincBadge');
       if (badge && tieneItinerario) {
-        badge.textContent = '✓ ' + (lead.itinerario_titulo || 'Programa vinculado');
+        badge.innerHTML = '<i class="fas fa-check"></i> ' + esc(lead.itinerario_titulo || 'Programa vinculado');
       }
       // La fila (badge verde + botón de vista previa) solo se muestra si hay itinerario vinculado.
       const row = document.getElementById('lmVincBadgeRow');
@@ -4659,7 +4677,11 @@ $pRgb = pl_rgb($userColors['primary']);
     document.getElementById('cfgModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeConfig(); });
 
     // ── INIT ──
-    loadAll();
+    loadAll().then(() => {
+      // Permite abrir directamente un lead por URL (?lead=ID), p.ej. desde el editor de itinerario
+      const _leadParam = new URLSearchParams(location.search).get('lead');
+      if (_leadParam) { const _id = parseInt(_leadParam, 10); if (_id) openLeadModal(_id); }
+    });
   </script>
 </body>
 

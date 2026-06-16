@@ -113,6 +113,9 @@ class PipelineAPI
                 case 'asignar_itinerario':
                     $result = $this->asignar_itinerario();
                     break;
+                case 'desvincular_itinerario':
+                    $result = $this->desvincular_itinerario();
+                    break;
                 case 'asignar_tag':
                     $result = $this->asignarTag();
                     break;
@@ -530,10 +533,10 @@ class PipelineAPI
         }
 
         $agentes = $this->db->fetchAll(
-            "SELECT id, username
+            "SELECT id, username, full_name
             FROM users
             WHERE agencia_id = ? AND active=1
-            ORDER BY id ASC",
+            ORDER BY full_name ASC, username ASC",
             [$agencia_id]
         );
 
@@ -851,6 +854,12 @@ class PipelineAPI
             $params[] = $term;
         }
 
+        // Leads vinculados a un itinerario concreto (usado desde el editor de programa)
+        if (!empty($_GET['solicitud_id'])) {
+            $where[] = "p.solicitud_id = ?";
+            $params[] = intval($_GET['solicitud_id']);
+        }
+
         if (!empty($_GET['fecha_desde'])) {
             $where[] = "p.fecha_salida >= ?";
             $params[] = $_GET['fecha_desde'];
@@ -953,6 +962,35 @@ class PipelineAPI
         );
 
         return ['success' => true, 'message' => 'Itinerario asignado correctamente'];
+    }
+
+    // Quita el vínculo lead↔itinerario (pone solicitud_id = NULL). Como el vínculo
+    // vive en pipeline.solicitud_id, esto se refleja igual en el pipeline y en el editor.
+    private function desvincular_itinerario()
+    {
+        $agencia_id = $_SESSION['agencia_id'] ?? null;
+        $user_role = $_SESSION['user_role'] ?? 'agent';
+        if (!$agencia_id) {
+            throw new Exception('Usuario sin agencia asignada');
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $pipeline_id = $data['pipeline_id'] ?? null;
+        if (!$pipeline_id) {
+            throw new Exception('pipeline_id requerido');
+        }
+
+        // El agente solo puede tocar sus leads; el admin, los de su agencia
+        $where  = $user_role === 'admin' ? "id = ? AND agencia_id = ?" : "id = ? AND agencia_id = ? AND usuario_id = ?";
+        $params = $user_role === 'admin' ? [$pipeline_id, $agencia_id] : [$pipeline_id, $agencia_id, $_SESSION['user_id'] ?? null];
+        $lead = $this->db->fetch("SELECT id FROM pipeline WHERE {$where}", $params);
+        if (!$lead) {
+            throw new Exception('Lead no encontrado o sin permisos');
+        }
+
+        $this->db->update('pipeline', ['solicitud_id' => null], 'id = ?', [$pipeline_id]);
+
+        return ['success' => true, 'message' => 'Itinerario desvinculado'];
     }
 
     private function editarLead()

@@ -47,6 +47,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Mis Programas - <?= htmlspecialchars($companyName) ?></title>
 
     <!-- Incluir estilos de componentes -->
@@ -1450,12 +1451,23 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         }
 
         .picker-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
-            max-height: 240px;
+            max-height: 320px;
             overflow-y: auto;
             padding-right: 2px;
+        }
+
+        .picker-card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .picker-tag-chip {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--c, #64748b) 14%, #fff);
+            color: var(--c, #475569);
+            border: 1px solid color-mix(in srgb, var(--c, #64748b) 30%, #fff);
         }
 
         .picker-card {
@@ -2699,7 +2711,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         <path d="m21 21-4.35-4.35" />
                     </svg>
                     <input type="text" class="picker-search" id="pickerSearchPlantilla"
-                        placeholder="Buscar plantilla..." oninput="renderPickerCards('plantilla')">
+                        placeholder="Buscar por nombre, destino o etiqueta…" oninput="renderPickerCards('plantilla')">
                 </div>
                 <div class="picker-grid" id="pickerGridPlantilla"></div>
             </div>
@@ -2711,7 +2723,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         <circle cx="11" cy="11" r="8" />
                         <path d="m21 21-4.35-4.35" />
                     </svg>
-                    <input type="text" class="picker-search" id="pickerSearchExistente" placeholder="Buscar programa..."
+                    <input type="text" class="picker-search" id="pickerSearchExistente" placeholder="Buscar por nombre, destino o etiqueta…"
                         oninput="renderPickerCards('existente')">
                 </div>
                 <div class="picker-tabs">
@@ -2845,11 +2857,14 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         function normalizarImagenUrl(url) {
             if (!url) return null;
             try {
+                url = String(url).replace(/\\/g, '/');
                 // Si tiene dominio (http/https), extraer solo el path
                 if (url.startsWith('http://') || url.startsWith('https://')) {
-                    const parsed = new URL(url);
-                    url = parsed.pathname; // → /assets/uploads/...
+                    url = new URL(url).pathname; // → /.../assets/uploads/...
                 }
+                // Recortar desde /assets/ (ignora subdirectorios del hosting viejo, igual que preview)
+                const i = url.indexOf('/assets/');
+                if (i !== -1) url = url.substring(i);
                 // Reconstruir con APP_URL del entorno actual
                 return APP_URL + (url.startsWith('/') ? url : '/' + url);
             } catch (e) {
@@ -3013,8 +3028,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 const c = tagColor(t.id);
                 return `<span class="tag-mgr-chip" style="background:${c}20;color:${c};">
             <span id="tag-lbl-${t.id}">${esc(t.nombre)}</span>
-            <button class="tag-mgr-del" title="Renombrar" onclick="renameTagInline(${t.id})" style="background:rgba(0,0,0,.1);margin-right:2px;">✎</button>
-            <button class="tag-mgr-del" onclick="deleteTag(${t.id})">✕</button>
+            <button class="tag-mgr-del" title="Renombrar" onclick="renameTagInline(${t.id})" style="background:rgba(0,0,0,.1);margin-right:2px;"><i class="fas fa-pen"></i></button>
+            <button class="tag-mgr-del" onclick="deleteTag(${t.id})"><i class="fas fa-xmark"></i></button>
         </span>`;
             }).join('');
         }
@@ -3120,7 +3135,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             const el = document.getElementById('tagPickerChips');
             if (!el) return;
             if (!S.tags.length) {
-                el.innerHTML = '<span style="font-size:12px;color:#94a3b8;">No hay tags. Créalos en ⚙ Configurar.</span>';
+                el.innerHTML = '<span style="font-size:12px;color:#94a3b8;">No hay tags. Créalos en <i class="fas fa-gear"></i> Configurar.</span>';
                 return;
             }
             el.innerHTML = S.tags.map(t => {
@@ -3310,6 +3325,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     <i class="fas fa-tags"></i>
                 </button>` : '';
 
+            // Total de viajeros: SIEMPRE adultos + niños (de programa_precios).
+            // Fallback a numero_pasajeros solo si aún no hay precios cargados (evita el "1" por defecto).
+            const totalAdultos = parseInt(programa.cantidad_adultos) || 0;
+            const totalNinos = parseInt(programa.cantidad_ninos) || 0;
+            const totalViajeros = (totalAdultos + totalNinos) || (parseInt(programa.numero_pasajeros) || 0);
+
             // Chips de etiquetas asignadas (requiere que el programa traiga programa.tags)
             const tagsCard = (Array.isArray(programa.tags) && programa.tags.length) ?
                 `<div class="card-tags">${programa.tags.map(t => {
@@ -3352,7 +3373,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Viajeros</div>
-                            <div class="detail-value">${programa.numero_pasajeros}</div>
+                            <div class="detail-value">${totalViajeros}</div>
                         </div>
                     </div>
 
@@ -3547,9 +3568,12 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
         // FUNCIONES DE FILTRADO Y BÚSQUEDA
         // ============================================================
 
+        // Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y minúsculas.
+        function normalizar(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
         function filtrarProgramas(tipo) {
             if (tipo === 'mios') {
-                const searchTerm = document.getElementById('searchInputMios').value.toLowerCase().trim();
+                const searchTerm = normalizar(document.getElementById('searchInputMios').value);
 
 
                 const programasBase = allProgramas.filter(p => p.user_id == CURRENT_USER_ID && (!p.plantilla || p.plantilla == 0));
@@ -3560,8 +3584,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 misProgramasFiltrados = programasBase.filter(programa => {
                     // Filtro por tag
                     if (tagId && !(programa.tagIds || []).includes(Number(tagId))) return false;
-                    // Filtro por destino
-                    if (destinoF && (programa.destino || '').trim() !== destinoF) return false;
+                    // Filtro por destino (tolerante a acentos y coincidencia parcial)
+                    if (destinoF && !normalizar(programa.destino).includes(normalizar(destinoF))) return false;
                     if (!searchTerm) return true;
                     const search_term = searchTerm.split(" ").filter(term => term !== '');
 
@@ -3581,7 +3605,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Cada palabra debe coincidir con algún campo (orden indistinto)
                     return search_term.every(term =>
                         searchFields.some(field =>
-                            field && field.toString().toLowerCase().includes(term)
+                            field && normalizar(field).includes(term)
                         )
                     );
                 });
@@ -3590,7 +3614,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 mostrarProgramasSeccion('mios', misProgramasFiltrados);
                 actualizarPlaceholderBusqueda('mios');
             } else if (tipo === 'otros') {
-                const searchTerm = document.getElementById('searchInputOtros').value.toLowerCase().trim();
+                const searchTerm = normalizar(document.getElementById('searchInputOtros').value);
                 const authorFilter = document.getElementById('filterAuthor').value;
                 const tagId = document.getElementById('filterTagOtros').value;
                 const destinoF = document.getElementById('filterDestinoOtros').value;
@@ -3618,7 +3642,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
 
                         return search_term.every(term =>
                             searchFields.some(field =>
-                                field && field.toString().toLowerCase().includes(term)
+                                field && normalizar(field).includes(term)
                             )
                         );
                     })();
@@ -3630,8 +3654,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Filtro por tag
                     const matchesTag = !tagId || (programa.tagIds || []).includes(Number(tagId));
 
-                    // Filtro por destino
-                    const matchesDestino = !destinoF || (programa.destino || '').trim() === destinoF;
+                    // Filtro por destino (tolerante a acentos y coincidencia parcial)
+                    const matchesDestino = !destinoF || normalizar(programa.destino).includes(normalizar(destinoF));
 
 
                     return matchesSearch && matchesAuthor && matchesTag && matchesDestino;
@@ -3641,7 +3665,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 mostrarProgramasSeccion('otros', otrosProgramasFiltrados);
                 actualizarPlaceholderBusqueda('otros');
             } else if (tipo === 'plantillas') {
-                const searchTerm = document.getElementById('searchInputPlantillas').value.toLowerCase().trim();
+                const searchTerm = normalizar(document.getElementById('searchInputPlantillas').value);
 
 
                 const programasBase = allProgramas.filter(p => p.plantilla == 1);
@@ -3652,8 +3676,8 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 plantillas = programasBase.filter(programa => {
                     // Filtro por tag
                     if (tagId && !(programa.tagIds || []).includes(Number(tagId))) return false;
-                    // Filtro por destino
-                    if (destinoF && (programa.destino || '').trim() !== destinoF) return false;
+                    // Filtro por destino (tolerante a acentos y coincidencia parcial)
+                    if (destinoF && !normalizar(programa.destino).includes(normalizar(destinoF))) return false;
                     if (!searchTerm) return true;
                     const search_term = searchTerm.split(" ").filter(term => term !== '');
 
@@ -3673,7 +3697,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                     // Cada palabra debe coincidir con algún campo (orden indistinto)
                     return search_term.every(term =>
                         searchFields.some(field =>
-                            field && field.toString().toLowerCase().includes(term)
+                            field && normalizar(field).includes(term)
                         )
                     );
                 });
@@ -3787,15 +3811,17 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
             }
 
             const searchInput = document.getElementById(searchId);
-            const searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            // Búsqueda flexible (sin acentos, parcial) por nombre, destino Y etiquetas (#3)
+            const searchTerm = normalizar(searchInput ? searchInput.value : '');
             const grid = document.getElementById(gridId);
             if (!grid) return;
 
             let filtered = programas;
             if (searchTerm) {
                 filtered = programas.filter(p => {
-                    const fields = [p.titulo_programa, p.destino, p.nombre, p.apellido, 'Viaje a ' + p.destino];
-                    return fields.some(f => f && f.toString().toLowerCase().includes(searchTerm));
+                    const tagNames = Array.isArray(p.tags) ? p.tags.map(t => t.nombre).join(' ') : '';
+                    const blob = normalizar([p.titulo_programa, p.destino, p.nombre, p.apellido, 'Viaje a ' + p.destino, tagNames].filter(Boolean).join(' '));
+                    return blob.includes(searchTerm);
                 });
             }
 
@@ -3810,9 +3836,13 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 const dias = p.total_dias_real ? p.total_dias_real + ' días' : '';
                 const fecha = p.fecha_salida ? formatDate(p.fecha_salida) : '';
                 const meta = [p.destino, dias, fecha].filter(Boolean).join(' · ');
+                const chips = (Array.isArray(p.tags) && p.tags.length)
+                    ? `<div class="picker-card-tags">${p.tags.map(t => `<span class="picker-tag-chip" style="--c:${t.color || '#64748b'}">${t.nombre}</span>`).join('')}</div>`
+                    : '';
                 return `<div class="picker-card${isSelected ? ' selected' : ''}" onclick="selectPickerProgram(${p.id},'${tipo}')">
                     <div class="picker-card-title">${titulo}</div>
                     <div class="picker-card-meta">${meta}</div>
+                    ${chips}
                 </div>`;
             }).join('');
         }
@@ -4138,7 +4168,7 @@ $secondaryRgb = ts_hex_to_rgb_string($userColors['secondary']);
                 programa.destino,
                 `${programa.nombre_viajero} ${programa.apellido_viajero}`,
                 formatDateRange(programa.fecha_llegada, programa.fecha_salida),
-                programa.numero_pasajeros,
+                ((parseInt(programa.cantidad_adultos) || 0) + (parseInt(programa.cantidad_ninos) || 0)) || (parseInt(programa.numero_pasajeros) || 0),
                 programa.estado || 'borrador',
                 programa.created_by_name || 'N/A'
             ]);
