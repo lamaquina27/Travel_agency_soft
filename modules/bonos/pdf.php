@@ -1,5 +1,8 @@
 <?php
 
+ini_set('memory_limit', '1024M');
+set_time_limit(360);
+
 require_once dirname(__DIR__, 2) . '/config/app.php';
 require_once __DIR__ . '/bono_renderer.php';
 require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
@@ -21,12 +24,18 @@ try {
     $renderer = new BonoRenderer($programaId, $hotelsPerPage);
     $html = $renderer->renderHtml(true);
 
+    $projectRoot = dirname(__DIR__, 2);
+
     $options = new Options();
     $options->set('isHtml5ParserEnabled', true);
     $options->set('isPhpEnabled', false);
     $options->set('dpi', 96);
     $options->set('isRemoteEnabled', true);
-    $options->set('defaultFont', 'DejaVu Sans');
+    $options->set('defaultFont', 'TravelPdf');
+    $options->set('chroot', $projectRoot);
+    $options->set('tempDir', $projectRoot . '/tmp');
+    $options->set('fontDir', $projectRoot . '/tmp/fonts');
+    $options->set('fontCache', $projectRoot . '/tmp/fonts');
 
     $dompdf = new Dompdf($options);
     $dompdf->loadHtml($html, 'UTF-8');

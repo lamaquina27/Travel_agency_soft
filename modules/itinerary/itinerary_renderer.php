@@ -462,7 +462,7 @@ class ItineraryRenderer
         $programa = $this->db->fetch(
             "SELECT ps.*, pp.titulo_programa, pp.foto_portada, pp.idioma_predeterminado,
                 DATE_FORMAT(ps.fecha_llegada, '%d/%m/%Y') AS fecha_llegada_formatted,
-                DATE_FORMAT(DATE_ADD(ps.fecha_llegada, INTERVAL COALESCE((SELECT SUM(COALESCE(pd2.duracion_estancia, 1)) FROM programa_dias pd2 WHERE pd2.solicitud_id = ps.id),0) DAY),'%d/%m/%Y') AS fecha_salida_formatted,
+                DATE_FORMAT(DATE_ADD(ps.fecha_llegada, INTERVAL GREATEST(COALESCE((SELECT SUM(COALESCE(pd2.duracion_estancia, 1)) FROM programa_dias pd2 WHERE pd2.solicitud_id = ps.id),0) - 1, 0) DAY),'%d/%m/%Y') AS fecha_salida_formatted,
                 (SELECT COUNT(*) FROM viajeros_solicitud vs WHERE vs.solicitud_id = ps.id) AS viajeros_count
              FROM programa_solicitudes ps
              LEFT JOIN programa_personalizacion pp ON ps.id = pp.solicitud_id
@@ -685,12 +685,6 @@ class ItineraryRenderer
         $binary = $this->readImageBinary($path);
         if (!$binary) { return ''; }
 
-        // GD/libwebp de este build de PHP revienta con un FATAL ("gd-webp cannot allocate
-        // temporary buffer") al decodificar WebP reales, matando TODA la generación del PDF.
-        // No hay decodificador alternativo (sin Imagick ni convertidor CLI), así que se omite
-        // la imagen WebP en lugar de arriesgar el fatal. Ver isWebpBinary().
-        if ($this->isWebpBinary($binary)) { return ''; }
-
         // Si GD no está disponible, devolver la imagen original sin redimensionar
         if (!function_exists('imagecreatefromstring')) {
             $info = @getimagesizefromstring($binary);
@@ -698,7 +692,18 @@ class ItineraryRenderer
             return 'data:' . $info['mime'] . ';base64,' . base64_encode($binary);
         }
 
-        $src = @imagecreatefromstring($binary);
+        // WebP: imagecreatefromstring() causa fatal en algunos builds de GD.
+        // Usar imagecreatefromwebp() vía archivo temporal, que es seguro.
+        if ($this->isWebpBinary($binary)) {
+            if (!function_exists('imagecreatefromwebp')) { return ''; }
+            $tmp = tempnam(sys_get_temp_dir(), 'webp_') . '.webp';
+            file_put_contents($tmp, $binary);
+            $src = @imagecreatefromwebp($tmp);
+            @unlink($tmp);
+            if (!$src) { return ''; }
+        } else {
+            $src = @imagecreatefromstring($binary);
+        }
         if (!$src) { return ''; }
         $w = imagesx($src); $h = imagesy($src);
         if ($w <= 0 || $h <= 0) { imagedestroy($src); return ''; }
@@ -735,8 +740,8 @@ class ItineraryRenderer
 
         $binary = $this->readImageBinary($path);
         if (!$binary) { return ''; }
-        // No pasar WebP a dompdf: internamente también usa GD y se caería igual (ver isWebpBinary).
-        if ($this->isWebpBinary($binary)) { return ''; }
+        // WebP solo se omite si GD no está disponible (dompdf necesita imagecreatefromwebp para renderizarlo).
+        if ($this->isWebpBinary($binary) && !function_exists('imagecreatefromwebp')) { return ''; }
         $info = @getimagesizefromstring($binary);
         if (!$info || empty($info['mime'])) { return ''; }
         @file_put_contents($cacheFile, $binary);

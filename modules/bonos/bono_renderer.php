@@ -298,7 +298,7 @@ class BonoRenderer
                     margin: 0;
                     padding: <?= $isPdf ? '0' : '28px' ?>;
                     background: <?= $isPdf ? '#ffffff' : '#f5f6f8' ?>;
-                    font-family: DejaVu Sans, Arial, sans-serif;
+                    font-family: TravelPdf, DejaVu Sans, sans-serif;
                     color: #1f2937;
                     font-size: 11px;
                     line-height: 1.35;
@@ -953,8 +953,6 @@ class BonoRenderer
                                     </tbody>
                                 </table>
 
-                                <div class="section-title">Included services</div>
-                                <div class="plain-box"><?= htmlspecialchars($this->getServiciosHotel($hotel)) ?></div>
                             </div>
                         <?php endforeach; ?>
 
