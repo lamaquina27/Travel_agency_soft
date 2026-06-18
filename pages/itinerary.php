@@ -30,10 +30,12 @@ if (!$programa_id) {
 
 // Contexto de subagencia: link público compartido por una subagencia.
 // Aplica su marca y precios (espeja la lógica de preview.php).
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $is_sub = isset($_GET['sub']) && $_GET['sub'] == '1'
-       && isset($_SESSION['subagencia_context'])
-       && (int)($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int)$programa_id;
+    && isset($_SESSION['subagencia_context'])
+    && (int) ($_SESSION['subagencia_context']['solicitud_id'] ?? 0) === (int) $programa_id;
 
 try {
     ConfigManager::init();
@@ -255,49 +257,49 @@ try {
     );
 
     // Override de precios/marca por subagencia (si se entra por su link público)
-    $sub_config  = null;
+    $sub_config = null;
     $sub_precios = null;
     if ($is_sub) {
         $subCtx = $_SESSION['subagencia_context'];
         $sub_config = $db->fetch(
             "SELECT nombre, logo_url, primary_color, secondary_color, divisa
              FROM config_sub_agencias WHERE user_id = ?",
-            [(int)$subCtx['user_id']]
+            [(int) $subCtx['user_id']]
         );
         $sub_precios = $db->fetch(
             "SELECT * FROM subagencia_tour_precios WHERE user_id = ? AND solicitud_id = ?",
-            [(int)$subCtx['user_id'], (int)$programa_id]
+            [(int) $subCtx['user_id'], (int) $programa_id]
         );
         if ($sub_precios) {
             $precios = array_merge($precios ?? [], [
-                'precio_adulto'           => $sub_precios['precio_adulto'],
-                'precio_nino'             => $sub_precios['precio_nino'],
-                'cantidad_adultos'        => $sub_precios['cantidad_adultos'],
-                'cantidad_ninos'          => $sub_precios['cantidad_ninos'],
-                'precio_total'            => $sub_precios['precio_total'],
-                'noches_incluidas'        => $sub_precios['noches_incluidas'],
-                'moneda'                  => $sub_config['divisa'] ?? ($precios['moneda'] ?? ''),
-                'precio_incluye'          => $sub_precios['precio_incluye'],
-                'precio_no_incluye'       => $sub_precios['precio_no_incluye'],
-                'condiciones_generales'   => $sub_precios['condiciones_generales'],
-                'movilidad_reducida'      => $sub_precios['movilidad_reducida'],
-                'info_pasaporte'          => $sub_precios['info_pasaporte'],
-                'info_seguros'            => $sub_precios['info_seguros'],
-                'visados_entrada'         => $sub_precios['visados_entrada'],
-                'requisitos_sanitarios'   => $sub_precios['requisitos_sanitarios'],
+                'precio_adulto' => $sub_precios['precio_adulto'],
+                'precio_nino' => $sub_precios['precio_nino'],
+                'cantidad_adultos' => $sub_precios['cantidad_adultos'],
+                'cantidad_ninos' => $sub_precios['cantidad_ninos'],
+                'precio_total' => $sub_precios['precio_total'],
+                'noches_incluidas' => $sub_precios['noches_incluidas'],
+                'moneda' => $sub_config['divisa'] ?? ($precios['moneda'] ?? ''),
+                'precio_incluye' => $sub_precios['precio_incluye'],
+                'precio_no_incluye' => $sub_precios['precio_no_incluye'],
+                'condiciones_generales' => $sub_precios['condiciones_generales'],
+                'movilidad_reducida' => $sub_precios['movilidad_reducida'],
+                'info_pasaporte' => $sub_precios['info_pasaporte'],
+                'info_seguros' => $sub_precios['info_seguros'],
+                'visados_entrada' => $sub_precios['visados_entrada'],
+                'requisitos_sanitarios' => $sub_precios['requisitos_sanitarios'],
                 'llegada_punto_encuentro' => $sub_precios['llegada_punto_encuentro'],
-                'asistencia_emergencia'   => $sub_precios['asistencia_emergencia'],
-                'info_hoteles_servicios'  => $sub_precios['info_hoteles_servicios'],
-                'informacion_practica'    => $sub_precios['informacion_practica'],
+                'asistencia_emergencia' => $sub_precios['asistencia_emergencia'],
+                'info_hoteles_servicios' => $sub_precios['info_hoteles_servicios'],
+                'informacion_practica' => $sub_precios['informacion_practica'],
                 // La subagencia decide de forma independiente; si no eligió (NULL/columna ausente)
                 // hereda el ajuste del tour principal (que ya está en $precios['mostrar_precio']).
-                'mostrar_precio'          => (!array_key_exists('mostrar_precio', $sub_precios) || $sub_precios['mostrar_precio'] === null)
+                'mostrar_precio' => (!array_key_exists('mostrar_precio', $sub_precios) || $sub_precios['mostrar_precio'] === null)
                     ? ($precios['mostrar_precio'] ?? 1)
                     : (int) $sub_precios['mostrar_precio'],
             ]);
             // Nombre del cliente personalizado por la subagencia
             if (!empty($sub_precios['nombre_cliente'])) {
-                $programa['nombre']   = $sub_precios['nombre_cliente'];
+                $programa['nombre'] = $sub_precios['nombre_cliente'];
                 $programa['apellido'] = '';
             }
         }
@@ -474,14 +476,15 @@ $num_noches = max(0, $num_dias - 1);
 $duracion_dias = $num_noches; // alias para compatibilidad con resto del archivo
 
 $imagen_portada = $_foto_raw ?: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&h=600&fit=crop';
-$num_pasajeros = (int)($programa['cantidad_adultos'] ?? 0) + (int)($programa['cantidad_ninos'] ?? 0);
+$num_pasajeros = (int) ($programa['cantidad_adultos'] ?? 0) + (int) ($programa['cantidad_ninos'] ?? 0);
 if ($num_pasajeros <= 0) {
-    $num_pasajeros = (int)($programa['viajeros_count'] ?? 0);
+    $num_pasajeros = (int) ($programa['viajeros_count'] ?? 0);
 }
 if ($num_pasajeros <= 0) {
-    $num_pasajeros = (int)($programa['numero_pasajeros'] ?? 1);
+    $num_pasajeros = (int) ($programa['numero_pasajeros'] ?? 1);
 }
-if ($num_pasajeros <= 0) $num_pasajeros = 1;
+if ($num_pasajeros <= 0)
+    $num_pasajeros = 1;
 
 
 // Paleta configurada por el usuario / agencia.
@@ -530,11 +533,13 @@ try {
     $agenciaBrand = null;
 }
 if ($agenciaBrand) {
-    if (!empty($agenciaBrand['nombre'])) { $company_name = $agenciaBrand['nombre']; }
+    if (!empty($agenciaBrand['nombre'])) {
+        $company_name = $agenciaBrand['nombre'];
+    }
     $agPrim = $agenciaBrand['agent_primary_color'] ?: ($agenciaBrand['admin_primary_color'] ?? '');
-    $agSec  = $agenciaBrand['agent_secondary_color'] ?: ($agenciaBrand['admin_secondary_color'] ?? '');
+    $agSec = $agenciaBrand['agent_secondary_color'] ?: ($agenciaBrand['admin_secondary_color'] ?? '');
     if (!empty($agPrim)) {
-        $brand_primary   = ts_safe_hex_color($agPrim, $brand_primary);
+        $brand_primary = ts_safe_hex_color($agPrim, $brand_primary);
         $brand_secondary = ts_safe_hex_color($agSec, $brand_primary);
     }
 }
@@ -545,7 +550,7 @@ if (!empty($is_sub) && !empty($sub_config)) {
         $company_name = $sub_config['nombre'];
     }
     if (!empty($sub_config['primary_color'])) {
-        $brand_primary   = ts_safe_hex_color($sub_config['primary_color'], $brand_primary);
+        $brand_primary = ts_safe_hex_color($sub_config['primary_color'], $brand_primary);
         $brand_secondary = ts_safe_hex_color($sub_config['secondary_color'] ?? '', $brand_primary);
     }
 }
@@ -1065,7 +1070,7 @@ if ($programa['fecha_llegada']) {
         .adj-card-name {
             font-weight: 600;
             font-size: 15px;
-            white-space: nowrap;
+            white-space: wrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -1073,6 +1078,9 @@ if ($programa['fecha_llegada']) {
         .adj-card-meta {
             font-size: 13px;
             color: var(--brand-muted);
+            white-space: wrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .adj-card-action {
@@ -5604,7 +5612,7 @@ if ($programa['fecha_llegada']) {
         <!-- Adjuntos: archivos y enlaces -->
         <?php if (!empty($adjuntos) || !empty($programa_id)):
             $adj_limite = 6; // a partir de aquí se ocultan tras "Ver más"
-        ?>
+            ?>
             <section id="adjuntos" class="section">
                 <div class="section-header">
                     <h2 class="section-title">Documentos y enlaces</h2>
@@ -5647,9 +5655,9 @@ if ($programa['fecha_llegada']) {
                         }
                         $nombre = $titulo !== '' ? $titulo : $nombreReal;
                         $oculto = $i >= $adj_limite ? ' adj-hidden' : '';
-                    ?>
-                        <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener"
-                           class="adj-card<?= $oculto ?>"<?= $es_enlace ? '' : ' download' ?>>
+                        ?>
+                        <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener" class="adj-card<?= $oculto ?>"
+                            <?= $es_enlace ? '' : ' download' ?>>
                             <div class="adj-card-icon <?= $es_enlace ? 'adj-link' : 'adj-file' ?>">
                                 <i class="fas <?= $icono ?>"></i>
                             </div>
@@ -5819,15 +5827,13 @@ if ($programa['fecha_llegada']) {
                                     <?php endif; ?>
 
                                     <?php if ($dia['imagen2']): ?>
-                                        <div class="day-image lazy-bg"
-                                            data-bg="<?= htmlspecialchars($dia['imagen2']) ?>"
+                                        <div class="day-image lazy-bg" data-bg="<?= htmlspecialchars($dia['imagen2']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 1, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                         </div>
                                     <?php endif; ?>
 
                                     <?php if ($dia['imagen3']): ?>
-                                        <div class="day-image lazy-bg"
-                                            data-bg="<?= htmlspecialchars($dia['imagen3']) ?>"
+                                        <div class="day-image lazy-bg" data-bg="<?= htmlspecialchars($dia['imagen3']) ?>"
                                             onclick="openGalleryModal(<?= htmlspecialchars(json_encode($imagenes_dia)) ?>, 2, '<?= htmlspecialchars($dia['titulo']) ?>')">
                                         </div>
                                     <?php endif; ?>
@@ -6166,14 +6172,23 @@ if ($programa['fecha_llegada']) {
                                                             $hsOpciones[] = $hsCard($hsAlt, false);
                                                         }
                                                         $hsHaySel = false;
-                                                        foreach ($hsOpciones as $o) { if ($o['sel']) { $hsHaySel = true; break; } }
                                                         foreach ($hsOpciones as $o) {
-                                                            if ($o['sel'] || (!$hsHaySel && $o['principal'])) { $hotelSeleccionDelta += (float) $o['delta']; break; }
+                                                            if ($o['sel']) {
+                                                                $hsHaySel = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        foreach ($hsOpciones as $o) {
+                                                            if ($o['sel'] || (!$hsHaySel && $o['principal'])) {
+                                                                $hotelSeleccionDelta += (float) $o['delta'];
+                                                                break;
+                                                            }
                                                         }
                                                         $hsMoneda = $precios['moneda'] ?? '';
                                                         ?>
                                                         <div class="hotel-selector" data-grupo="<?= (int) $servicio['id'] ?>">
-                                                            <div class="hotel-selector-title"><i class="fas fa-hotel"></i> Elige tu alojamiento</div>
+                                                            <div class="hotel-selector-title"><i class="fas fa-hotel"></i> Elige tu
+                                                                alojamiento</div>
                                                             <?php foreach ($hsOpciones as $o):
                                                                 $checked = $o['sel'] || (!$hsHaySel && $o['principal']);
                                                                 $d = (float) $o['delta'];
@@ -6182,22 +6197,33 @@ if ($programa['fecha_llegada']) {
                                                                         : 'Sin coste adicional');
                                                                 ?>
                                                                 <label class="hotel-option<?= $checked ? ' selected' : '' ?>">
-                                                                    <input type="radio" name="hotel-<?= (int) $servicio['id'] ?>" value="<?= (int) $o['id'] ?>"
-                                                                        data-grupo="<?= (int) $servicio['id'] ?>" data-delta="<?= htmlspecialchars((string) $d) ?>"
-                                                                        <?= $checked ? 'checked' : '' ?> <?= $vendido ? 'disabled' : '' ?>
+                                                                    <input type="radio" name="hotel-<?= (int) $servicio['id'] ?>"
+                                                                        value="<?= (int) $o['id'] ?>" data-grupo="<?= (int) $servicio['id'] ?>"
+                                                                        data-delta="<?= htmlspecialchars((string) $d) ?>" <?= $checked ? 'checked' : '' ?>                         <?= $vendido ? 'disabled' : '' ?>
                                                                         onchange="seleccionarHotel(this)">
                                                                     <?php if (!empty($o['img'])): ?>
-                                                                        <span class="hotel-option-media"><img src="<?= htmlspecialchars($o['img']) ?>" alt="<?= htmlspecialchars($o['nombre']) ?>" loading="lazy"></span>
+                                                                        <span class="hotel-option-media"><img
+                                                                                src="<?= htmlspecialchars($o['img']) ?>"
+                                                                                alt="<?= htmlspecialchars($o['nombre']) ?>" loading="lazy"></span>
                                                                     <?php endif; ?>
                                                                     <span class="hotel-option-info">
-                                                                        <span class="hotel-option-name"><?= htmlspecialchars($o['nombre']) ?><?= $o['principal'] ? ' <em>(incluido)</em>' : '' ?></span>
-                                                                        <?php if (!empty($o['ubicacion'])): ?><span class="hotel-option-loc"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($o['ubicacion']) ?></span><?php endif; ?>
-                                                                        <?php if (!empty($o['acomodacion'])): ?><span class="hotel-option-room"><i class="fas fa-bed"></i> <?= htmlspecialchars($o['acomodacion']) ?><?= !empty($o['capacidad']) ? ' · ' . (int) $o['capacidad'] . ' pax' : '' ?></span><?php endif; ?>
+                                                                        <span
+                                                                            class="hotel-option-name"><?= htmlspecialchars($o['nombre']) ?><?= $o['principal'] ? ' <em>(incluido)</em>' : '' ?></span>
+                                                                        <?php if (!empty($o['ubicacion'])): ?><span class="hotel-option-loc"><i
+                                                                                    class="fas fa-map-marker-alt"></i>
+                                                                                <?= htmlspecialchars($o['ubicacion']) ?></span><?php endif; ?>
+                                                                        <?php if (!empty($o['acomodacion'])): ?><span
+                                                                                class="hotel-option-room"><i class="fas fa-bed"></i>
+                                                                                <?= htmlspecialchars($o['acomodacion']) ?>
+                                                                                <?= !empty($o['capacidad']) ? ' · ' . (int) $o['capacidad'] . ' pax' : '' ?></span><?php endif; ?>
                                                                     </span>
-                                                                    <span class="hotel-option-delta <?= $d > 0 ? 'pos' : ($d < 0 ? 'neg' : 'zero') ?>"><?= $deltaLabel ?></span>
+                                                                    <span
+                                                                        class="hotel-option-delta <?= $d > 0 ? 'pos' : ($d < 0 ? 'neg' : 'zero') ?>"><?= $deltaLabel ?></span>
                                                                 </label>
                                                             <?php endforeach; ?>
-                                                            <?php if ($vendido): ?><div class="hotel-locked"><i class="fas fa-lock"></i> Selección confirmada</div><?php endif; ?>
+                                                            <?php if ($vendido): ?>
+                                                                <div class="hotel-locked"><i class="fas fa-lock"></i> Selección confirmada</div>
+                                                            <?php endif; ?>
                                                         </div>
                                                     <?php endif; ?>
 
@@ -6369,9 +6395,16 @@ if ($programa['fecha_llegada']) {
                                 <div class="price-total-section">
                                     <div class="total-divider"></div>
                                     <!-- Desglose: solo visible cuando el cliente eligió un hotel con variación -->
-                                    <div class="price-breakdown" id="priceBreakdown" data-moneda="<?= htmlspecialchars($precios['moneda']) ?>" style="<?= abs($hotelSeleccionDelta) > 0.001 ? '' : 'display:none;' ?>margin-bottom:6px;font-size:.9rem;color:#475569;">
-                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Precio base</span><span><?= htmlspecialchars($precios['moneda']) ?> <?= number_format($precios['precio_total'], 0, ',', '.') ?></span></div>
-                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Ajuste por hotel elegido</span><span id="priceAdjustValue" style="font-weight:700;"><?= ($hotelSeleccionDelta >= 0 ? '+ ' : '− ') . htmlspecialchars($precios['moneda']) . ' ' . number_format(abs($hotelSeleccionDelta), 0, ',', '.') ?></span></div>
+                                    <div class="price-breakdown" id="priceBreakdown"
+                                        data-moneda="<?= htmlspecialchars($precios['moneda']) ?>"
+                                        style="<?= abs($hotelSeleccionDelta) > 0.001 ? '' : 'display:none;' ?>margin-bottom:6px;font-size:.9rem;color:#475569;">
+                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Precio
+                                                base</span><span><?= htmlspecialchars($precios['moneda']) ?>
+                                                <?= number_format($precios['precio_total'], 0, ',', '.') ?></span></div>
+                                        <div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Ajuste por
+                                                hotel elegido</span><span id="priceAdjustValue"
+                                                style="font-weight:700;"><?= ($hotelSeleccionDelta >= 0 ? '+ ' : '− ') . htmlspecialchars($precios['moneda']) . ' ' . number_format(abs($hotelSeleccionDelta), 0, ',', '.') ?></span>
+                                        </div>
                                     </div>
                                     <div class="price-total">
                                         <span class="total-label">Precio Total</span>
@@ -6511,7 +6544,7 @@ if ($programa['fecha_llegada']) {
                         ['llegada_punto_encuentro', 'Llegada y punto de encuentro', 'fa-map-marker-alt', '#2980b9'],
                         ['asistencia_emergencia', 'Asistencia y emergencias', 'fa-headset', '#d35400'],
                         ['info_hoteles_servicios', 'Información de hoteles y servicios', 'fa-hotel', '#16a085'],
-                        ['informacion_practica', 'Información práctica', 'fa-circle-info', '#f39c12'],
+                        ['informacion_practica', 'Información de Viaje', 'fa-circle-info', '#f39c12'],
                     ];
                     foreach ($solapas_extra as $sx):
                         if (empty($precios[$sx[0]]))
@@ -7695,29 +7728,88 @@ if ($programa['fecha_llegada']) {
             transition: border-color .15s, box-shadow .15s;
         }
 
-        .hotel-option:last-of-type { margin-bottom: 0; }
+        .hotel-option:last-of-type {
+            margin-bottom: 0;
+        }
 
         .hotel-option.selected {
             border-color: var(--brand-primary);
             box-shadow: 0 0 0 3px rgba(var(--brand-rgb), .12);
         }
 
-        .hotel-option input[type=radio] { accent-color: var(--brand-primary); flex-shrink: 0; }
+        .hotel-option input[type=radio] {
+            accent-color: var(--brand-primary);
+            flex-shrink: 0;
+        }
 
         /* Tarjeta tipo Evaneos: cada hotel con su foto e info */
-        .hotel-option-media { flex-shrink: 0; }
-        .hotel-option-media img { width: 92px; height: 66px; object-fit: cover; border-radius: 9px; display: block; }
-        .hotel-option-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-        .hotel-option-loc, .hotel-option-room { font-size: .8rem; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 6px; }
-        .hotel-option-loc i, .hotel-option-room i { color: var(--brand-primary); font-size: .72rem; flex-shrink: 0; }
+        .hotel-option-media {
+            flex-shrink: 0;
+        }
 
-        .hotel-option-name { font-weight: 700; font-size: .92rem; }
-        .hotel-option-name em { color: #94a3b8; font-style: normal; font-weight: 500; font-size: .82rem; }
+        .hotel-option-media img {
+            width: 92px;
+            height: 66px;
+            object-fit: cover;
+            border-radius: 9px;
+            display: block;
+        }
 
-        .hotel-option-delta { font-weight: 800; font-size: .9rem; white-space: nowrap; }
-        .hotel-option-delta.pos { color: #b45309; }
-        .hotel-option-delta.neg { color: #15803d; }
-        .hotel-option-delta.zero { color: #94a3b8; font-weight: 600; }
+        .hotel-option-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .hotel-option-loc,
+        .hotel-option-room {
+            font-size: .8rem;
+            color: #64748b;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hotel-option-loc i,
+        .hotel-option-room i {
+            color: var(--brand-primary);
+            font-size: .72rem;
+            flex-shrink: 0;
+        }
+
+        .hotel-option-name {
+            font-weight: 700;
+            font-size: .92rem;
+        }
+
+        .hotel-option-name em {
+            color: #94a3b8;
+            font-style: normal;
+            font-weight: 500;
+            font-size: .82rem;
+        }
+
+        .hotel-option-delta {
+            font-weight: 800;
+            font-size: .9rem;
+            white-space: nowrap;
+        }
+
+        .hotel-option-delta.pos {
+            color: #b45309;
+        }
+
+        .hotel-option-delta.neg {
+            color: #15803d;
+        }
+
+        .hotel-option-delta.zero {
+            color: #94a3b8;
+            font-weight: 600;
+        }
 
         .hotel-locked {
             margin-top: 8px;
@@ -7773,7 +7865,9 @@ if ($programa['fecha_llegada']) {
     <!-- Carga diferida de imágenes de día (background): solo cargan al acercarse al viewport.
          En hosts lentos con muchas imágenes, evita que la página "cargue eternamente". -->
     <style>
-        .lazy-bg[data-bg] { background-color: #e6e8ec; }
+        .lazy-bg[data-bg] {
+            background-color: #e6e8ec;
+        }
     </style>
     <script>
         (function () {

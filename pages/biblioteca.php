@@ -2450,8 +2450,8 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             const filtersSection = document.querySelector('.filters-section');
 
             // Ocultar filtros y empty state
-            if (filtersSection) filtersSection.style.display = 'none';
-            if (emptyState) emptyState.style.display = 'none';
+            if (filtersSection) filtersSection.style.setProperty('display', 'none', 'important');
+            if (emptyState) emptyState.style.display = 'none !important';
 
             try {
                 // Mostrar loading
@@ -2649,7 +2649,161 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     </small>
                 </div>
                 
+
+                
+
+
                 <!-- Botón Guardar -->
+                <!-- Campo: Visados y requisitos de entrada -->
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
+                        <span style="font-size: 18px;"></span>
+                        Visados y requisitos de entrada
+                    </label>
+                    <div style="position: relative;">
+                        <textarea
+                            name="visados_entrada"
+                            class="form-control plantilla-textarea"
+                            rows="6"
+                            maxlength="3000"
+                            data-counter="counter-6"
+                            placeholder="Documentación y trámites de entrada al país..."
+                            style="width: 100%; padding: 16px 20px; padding-bottom: 45px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: vertical; font-size: 14px; line-height: 1.6; background: #fafbfc; transition: all 0.3s ease;"
+                        >${data?.visados_entrada || ''}</textarea>
+                        <div id="counter-6" style="position: absolute; bottom: 14px; right: 18px; font-size: 11px; color: #a0aec0; font-weight: 500;">
+                            ${data?.visados_entrada?.length || 0}/3000
+                        </div>
+                    </div>
+                    <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
+                         Documentación y trámites de entrada al país
+                    </small>
+                </div>
+
+                <!-- Campo: Requisitos sanitarios -->
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
+                        <span style="font-size: 18px;"></span>
+                        Requisitos sanitarios
+                    </label>
+                    <div style="position: relative;">
+                        <textarea
+                            name="requisitos_sanitarios"
+                            class="form-control plantilla-textarea"
+                            rows="6"
+                            maxlength="3000"
+                            data-counter="counter-7"
+                            placeholder="Vacunas, certificados sanitarios..."
+                            style="width: 100%; padding: 16px 20px; padding-bottom: 45px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: vertical; font-size: 14px; line-height: 1.6; background: #fafbfc; transition: all 0.3s ease;"
+                        >${data?.requisitos_sanitarios || ''}</textarea>
+                        <div id="counter-7" style="position: absolute; bottom: 14px; right: 18px; font-size: 11px; color: #a0aec0; font-weight: 500;">
+                            ${data?.requisitos_sanitarios?.length || 0}/3000
+                        </div>
+                    </div>
+                    <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
+                         Vacunas y certificados sanitarios exigidos
+                    </small>
+                </div>
+
+                <!-- Campo: Llegada y punto de encuentro -->
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
+                        <span style="font-size: 18px;"></span>
+                        Llegada y punto de encuentro
+                    </label>
+                    <div style="position: relative;">
+                        <textarea
+                            name="llegada_punto_encuentro"
+                            class="form-control plantilla-textarea"
+                            rows="6"
+                            maxlength="3000"
+                            data-counter="counter-8"
+                            placeholder="Dónde y cómo es el encuentro a la llegada..."
+                            style="width: 100%; padding: 16px 20px; padding-bottom: 45px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: vertical; font-size: 14px; line-height: 1.6; background: #fafbfc; transition: all 0.3s ease;"
+                        >${data?.llegada_punto_encuentro || ''}</textarea>
+                        <div id="counter-8" style="position: absolute; bottom: 14px; right: 18px; font-size: 11px; color: #a0aec0; font-weight: 500;">
+                            ${data?.llegada_punto_encuentro?.length || 0}/3000
+                        </div>
+                    </div>
+                    <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
+                         Dónde y cómo es el encuentro a la llegada
+                    </small>
+                </div>
+
+                <!-- Campo: Asistencia y emergencias -->
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
+                        <span style="font-size: 18px;"></span>
+                        Asistencia y emergencias
+                    </label>
+                    <div style="position: relative;">
+                        <textarea
+                            name="asistencia_emergencia"
+                            class="form-control plantilla-textarea"
+                            rows="6"
+                            maxlength="3000"
+                            data-counter="counter-9"
+                            placeholder="Contactos y protocolo de emergencias..."
+                            style="width: 100%; padding: 16px 20px; padding-bottom: 45px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: vertical; font-size: 14px; line-height: 1.6; background: #fafbfc; transition: all 0.3s ease;"
+                        >${data?.asistencia_emergencia || ''}</textarea>
+                        <div id="counter-9" style="position: absolute; bottom: 14px; right: 18px; font-size: 11px; color: #a0aec0; font-weight: 500;">
+                            ${data?.asistencia_emergencia?.length || 0}/3000
+                        </div>
+                    </div>
+                    <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
+                         Contactos y protocolo de emergencias
+                    </small>
+                </div>
+
+                <!-- Campo: Información de hoteles y servicios -->
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
+                        <span style="font-size: 18px;"></span>
+                        Información de hoteles y servicios
+                    </label>
+                    <div style="position: relative;">
+                        <textarea
+                            name="info_hoteles_servicios"
+                            class="form-control plantilla-textarea"
+                            rows="6"
+                            maxlength="3000"
+                            data-counter="counter-10"
+                            placeholder="Datos de hoteles y servicios incluidos..."
+                            style="width: 100%; padding: 16px 20px; padding-bottom: 45px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: vertical; font-size: 14px; line-height: 1.6; background: #fafbfc; transition: all 0.3s ease;"
+                        >${data?.info_hoteles_servicios || ''}</textarea>
+                        <div id="counter-10" style="position: absolute; bottom: 14px; right: 18px; font-size: 11px; color: #a0aec0; font-weight: 500;">
+                            ${data?.info_hoteles_servicios?.length || 0}/3000
+                        </div>
+                    </div>
+                    <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
+                         Datos de hoteles y servicios incluidos
+                    </small>
+                </div>
+
+                <!-- Campo: Información de Viaje -->
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #2d3748; font-size: 15px;">
+                        <span style="font-size: 18px;"></span>
+                        Información de Viaje
+                    </label>
+                    <div style="position: relative;">
+                        <textarea
+                            name="informacion_practica"
+                            class="form-control plantilla-textarea"
+                            rows="6"
+                            maxlength="3000"
+                            data-counter="counter-11"
+                            placeholder="Moneda, clima, enchufes, recomendaciones..."
+                            style="width: 100%; padding: 16px 20px; padding-bottom: 45px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: vertical; font-size: 14px; line-height: 1.6; background: #fafbfc; transition: all 0.3s ease;"
+                        >${data?.informacion_practica || ''}</textarea>
+                        <div id="counter-11" style="position: absolute; bottom: 14px; right: 18px; font-size: 11px; color: #a0aec0; font-weight: 500;">
+                            ${data?.informacion_practica?.length || 0}/3000
+                        </div>
+                    </div>
+                    <small style="color: #718096; font-size: 12px; display: block; margin-top: 8px; padding-left: 4px;">
+                         Moneda, clima, enchufes y recomendaciones prácticas
+                    </small>
+                </div>
+
                 <div style="text-align: center; padding-top: 25px; border-top: 1px solid #e2e8f0; margin-top: 15px;">
                     <button type="submit" class="btn-primary" style="
                         padding: 16px 50px; 
@@ -3668,7 +3822,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                     // **AGREGAR ESTO:**
                     // Ocultar filtros si es plantilla-precios
                     if (currentTab === 'plantilla-precios') {
-                        filtersSection.style.display = 'none';
+                        filtersSection.style.setProperty('display', 'none', 'important')
                     } else {
                         filtersSection.style.display = 'flex';
                     }
@@ -5017,9 +5171,11 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
             });
         }
+        // Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y minúsculas.
+        function normalizar(s) { return (s == null ? '' : String(s)).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
 
         function filtrarRecursos() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const searchTerm = normalizar(document.getElementById('searchInput').value.toLowerCase().trim());
             const languageFilter = document.getElementById('languageFilter').value;
             const grid = document.getElementById('contentGrid');
             const emptyState = document.getElementById('emptyState');
@@ -5032,17 +5188,17 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
             // Filtrar datos existentes
             let filtered = resources[currentTab];
+            const search_term = searchTerm.split(" ").filter(term => term !== '');
 
             // Filtrar por búsqueda
             if (searchTerm) {
                 filtered = filtered.filter(item => {
-                    return (item.titulo && item.titulo.toLowerCase().includes(searchTerm)) ||
-                        (item.nombre && item.nombre.toLowerCase().includes(searchTerm)) ||
-                        (item.descripcion && item.descripcion.toLowerCase().includes(searchTerm)) ||
-                        (item.ubicacion && item.ubicacion.toLowerCase().includes(searchTerm)) ||
-                        (item.lugar_salida && item.lugar_salida.toLowerCase().includes(searchTerm)) ||
-                        (item.lugar_llegada && item.lugar_llegada.toLowerCase().includes(searchTerm)) ||
-                        (item.medio && item.medio.toLowerCase().includes(searchTerm));
+                    const searchFields = [item.titulo, item.nombre, item.descripcion, item.ubicacion, item.lugar_salida, item.lugar_llegada, item.medio]
+                    return search_term.every(term =>
+                        searchFields.some(field =>
+                            field && normalizar(field).includes(term)
+                        )
+                    );
                 });
             }
 

@@ -1523,25 +1523,127 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
 
         /* ── Lead vinculado (editor) ── */
-        .lead-vinculo-box { font-size: 14px; }
-        .lead-vinculo-box .lv-empty { color: #94a3b8; }
-        .lv-linked { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: #f8fafc; border: 1px solid #e8edf2; border-radius: 12px; padding: 12px 14px; }
-        .lv-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 160px; }
-        .lv-info strong { color: #0f172a; font-size: 15px; }
-        .lv-info span { color: #64748b; font-size: 13px; }
-        .lv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .lv-btn { height: 36px; padding: 0 14px; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
-        .lv-btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
-        .lv-btn-ghost { background: #eef2f7; color: #475569; }
-        .lv-btn-ghost:hover { background: #e2e8f0; }
-        .lv-picker { margin-top: 10px; }
-        .lv-search { width: 100%; height: 40px; border: 1px solid #cbd5e1; border-radius: 9px; padding: 0 12px; font-size: 14px; }
-        .lv-results { margin-top: 8px; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .lv-result { text-align: left; background: #fff; border: 1px solid #e8edf2; border-radius: 9px; padding: 9px 12px; cursor: pointer; }
-        .lv-result:hover { border-color: #8b5cf6; background: #faf9ff; }
-        .lv-result strong { display: block; font-size: 14px; color: #0f172a; }
-        .lv-result span { font-size: 12.5px; color: #64748b; }
-        .lv-result.linked { opacity: .55; cursor: default; }
+        .lead-vinculo-box {
+            font-size: 14px;
+        }
+
+        .lead-vinculo-box .lv-empty {
+            color: #94a3b8;
+        }
+
+        .lv-linked {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            background: #f8fafc;
+            border: 1px solid #e8edf2;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .lv-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .lv-info strong {
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .lv-info span {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .lv-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .lv-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: none;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .lv-btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+        }
+
+        .lv-btn-ghost {
+            background: #eef2f7;
+            color: #475569;
+        }
+
+        .lv-btn-ghost:hover {
+            background: #e2e8f0;
+        }
+
+        .lv-picker {
+            margin-top: 10px;
+        }
+
+        .lv-search {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 0 12px;
+            font-size: 14px;
+        }
+
+        .lv-results {
+            margin-top: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .lv-result {
+            text-align: left;
+            background: #fff;
+            border: 1px solid #e8edf2;
+            border-radius: 9px;
+            padding: 9px 12px;
+            cursor: pointer;
+        }
+
+        .lv-result:hover {
+            border-color: #8b5cf6;
+            background: #faf9ff;
+        }
+
+        .lv-result strong {
+            display: block;
+            font-size: 14px;
+            color: #0f172a;
+        }
+
+        .lv-result span {
+            font-size: 12.5px;
+            color: #64748b;
+        }
+
+        .lv-result.linked {
+            opacity: .55;
+            cursor: default;
+        }
 
         .form-label {
             display: block;
@@ -2938,9 +3040,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         /* Google Translate inyecta un banner superior y empuja el <body> hacia abajo
            (body { top: 40px }), descuadrando toda la maqueta. Neutralizamos ese efecto:
            ocultamos el iframe del banner y forzamos el body a su posición original. */
-        body { top: 0 !important; }
+        body {
+            top: 0 !important;
+        }
+
         iframe.goog-te-banner-frame,
-        iframe.skiptranslate { display: none !important; }
+        iframe.skiptranslate {
+            display: none !important;
+        }
 
         /* Caja del widget */
         #google_translate_element {
@@ -5987,7 +6094,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                         ['llegada_punto_encuentro', 'Llegada y punto de encuentro', 'Dónde y cómo es el encuentro a la llegada...'],
                                         ['asistencia_emergencia', 'Asistencia y emergencias', 'Contactos y protocolo de emergencias...'],
                                         ['info_hoteles_servicios', 'Información de hoteles y servicios', 'Datos de hoteles y servicios incluidos...'],
-                                        ['informacion_practica', 'Información práctica', 'Moneda, clima, enchufes, recomendaciones...'],
+                                        ['informacion_practica', 'Información de Viaje', 'Moneda, clima, enchufes, recomendaciones...'],
                                     ] as $sf): ?>
                                         <div class="form-group">
                                             <label class="form-label"><?= $sf[1] ?></label>
@@ -6100,14 +6207,15 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                                 accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,application/pdf,image/jpeg,image/png,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <span class="adj-dz-title">Arrastra tus archivos aquí</span>
-                            <span class="adj-dz-sub">o haz clic para buscar · PDF, JPG, PNG, WebP, Word (.doc/.docx), Excel (.xls/.xlsx) · máx. 10 MB</span>
+                            <span class="adj-dz-sub">o haz clic para buscar · PDF, JPG, PNG, WebP, Word (.doc/.docx),
+                                Excel (.xls/.xlsx) · máx. 10 MB</span>
                         </label>
 
                         <!-- Enlace: pegar + Enter / botón -->
                         <div class="adj-link-box">
                             <span class="adj-link-label"><i class="fas fa-link"></i> Añadir un enlace</span>
-                            <input type="text" id="adj-link-titulo" class="form-control adj-link-input"
-                                maxlength="255" placeholder="Título (opcional)" style="margin-bottom:8px;">
+                            <input type="text" id="adj-link-titulo" class="form-control adj-link-input" maxlength="255"
+                                placeholder="Título (opcional)" style="margin-bottom:8px;">
                             <div class="adj-link-row">
                                 <input type="url" id="adj-link-input" class="form-control adj-link-input"
                                     placeholder="https://… y presiona Enter">
@@ -6144,12 +6252,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                     <button type="button" class="modal-close" onclick="cerrarModalSubagencias()">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Marca las subagencias que pueden revender este tour. Cada una lo verá en su panel con sus propios precios y marca.</p>
+                    <p style="font-size:13px;color:#64748b;margin:0 0 14px;">Marca las subagencias que pueden revender
+                        este tour. Cada una lo verá en su panel con sus propios precios y marca.</p>
                     <div id="subagChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="cerrarModalSubagencias()">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="guardarSubagencias()"><i class="fas fa-save"></i> Guardar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarSubagencias()"><i
+                            class="fas fa-save"></i> Guardar</button>
                 </div>
             </div>
         </div>
@@ -8467,7 +8577,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             }
 
             // Normaliza texto para búsquedas flexibles: quita acentos/diacríticos y minúsculas.
-            function normalizarBusqueda(s){ return (s==null?'':String(s)).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+            function normalizarBusqueda(s) { return (s == null ? '' : String(s)).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
 
             function calcularTipoPorEdad(fechaNacimiento) {
                 if (!fechaNacimiento) return 'Edad no definida';
