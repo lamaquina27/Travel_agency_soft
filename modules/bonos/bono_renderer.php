@@ -17,8 +17,8 @@ class BonoRenderer
     {
         $this->db = Database::getInstance();
         $this->programaId = $programaId;
-        $this->agenciaId = (int)($_SESSION['agencia_id'] ?? 0);
-        $this->userId = (int)($_SESSION['user_id'] ?? 0);
+        $this->agenciaId = (int) ($_SESSION['agencia_id'] ?? 0);
+        $this->userId = (int) ($_SESSION['user_id'] ?? 0);
         $this->hotelsPerPage = max(1, min(4, $hotelsPerPage));
 
         if (!$this->agenciaId || !$this->userId) {
@@ -74,9 +74,9 @@ class BonoRenderer
         $mapaFechas = [];
         foreach ($dias as $dia) {
             $checkin = $dia['fecha_calculada'];
-            $noches = (int)($dia['duracion_estancia'] ?? 1);
+            $noches = (int) ($dia['duracion_estancia'] ?? 1);
 
-            $mapaFechas[(int)$dia['dia_numero']] = [
+            $mapaFechas[(int) $dia['dia_numero']] = [
                 'checkin' => $checkin,
                 'checkout' => date('Y-m-d', strtotime($checkin . " +{$noches} days")),
                 'noches' => $noches
@@ -117,23 +117,31 @@ class BonoRenderer
         $grupos = [];
         foreach ($hotelesRaw as $row) {
             $gid = !empty($row['es_alternativa']) ? (int) $row['servicio_principal_id'] : (int) $row['servicio_id'];
-            if (!isset($grupos[$gid])) { $grupos[$gid] = ['principal' => null, 'elegida' => null]; }
-            if (empty($row['es_alternativa'])) { $grupos[$gid]['principal'] = $row; }
-            if ((int) ($row['seleccionado'] ?? 0) === 1) { $grupos[$gid]['elegida'] = $row; }
+            if (!isset($grupos[$gid])) {
+                $grupos[$gid] = ['principal' => null, 'elegida' => null];
+            }
+            if (empty($row['es_alternativa'])) {
+                $grupos[$gid]['principal'] = $row;
+            }
+            if ((int) ($row['seleccionado'] ?? 0) === 1) {
+                $grupos[$gid]['elegida'] = $row;
+            }
         }
         $hoteles = [];
         foreach ($grupos as $g) {
             $efectiva = $g['elegida'] ?: $g['principal'];
-            if ($efectiva) { $hoteles[] = $efectiva; }
+            if ($efectiva) {
+                $hoteles[] = $efectiva;
+            }
         }
         usort($hoteles, fn($a, $b) => (int) $a['dia_numero'] <=> (int) $b['dia_numero']);
 
         foreach ($hoteles as &$hotel) {
-            $fecha = $mapaFechas[(int)$hotel['dia_numero']] ?? null;
+            $fecha = $mapaFechas[(int) $hotel['dia_numero']] ?? null;
 
             $hotel['checkin'] = $fecha['checkin'] ?? null;
             $hotel['checkout'] = $fecha['checkout'] ?? null;
-            $hotel['noches'] = $fecha['noches'] ?? (int)($hotel['noches'] ?? 1);
+            $hotel['noches'] = $fecha['noches'] ?? (int) ($hotel['noches'] ?? 1);
         }
         unset($hotel);
 
@@ -142,7 +150,7 @@ class BonoRenderer
         // de la siguiente noche cae dentro/al final de la estancia anterior), aunque
         // en el listado haya varios hoteles intercalados por día.
         $agrupados = [];
-        $abiertos  = []; // identidad => índice del grupo "abierto" para esa identidad
+        $abiertos = []; // identidad => índice del grupo "abierto" para esa identidad
         foreach ($hoteles as $h) {
             $key = mb_strtolower(trim(
                 ($h['hotel_nombre'] ?? '') . '|' . ($h['ubicacion'] ?? '') . '|' .
@@ -234,7 +242,7 @@ class BonoRenderer
             '5' => 'Registro civil',
         ];
 
-        $key = (string)$tipo;
+        $key = (string) $tipo;
 
         return $map[$key] ?? 'Documento';
     }
@@ -277,15 +285,34 @@ class BonoRenderer
         $secondary = htmlspecialchars($agencia['secondary_color']);
         $logo = $this->resolveLogo($agencia['logo_url']);
         $file = $programa['id_solicitud'] ?: ('Programa #' . $programa['id']);
-
+        $rootPath = dirname(__DIR__, 2);
+        $fontRegular = $rootPath . '/assets/fonts/NotoSansThai-Regular.ttf';
+        $fontBold = $rootPath . '/assets/fonts/NotoSansThai-Bold.ttf';
         ob_start();
         ?>
         <!DOCTYPE html>
         <html lang="es">
+
         <head>
             <meta charset="UTF-8">
             <title>HOTEL RESERVATION VOUCHER</title>
             <style>
+                <?php if (is_file($fontRegular)): ?>
+                    @font-face {
+                        font-family: TravelPdf;
+                        src: url('file://<?= $fontRegular ?>') format('truetype');
+                        font-weight: 400;
+                    }
+
+                <?php endif; ?>
+                <?php if (is_file($fontBold)): ?>
+                    @font-face {
+                        font-family: TravelPdf;
+                        src: url('file://<?= $fontBold ?>') format('truetype');
+                        font-weight: 700;
+                    }
+
+                <?php endif; ?>
                 @page {
                     margin: 18mm 14mm 16mm 14mm;
                 }
@@ -296,8 +323,12 @@ class BonoRenderer
 
                 body {
                     margin: 0;
-                    padding: <?= $isPdf ? '0' : '28px' ?>;
-                    background: <?= $isPdf ? '#ffffff' : '#f5f6f8' ?>;
+                    padding:
+                        <?= $isPdf ? '0' : '28px' ?>
+                    ;
+                    background:
+                        <?= $isPdf ? '#ffffff' : '#f5f6f8' ?>
+                    ;
                     font-family: TravelPdf, DejaVu Sans, sans-serif;
                     color: #1f2937;
                     font-size: 11px;
@@ -314,7 +345,9 @@ class BonoRenderer
                     display: inline-block;
                     border-radius: 6px;
                     padding: 10px 14px;
-                    background: <?= $primary ?>;
+                    background:
+                        <?= $primary ?>
+                    ;
                     color: white;
                     text-decoration: none;
                     font-weight: 700;
@@ -338,7 +371,9 @@ class BonoRenderer
                 }
 
                 .document-header {
-                    border-top: 6px solid <?= $primary ?>;
+                    border-top: 6px solid
+                        <?= $primary ?>
+                    ;
                     border-bottom: 1px solid #d1d5db;
                     padding: 16px 0 14px;
                     margin-bottom: 14px;
@@ -412,7 +447,9 @@ class BonoRenderer
                 }
 
                 .hotel-block {
-                    border-top: 4px solid <?= $primary ?>;
+                    border-top: 4px solid
+                        <?= $primary ?>
+                    ;
                     padding-top: 9px;
                     margin-bottom: 8px;
                     <?= !$isPdf ? 'margin-top: 34px; padding-bottom: 28px; border-bottom: 1px solid #d1d5db;' : '' ?>
@@ -428,7 +465,9 @@ class BonoRenderer
                 }
 
                 .compact-page-header {
-                    border-top: 4px solid <?= $primary ?>;
+                    border-top: 4px solid
+                        <?= $primary ?>
+                    ;
                     border-bottom: 1px solid #d1d5db;
                     padding: 7px 0 8px;
                     margin-bottom: 8px;
@@ -456,7 +495,7 @@ class BonoRenderer
                     font-weight: 700;
                 }
 
-                
+
 
                 .hotel-header-table {
                     width: 100%;
@@ -484,7 +523,9 @@ class BonoRenderer
                 .hotel-number {
                     text-align: right;
                     font-size: 10px;
-                    color: <?= $primary ?>;
+                    color:
+                        <?= $primary ?>
+                    ;
                     font-weight: 800;
                     text-transform: uppercase;
                     white-space: nowrap;
@@ -521,7 +562,9 @@ class BonoRenderer
 
                 .section-title {
                     color: #111827;
-                    border-left: 4px solid <?= $primary ?>;
+                    border-left: 4px solid
+                        <?= $primary ?>
+                    ;
                     padding-left: 7px;
                     font-size: 10px;
                     font-weight: 800;
@@ -561,7 +604,9 @@ class BonoRenderer
 
                 .important-note {
                     border: 1px solid #d1d5db;
-                    border-left: 4px solid <?= $primary ?>;
+                    border-left: 4px solid
+                        <?= $primary ?>
+                    ;
                     padding: 8px 10px;
                     color: #374151;
                     background: #ffffff;
@@ -606,382 +651,396 @@ class BonoRenderer
                     }
                 }
 
-        
-            <?php if ($this->hotelsPerPage >= 3): ?>
-                @page {
-                    margin: 8mm 8mm 8mm 8mm;
-                }
 
-                body {
-                    font-size: 7.2px;
-                    line-height: 1.08;
-                }
+                <?php if ($this->hotelsPerPage >= 3): ?>
+                    @page {
+                        margin: 8mm 8mm 8mm 8mm;
+                    }
 
-                .document-header {
-                    padding: 5px 0 6px;
-                    margin-bottom: 6px;
-                    border-top-width: 4px;
-                }
+                    body {
+                        font-size: 7.2px;
+                        line-height: 1.08;
+                    }
 
-                .logo {
-                    max-width: 70px;
-                    max-height: 28px;
-                }
+                    .document-header {
+                        padding: 5px 0 6px;
+                        margin-bottom: 6px;
+                        border-top-width: 4px;
+                    }
 
-                .agency-name {
-                    font-size: 6.8px;
-                    margin-top: 3px;
-                }
+                    .logo {
+                        max-width: 70px;
+                        max-height: 28px;
+                    }
 
-                .doc-title {
-                    font-size: 14px;
-                }
+                    .agency-name {
+                        font-size: 6.8px;
+                        margin-top: 3px;
+                    }
 
-                .doc-subtitle {
-                    font-size: 7px;
-                    margin-top: 2px;
-                }
+                    .doc-title {
+                        font-size: 14px;
+                    }
 
-                .summary-table {
-                    margin-bottom: 6px;
-                }
+                    .doc-subtitle {
+                        font-size: 7px;
+                        margin-top: 2px;
+                    }
 
-                .summary-table td {
-                    padding: 3px 4px;
-                }
+                    .summary-table {
+                        margin-bottom: 6px;
+                    }
 
-                .hotel-block {
-                    border-top-width: 3px;
-                    padding-top: 5px;
-                    margin-bottom: 5px;
-                }
+                    .summary-table td {
+                        padding: 3px 4px;
+                    }
 
-                .hotel-header-table {
-                    margin-bottom: 4px;
-                }
+                    .hotel-block {
+                        border-top-width: 3px;
+                        padding-top: 5px;
+                        margin-bottom: 5px;
+                    }
 
-                .hotel-name {
-                    font-size: 9.5px;
-                    margin-bottom: 1px;
-                }
+                    .hotel-header-table {
+                        margin-bottom: 4px;
+                    }
 
-                .hotel-location {
-                    font-size: 6.3px;
-                    line-height: 1.05;
-                }
+                    .hotel-name {
+                        font-size: 9.5px;
+                        margin-bottom: 1px;
+                    }
 
-                .hotel-number {
-                    font-size: 6.5px;
-                }
+                    .hotel-location {
+                        font-size: 6.3px;
+                        line-height: 1.05;
+                    }
 
-                .stay-table {
-                    margin: 3px 0 4px;
-                }
+                    .hotel-number {
+                        font-size: 6.5px;
+                    }
 
-                .stay-table td {
-                    padding: 2px 3px;
-                }
+                    .stay-table {
+                        margin: 3px 0 4px;
+                    }
 
-                .label,
-                .cell-label {
-                    font-size: 5.8px;
-                    margin-bottom: 1px;
-                }
+                    .stay-table td {
+                        padding: 2px 3px;
+                    }
 
-                .value,
-                .cell-value {
-                    font-size: 6.8px;
-                }
+                    .label,
+                    .cell-label {
+                        font-size: 5.8px;
+                        margin-bottom: 1px;
+                    }
 
-                .section-title {
-                    font-size: 6.2px;
-                    margin: 3px 0 2px;
-                    padding-left: 4px;
-                    border-left-width: 2px;
-                }
+                    .value,
+                    .cell-value {
+                        font-size: 6.8px;
+                    }
 
-                .plain-box,
-                .important-note {
-                    font-size: 6.2px;
-                    padding: 2px 3px;
-                    line-height: 1.08;
-                }
+                    .section-title {
+                        font-size: 6.2px;
+                        margin: 3px 0 2px;
+                        padding-left: 4px;
+                        border-left-width: 2px;
+                    }
 
-                .guest-table {
-                    margin-top: 2px;
-                }
+                    .plain-box,
+                    .important-note {
+                        font-size: 6.2px;
+                        padding: 2px 3px;
+                        line-height: 1.08;
+                    }
 
-                .guest-table th,
-                .guest-table td {
-                    font-size: 5.9px;
-                    padding: 1.6px 2px;
-                }
+                    .guest-table {
+                        margin-top: 2px;
+                    }
 
-                .contact {
-                    margin-top: 5px;
-                    padding-top: 4px;
-                }
-            <?php endif; ?>
+                    .guest-table th,
+                    .guest-table td {
+                        font-size: 5.9px;
+                        padding: 1.6px 2px;
+                    }
 
-            <?php if ($this->hotelsPerPage >= 4): ?>
-                @page {
-                    margin: 6mm 7mm 6mm 7mm;
-                }
+                    .contact {
+                        margin-top: 5px;
+                        padding-top: 4px;
+                    }
 
-                body {
-                    font-size: 6.4px;
-                    line-height: 1.02;
-                }
-
-                .document-header {
-                    padding: 4px 0 5px;
-                    margin-bottom: 5px;
-                }
-
-                .summary-table {
-                    margin-bottom: 4px;
-                }
-
-                .summary-table td {
-                    padding: 2px 3px;
-                }
-
-                .hotel-block {
-                    padding-top: 4px;
-                    margin-bottom: 4px;
-                }
-
-                .hotel-name {
-                    font-size: 8.2px;
-                }
-
-                .hotel-location {
-                    font-size: 5.6px;
-                    line-height: 1;
-                }
-
-                .hotel-number {
-                    font-size: 5.8px;
-                }
-
-                .stay-table td {
-                    padding: 1.4px 2px;
-                }
-
-                .cell-label {
-                    font-size: 5.2px;
-                }
-
-                .cell-value {
-                    font-size: 6px;
-                }
-
-                .section-title {
-                    font-size: 5.5px;
-                    margin: 2px 0 1.5px;
-                }
-
-                .plain-box,
-                .important-note {
-                    font-size: 5.6px;
-                    padding: 1.5px 2px;
-                    line-height: 1.02;
-                }
-
-                .guest-table th,
-                .guest-table td {
-                    font-size: 5.4px;
-                    padding: 1.2px 1.8px;
-                }
-            <?php endif; ?>
-
-        
-            </style>
-        </head>
-        <body>
-
-        <?php if (!$isPdf): ?>
-            <div class="actions">
-                <form method="GET" style="display:inline-flex; align-items:center; gap:8px; margin-right:10px;">
-                    <input type="hidden" name="programa_id" value="<?= (int)$programa['id'] ?>">
-
-                    <label style="font-size:13px; font-weight:700; color:#374151;">
-                        Hotels per page
-                    </label>
-
-                    <select name="hotels_per_page" onchange="this.form.submit()" style="padding:9px 10px; border:1px solid #d1d5db; border-radius:8px;">
-                        <?php for ($i = 1; $i <= 4; $i++): ?>
-                            <option value="<?= $i ?>" <?= $this->hotelsPerPage === $i ? 'selected' : '' ?>>
-                                <?= $i ?>
-                            </option>
-                        <?php endfor; ?>
-                    </select>
-                </form>
-
-                <a class="btn secondary" href="javascript:window.print()">Print</a>
-
-                <a class="btn" href="<?= APP_URL ?>/modules/bonos/pdf.php?programa_id=<?= (int)$programa['id'] ?>&hotels_per_page=<?= (int)$this->hotelsPerPage ?>">
-                    Download PDF
-                </a>
-            </div>
-        <?php endif; ?>
-
-        <div class="voucher-page">
-
-            <div class="document-header">
-                <table class="header-table">
-                    <tr>
-                        <td style="width: 40%;">
-                            <?php if ($logo): ?>
-                                <img class="logo" src="<?= htmlspecialchars($logo) ?>" alt="Logo">
-                            <?php endif; ?>
-                            <div class="agency-name"><?= htmlspecialchars($agencia['nombre']) ?></div>
-                        </td>
-                        <td style="width: 60%;">
-                            <h1 class="doc-title">HOTEL RESERVATION VOUCHER</h1>
-                            <div class="doc-subtitle">Operational voucher for hotel reception</div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <table class="summary-table">
-                <tr>
-                    <td>
-                        <div class="label">File / Booking</div>
-                        <div class="value"><?= htmlspecialchars($file) ?></div>
-                    </td>
-                    <td>
-                        <div class="label">Program</div>
-                        <div class="value"><?= htmlspecialchars($programa['titulo_programa'] ?: $programa['destino']) ?></div>
-                    </td>
-                    <td>
-                        <div class="label">Issue date</div>
-                        <div class="value"><?= date('d/m/Y') ?></div>
-                    </td>
-                </tr>
-            </table>
-
-
-            <div class="content">
-                <?php if (empty($hoteles)): ?>
-                    <div class="note">Este programa no tiene alojamientos asignados.</div>
                 <?php endif; ?>
 
-                <?php
-                $hotelChunks = array_chunk($hoteles, $this->hotelsPerPage);
-                $hotelGlobalIndex = 0;
-                ?>
+                <?php if ($this->hotelsPerPage >= 4): ?>
+                    @page {
+                        margin: 6mm 7mm 6mm 7mm;
+                    }
 
-                <?php foreach ($hotelChunks as $pageIndex => $hotelPage): ?>
-                    <div class="voucher-sheet <?= $pageIndex > 0 ? 'sheet-break' : '' ?>">
+                    body {
+                        font-size: 6.4px;
+                        line-height: 1.02;
+                    }
 
-                        <?php if ($pageIndex > 0): ?>
-                            <div class="compact-page-header">
-                                <table>
-                                    <tr>
-                                        <td class="compact-page-title">HOTEL RESERVATION VOUCHER</td>
-                                        <td class="compact-page-file">File / Booking: <?= htmlspecialchars($file) ?></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        <?php endif; ?>
+                    .document-header {
+                        padding: 4px 0 5px;
+                        margin-bottom: 5px;
+                    }
 
-                        <?php foreach ($hotelPage as $hotel): ?>
-                            <?php $hotelGlobalIndex++; ?>
+                    .summary-table {
+                        margin-bottom: 4px;
+                    }
 
-                            <div class="hotel-block">
-                                <table class="hotel-header-table">
-                                    <tr>
-                                        <td style="width: 76%;">
-                                            <div class="hotel-name"><?= htmlspecialchars($hotel['hotel_nombre'] ?? 'Hotel without name') ?></div>
-                                            <div class="hotel-location"><?= htmlspecialchars($hotel['ubicacion'] ?? 'Location not registered') ?></div>
-                                        </td>
-                                        <td style="width: 24%;">
-                                            <div class="hotel-number"><?= $hotelGlobalIndex ?> out of <?= count($hoteles) ?> Hotels</div>
-                                        </td>
-                                    </tr>
-                                </table>
+                    .summary-table td {
+                        padding: 2px 3px;
+                    }
 
-                                <table class="stay-table">
-                                    <tr>
-                                        <td style="width: 20%;">
-                                            <div class="cell-label">Check-in</div>
-                                            <div class="cell-value"><?= $this->formatDate($hotel['checkin'] ?? null) ?></div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-label">Check-out</div>
-                                            <div class="cell-value"><?= $this->formatDate($hotel['checkout'] ?? null) ?></div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-label">Nights</div>
-                                            <div class="cell-value"><?= (int)($hotel['noches'] ?? 1) ?></div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-label">Room class</div>
-                                            <div class="cell-value"><?= htmlspecialchars($hotel['tipo_acomodacion'] ?: 'Subject to availability') ?></div>
-                                        </td>
-                                        <td style="width: 20%;">
-                                            <div class="cell-label">Pax / Room</div>
-                                            <div class="cell-value"><?= htmlspecialchars($hotel['acomodacion'] ?? 'N/A') ?></div>
-                                        </td>
-                                    </tr>
-                                </table>
+                    .hotel-block {
+                        padding-top: 4px;
+                        margin-bottom: 4px;
+                    }
 
-                                <div class="section-title">Room type / Accommodation</div>
-                                <div class="plain-box">
-                                    <?= htmlspecialchars($hotel['descripcion'] ?: 'Subject to hotel availability.') ?>
-                                </div>
+                    .hotel-name {
+                        font-size: 8.2px;
+                    }
 
-                                <div class="section-title">Guests</div>
-                                <table class="guest-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Full name</th>
-                                        <th>Document type</th>
-                                        <th>Document number</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php foreach ($viajeros as $viajero): ?>
-                                        <tr>
-                                            <td><?= htmlspecialchars(trim(($viajero['nombre'] ?? '') . ' ' . ($viajero['apellido'] ?? ''))) ?></td>
-                                            <td><?= htmlspecialchars($this->formatTipoDocumento($viajero['tipo_documento'] ?? null)) ?></td>
-                                            <td><?= htmlspecialchars($viajero['numero_documento'] ?? 'N/A') ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                    .hotel-location {
+                        font-size: 5.6px;
+                        line-height: 1;
+                    }
 
-                            </div>
-                        <?php endforeach; ?>
+                    .hotel-number {
+                        font-size: 5.8px;
+                    }
 
-                    </div>
-                <?php endforeach; ?>
+                    .stay-table td {
+                        padding: 1.4px 2px;
+                    }
 
-                <div class="contact <?= $this->hotelsPerPage >= 3 ? 'sheet-break' : '' ?>">
-                    <table class="contact-table">
+                    .cell-label {
+                        font-size: 5.2px;
+                    }
+
+                    .cell-value {
+                        font-size: 6px;
+                    }
+
+                    .section-title {
+                        font-size: 5.5px;
+                        margin: 2px 0 1.5px;
+                    }
+
+                    .plain-box,
+                    .important-note {
+                        font-size: 5.6px;
+                        padding: 1.5px 2px;
+                        line-height: 1.02;
+                    }
+
+                    .guest-table th,
+                    .guest-table td {
+                        font-size: 5.4px;
+                        padding: 1.2px 1.8px;
+                    }
+
+                <?php endif; ?>
+            </style>
+        </head>
+
+        <body>
+
+            <?php if (!$isPdf): ?>
+                <div class="actions">
+                    <form method="GET" style="display:inline-flex; align-items:center; gap:8px; margin-right:10px;">
+                        <input type="hidden" name="programa_id" value="<?= (int) $programa['id'] ?>">
+
+                        <label style="font-size:13px; font-weight:700; color:#374151;">
+                            Hotels per page
+                        </label>
+
+                        <select name="hotels_per_page" onchange="this.form.submit()"
+                            style="padding:9px 10px; border:1px solid #d1d5db; border-radius:8px;">
+                            <?php for ($i = 1; $i <= 4; $i++): ?>
+                                <option value="<?= $i ?>" <?= $this->hotelsPerPage === $i ? 'selected' : '' ?>>
+                                    <?= $i ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+                    </form>
+
+                    <a class="btn secondary" href="javascript:window.print()">Print</a>
+
+                    <a class="btn"
+                        href="<?= APP_URL ?>/modules/bonos/pdf.php?programa_id=<?= (int) $programa['id'] ?>&hotels_per_page=<?= (int) $this->hotelsPerPage ?>">
+                        Download PDF
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <div class="voucher-page">
+
+                <div class="document-header">
+                    <table class="header-table">
                         <tr>
-                            <td style="width: 50%;">
-                                <div class="contact-title">Assistance contact</div>
-                                <?= htmlspecialchars($agencia['nombre']) ?>
+                            <td style="width: 40%;">
+                                <?php if ($logo): ?>
+                                    <img class="logo" src="<?= htmlspecialchars($logo) ?>" alt="Logo">
+                                <?php endif; ?>
+                                <div class="agency-name"><?= htmlspecialchars($agencia['nombre']) ?></div>
                             </td>
-                            <td style="width: 50%; text-align: right;">
-                                <?php if (!empty($agencia['telefono'])): ?>
-                                    <div><strong>Phone</strong> <?= htmlspecialchars($agencia['telefono']) ?></div>
-                                <?php endif; ?>
-
-                                <?php if (!empty($agencia['email_contacto'])): ?>
-                                    <div><strong>Email:</strong> <?= htmlspecialchars($agencia['email_contacto']) ?></div>
-                                <?php endif; ?>
+                            <td style="width: 60%;">
+                                <h1 class="doc-title">HOTEL RESERVATION VOUCHER</h1>
+                                <div class="doc-subtitle">Operational voucher for hotel reception</div>
                             </td>
                         </tr>
                     </table>
                 </div>
+
+                <table class="summary-table">
+                    <tr>
+                        <td>
+                            <div class="label">File / Booking</div>
+                            <div class="value"><?= htmlspecialchars($file) ?></div>
+                        </td>
+                        <td>
+                            <div class="label">Program</div>
+                            <div class="value"><?= htmlspecialchars($programa['titulo_programa'] ?: $programa['destino']) ?>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="label">Issue date</div>
+                            <div class="value"><?= date('d/m/Y') ?></div>
+                        </td>
+                    </tr>
+                </table>
+
+
+                <div class="content">
+                    <?php if (empty($hoteles)): ?>
+                        <div class="note">Este programa no tiene alojamientos asignados.</div>
+                    <?php endif; ?>
+
+                    <?php
+                    $hotelChunks = array_chunk($hoteles, $this->hotelsPerPage);
+                    $hotelGlobalIndex = 0;
+                    ?>
+
+                    <?php foreach ($hotelChunks as $pageIndex => $hotelPage): ?>
+                        <div class="voucher-sheet <?= $pageIndex > 0 ? 'sheet-break' : '' ?>">
+
+                            <?php if ($pageIndex > 0): ?>
+                                <div class="compact-page-header">
+                                    <table>
+                                        <tr>
+                                            <td class="compact-page-title">HOTEL RESERVATION VOUCHER</td>
+                                            <td class="compact-page-file">File / Booking: <?= htmlspecialchars($file) ?></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php foreach ($hotelPage as $hotel): ?>
+                                <?php $hotelGlobalIndex++; ?>
+
+                                <div class="hotel-block">
+                                    <table class="hotel-header-table">
+                                        <tr>
+                                            <td style="width: 76%;">
+                                                <div class="hotel-name">
+                                                    <?= htmlspecialchars($hotel['hotel_nombre'] ?? 'Hotel without name') ?>
+                                                </div>
+                                                <div class="hotel-location">
+                                                    <?= htmlspecialchars($hotel['ubicacion'] ?? 'Location not registered') ?>
+                                                </div>
+                                            </td>
+                                            <td style="width: 24%;">
+                                                <div class="hotel-number"><?= $hotelGlobalIndex ?> out of <?= count($hoteles) ?> Hotels
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <table class="stay-table">
+                                        <tr>
+                                            <td style="width: 20%;">
+                                                <div class="cell-label">Check-in</div>
+                                                <div class="cell-value"><?= $this->formatDate($hotel['checkin'] ?? null) ?></div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div class="cell-label">Check-out</div>
+                                                <div class="cell-value"><?= $this->formatDate($hotel['checkout'] ?? null) ?></div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div class="cell-label">Nights</div>
+                                                <div class="cell-value"><?= (int) ($hotel['noches'] ?? 1) ?></div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div class="cell-label">Room class</div>
+                                                <div class="cell-value">
+                                                    <?= htmlspecialchars($hotel['tipo_acomodacion'] ?: 'Subject to availability') ?>
+                                                </div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div class="cell-label">Pax / Room</div>
+                                                <div class="cell-value"><?= htmlspecialchars($hotel['acomodacion'] ?? 'N/A') ?></div>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <div class="section-title">Room type / Accommodation</div>
+                                    <div class="plain-box">
+                                        <?= htmlspecialchars($hotel['descripcion'] ?: 'Subject to hotel availability.') ?>
+                                    </div>
+
+                                    <div class="section-title">Guests</div>
+                                    <table class="guest-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Full name</th>
+                                                <th>Document type</th>
+                                                <th>Document number</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($viajeros as $viajero): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars(trim(($viajero['nombre'] ?? '') . ' ' . ($viajero['apellido'] ?? ''))) ?>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($this->formatTipoDocumento($viajero['tipo_documento'] ?? null)) ?>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($viajero['numero_documento'] ?? 'N/A') ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            <?php endforeach; ?>
+
+                        </div>
+                    <?php endforeach; ?>
+
+                    <div class="contact <?= $this->hotelsPerPage >= 3 ? 'sheet-break' : '' ?>">
+                        <table class="contact-table">
+                            <tr>
+                                <td style="width: 50%;">
+                                    <div class="contact-title">Assistance contact</div>
+                                    <?= htmlspecialchars($agencia['nombre']) ?>
+                                </td>
+                                <td style="width: 50%; text-align: right;">
+                                    <?php if (!empty($agencia['telefono'])): ?>
+                                        <div><strong>Phone</strong> <?= htmlspecialchars($agencia['telefono']) ?></div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($agencia['email_contacto'])): ?>
+                                        <div><strong>Email:</strong> <?= htmlspecialchars($agencia['email_contacto']) ?></div>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
 
         </body>
+
         </html>
         <?php
 

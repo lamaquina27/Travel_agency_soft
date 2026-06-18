@@ -14,13 +14,13 @@ App::init();
 App::requireLogin();
 
 try {
-    $programaId = isset($_GET['programa_id']) ? (int)$_GET['programa_id'] : 0;
+    $programaId = isset($_GET['programa_id']) ? (int) $_GET['programa_id'] : 0;
 
     if (!$programaId) {
         throw new Exception('ID de programa requerido.');
     }
 
-    $hotelsPerPage = isset($_GET['hotels_per_page']) ? (int)$_GET['hotels_per_page'] : 1;
+    $hotelsPerPage = isset($_GET['hotels_per_page']) ? (int) $_GET['hotels_per_page'] : 1;
     $renderer = new BonoRenderer($programaId, $hotelsPerPage);
     $html = $renderer->renderHtml(true);
 
@@ -36,7 +36,7 @@ try {
     $options->set('tempDir', $projectRoot . '/tmp');
     $options->set('fontDir', $projectRoot . '/tmp/fonts');
     $options->set('fontCache', $projectRoot . '/tmp/fonts');
-
+    $options->set('defaultFont', 'DejaVu Sans');
     $dompdf = new Dompdf($options);
     $dompdf->loadHtml($html, 'UTF-8');
     $dompdf->setPaper('A4', 'portrait');
