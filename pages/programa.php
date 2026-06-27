@@ -3862,14 +3862,15 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             left: 0;
             right: 0;
             background: white;
-            border: 1px solid #ddd;
+            border: 2px solid #e2e8f0;
             border-top: none;
-            border-radius: 0 0 6px 6px;
-            max-height: 200px;
+            border-radius: 0 0 10px 10px;
+            max-height: 300px;
             overflow-y: auto;
             z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             display: none;
+            margin-top: 2px;
         }
 
         .location-results.active {
@@ -3877,14 +3878,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
         }
 
         .location-result-item {
-            padding: 10px 12px;
+            padding: 12px 15px;
             cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s ease;
         }
 
         .location-result-item:hover {
-            background: #f8f9fa;
+            background: #f7fafc;
         }
 
         .location-result-item:last-child {
@@ -14980,7 +14981,7 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             async function buscarUbicacion(query) {
                 try {
                     const response = await fetch(
-                        `<?= APP_URL ?>/modules/programa/location_proxy.php?q=${encodeURIComponent(query)}`
+                        `<?= APP_URL ?>/modules/ubicaciones/ubicaciones_api.php?action=search&q=${encodeURIComponent(query)}`
                     );
 
                     if (!response.ok) {
@@ -14989,12 +14990,12 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
 
                     const data = await response.json();
 
-                    if (data.error) {
-                        console.error('Error del proxy:', data.error);
+                    if (!data.success) {
+                        console.error('Error de la API de ubicaciones:', data.error);
                         return [];
                     }
 
-                    return data;
+                    return data.data || [];
                 } catch (error) {
                     console.error('Error buscando ubicación:', error);
                     return [];
@@ -15004,16 +15005,32 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
             // Mostrar resultados de búsqueda
             function mostrarResultadosUbicacion(results, container, itemId, tipo) {
                 if (!results || results.length === 0) {
-                    container.innerHTML = '<div class="location-result-item">No se encontraron resultados</div>';
+                    container.innerHTML = `
+                        <div style="padding: 20px; text-align: center; color: #718096;">
+                            No se encontraron ubicaciones
+                        </div>`;
                     container.classList.add('active');
                     return;
                 }
 
-                container.innerHTML = results.map(result => `
-        <div class="location-result-item" onclick="seleccionarUbicacion('${itemId}', '${tipo}', ${result.lat}, ${result.lon}, \`${result.display_name.replace(/`/g, '')}\`)">
-            ${result.display_name}
-        </div>
-    `).join('');
+                container.innerHTML = results.map(result => {
+                    const source = result.source === 'local'
+                        ? '<span style="color: #10b981; font-size: 11px; margin-left: 5px;">★ Usado antes</span>'
+                        : '';
+                    const nombre = result.name || result.display_name;
+                    const displayName = (result.display_name || '').replace(/`/g, '');
+
+                    return `
+                        <div class="location-result-item"
+                             onclick="seleccionarUbicacion('${itemId}', '${tipo}', ${result.lat}, ${result.lon}, \`${displayName}\`)">
+                            <div style="font-weight: 500; color: #2d3748;">
+                                ${nombre}${source}
+                            </div>
+                            <div style="font-size: 12px; color: #718096;">
+                                ${result.display_name}
+                            </div>
+                        </div>`;
+                }).join('');
 
                 container.classList.add('active');
             }

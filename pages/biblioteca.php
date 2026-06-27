@@ -2977,19 +2977,21 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
 
         // #5: diálogo para decidir si las condiciones de la plantilla se aplican a los
         // itinerarios YA creados. Devuelve 'nuevos' | 'no_editados' | 'todos' | null (cancelar).
-        function pedirModoPropagacion() {
+        function pedirModoPropagacion(opts = {}) {
+            const titulo = opts.titulo || 'Aplicar a los itinerarios existentes';
+            const descripcion = opts.descripcion || 'Actualizaste las condiciones de la plantilla. ¿Cómo quieres aplicarlas a los itinerarios ya creados?';
             return new Promise(resolve => {
                 const ov = document.createElement('div');
                 ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;';
                 const optStyle = 'text-align:left;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;background:#f8fafc;cursor:pointer;font:inherit;color:#1e293b;font-weight:600;display:block;width:100%;';
                 ov.innerHTML = `
                     <div style="background:#fff;border-radius:14px;max-width:470px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.3);font-family:inherit;">
-                        <h3 style="margin:0 0 6px;font-size:18px;color:#1e293b;">Aplicar a los itinerarios existentes</h3>
-                        <p style="margin:0 0 16px;font-size:14px;color:#64748b;">Actualizaste las condiciones de la plantilla. ¿Cómo quieres aplicarlas a los itinerarios ya creados?</p>
+                        <h3 style="margin:0 0 6px;font-size:18px;color:#1e293b;">${titulo}</h3>
+                        <p style="margin:0 0 16px;font-size:14px;color:#64748b;">${descripcion}</p>
                         <div style="display:flex;flex-direction:column;gap:10px;">
                             <button type="button" data-m="nuevos" style="${optStyle}">Solo a los nuevos<br><small style="font-weight:400;color:#64748b;">No toca los itinerarios existentes (recomendado)</small></button>
                             <button type="button" data-m="no_editados" style="${optStyle}">Solo a los no personalizados<br><small style="font-weight:400;color:#64748b;">Actualiza los que aún no editaste a mano</small></button>
-                            <button type="button" data-m="todos" style="${optStyle}">A todos<br><small style="font-weight:400;color:#64748b;">Sobrescribe las condiciones en todos los itinerarios</small></button>
+                            <button type="button" data-m="todos" style="${optStyle}">A todos<br><small style="font-weight:400;color:#64748b;">Sobrescribe la información en todos los itinerarios</small></button>
                         </div>
                         <div style="text-align:right;margin-top:16px;">
                             <button type="button" data-m="cancel" style="background:none;border:0;color:#64748b;cursor:pointer;font:inherit;padding:8px 12px;">Cancelar</button>
@@ -4209,6 +4211,22 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
                 }
 
                 formData.append('type', type);
+
+                // Si es edición de un recurso existente, preguntar cómo propagar el cambio
+                // a los programas que ya usan este recurso (misma lógica que condiciones).
+                if (id) {
+                    const modo = await pedirModoPropagacion({
+                        titulo: 'Aplicar a los programas existentes',
+                        descripcion: 'Modificaste este recurso de la biblioteca. ¿Cómo quieres aplicarlo a los programas que ya lo usan?'
+                    });
+                    if (modo === null) {
+                        // El usuario canceló: no guardamos nada.
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        return;
+                    }
+                    formData.append('propagar', modo);
+                }
 
                 //  AGREGAR ESTAS LÍNEAS AQUÍ:
                 // Si es días o actividades, aplicar orden y obtener archivos

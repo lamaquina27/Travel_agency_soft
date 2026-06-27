@@ -300,8 +300,9 @@ class BibliotecaAPI
                 throw new Exception('Usuario sin agencia asignada');
             }
 
+            // Traemos TODO el registro anterior para poder comparar al propagar.
             $existing = $this->db->fetch(
-                "SELECT user_id, agencia_id FROM `{$table}` WHERE id = ? AND agencia_id = ?",
+                "SELECT * FROM `{$table}` WHERE id = ? AND agencia_id = ?",
                 [$id, $agencia_id]
             );
 
@@ -349,7 +350,22 @@ class BibliotecaAPI
             try {
                 $this->db->update($table, $data, 'id = ?', [$id]);
                 error_log("✅ Update ejecutado correctamente");
-                return ['success' => true, 'message' => 'Recurso actualizado correctamente', 'data' => $data];
+
+                $resp = ['success' => true, 'message' => 'Recurso actualizado correctamente', 'data' => $data];
+
+                // Propagar (opcional) los cambios a las copias del recurso que viven en
+                // los programas ya creados de la agencia.
+                //   propagar = 'nuevos' (no tocar lo existente, por defecto) | 'todos' | 'no_editados'
+                $modo = $_POST['propagar'] ?? 'nuevos';
+                if (in_array($modo, ['todos', 'no_editados'], true)) {
+                    $n = $this->propagarRecursoAProgramas($type, $id, $existing, $data, $modo, $agencia_id);
+                    $resp['propagados'] = $n;
+                    $resp['message'] .= ($modo === 'todos')
+                        ? " · Aplicado a {$n} programa(s) que lo usan."
+                        : " · Aplicado a los programas sin personalizar.";
+                }
+
+                return $resp;
             } catch (Exception $dbException) {
                 error_log("❌ Database exception: " . $dbException->getMessage());
                 throw new Exception('Error de base de datos: ' . $dbException->getMessage());
@@ -1036,6 +1052,146 @@ class BibliotecaAPI
             if ($c === 'condiciones_generales') { $afectadosRef = $stmt->rowCount(); }
         }
         return $afectadosRef;
+    }
+
+    /**
+     * Propaga los cambios de un recurso de biblioteca (día / alojamiento / actividad /
+     * transporte) a las copias que viven en los programas (itinerarios) ya creados de la
+     * agencia.
+     *   - 'todos'       -> sobrescribe los campos copiados en TODAS las copias.
+     *   - 'no_editados' -> solo donde el campo está vacío o sigue igual al valor anterior
+     *                      de biblioteca (es decir, nunca fue personalizado en el programa).
+     * No toca imágenes (se gestionan aparte). Devuelve el nº de copias afectadas (referencial).
+     */
+    private function propagarRecursoAProgramas(string $type, int $id, array $old, array $new, string $modo, $agencia_id): int
+    {
+        // Días: copia en programa_dias enlazada por biblioteca_dia_id.
+        if ($type === 'dias') {
+            $map = [
+                'titulo'      => [$new['titulo'] ?? null,      $old['titulo'] ?? null],
+                'descripcion' => [$new['descripcion'] ?? null, $old['descripcion'] ?? null],
+                'ubicacion'   => [$new['ubicacion'] ?? null,   $old['ubicacion'] ?? null],
+                'latitud'     => [$new['latitud'] ?? null,     $old['latitud'] ?? null],
+                'longitud'    => [$new['longitud'] ?? null,    $old['longitud'] ?? null],
+            ];
+            $baseSql = "UPDATE programa_dias pd
+                        JOIN programa_solicitudes ps ON ps.id = pd.solicitud_id";
+            $matchWhere = "pd.biblioteca_dia_id = ? AND ps.agencia_id = ?";
+            $matchParams = [$id, $agencia_id];
+            return $this->ejecutarPropagacion($baseSql, 'pd', $map, $matchWhere, $matchParams, $modo);
+        }
+
+        // Servicios: copia en programa_dias_servicios enlazada por biblioteca_item_id + tipo_servicio.
+        $tipoServicio = [
+            'alojamientos' => 'alojamiento',
+            'actividades'  => 'actividad',
+            'transportes'  => 'transporte',
+        ][$type] ?? null;
+
+        if ($tipoServicio === null) {
+            return 0;
+        }
+
+        $map = $this->mapearCamposServicio($type, $old, $new);
+
+        $baseSql = "UPDATE programa_dias_servicios s
+                    JOIN programa_dias pd ON pd.id = s.programa_dia_id
+                    JOIN programa_solicitudes ps ON ps.id = pd.solicitud_id";
+        $matchWhere = "s.biblioteca_item_id = ? AND s.tipo_servicio = ? AND ps.agencia_id = ?";
+        $matchParams = [$id, $tipoServicio, $agencia_id];
+        return $this->ejecutarPropagacion($baseSql, 's', $map, $matchWhere, $matchParams, $modo);
+    }
+
+    /**
+     * Mapea los campos de un recurso de biblioteca a las columnas equivalentes de
+     * programa_dias_servicios. Formato: columnaDestino => [valorNuevo, valorAnterior].
+     * El mapeo replica exactamente cómo servicios_api copia los datos al agregar el servicio.
+     */
+    private function mapearCamposServicio(string $type, array $old, array $new): array
+    {
+        switch ($type) {
+            case 'actividades':
+                return [
+                    'nombre_servicio'      => [$new['nombre'] ?? null,      $old['nombre'] ?? null],
+                    'descripcion_servicio' => [$new['descripcion'] ?? null, $old['descripcion'] ?? null],
+                    'ubicacion_servicio'   => [$new['ubicacion'] ?? null,   $old['ubicacion'] ?? null],
+                    'latitud'              => [$new['latitud'] ?? null,      $old['latitud'] ?? null],
+                    'longitud'             => [$new['longitud'] ?? null,     $old['longitud'] ?? null],
+                ];
+
+            case 'alojamientos':
+                return [
+                    'nombre_servicio'       => [$new['nombre'] ?? null,      $old['nombre'] ?? null],
+                    'descripcion_servicio'  => [$new['descripcion'] ?? null, $old['descripcion'] ?? null],
+                    'ubicacion_servicio'    => [$new['ubicacion'] ?? null,   $old['ubicacion'] ?? null],
+                    'latitud'               => [$new['latitud'] ?? null,     $old['latitud'] ?? null],
+                    'longitud'              => [$new['longitud'] ?? null,    $old['longitud'] ?? null],
+                    'alojamiento_tipo'      => [$new['tipo'] ?? null,        $old['tipo'] ?? null],
+                    'alojamiento_categoria' => [$new['categoria'] ?? null,   $old['categoria'] ?? null],
+                    'alojamiento_sitio_web' => [$new['sitio_web'] ?? null,   $old['sitio_web'] ?? null],
+                ];
+
+            case 'transportes':
+                // ubicacion_servicio se compone igual que en servicios_api: "salida → llegada".
+                $newUbic = ($new['lugar_salida'] ?? '') . ' → ' . ($new['lugar_llegada'] ?? '');
+                $oldUbic = ($old['lugar_salida'] ?? '') . ' → ' . ($old['lugar_llegada'] ?? '');
+                return [
+                    'nombre_servicio'          => [$new['titulo'] ?? null,        $old['titulo'] ?? null],
+                    'descripcion_servicio'     => [$new['descripcion'] ?? null,   $old['descripcion'] ?? null],
+                    'ubicacion_servicio'       => [$newUbic,                      $oldUbic],
+                    'latitud'                  => [$new['lat_salida'] ?? null,     $old['lat_salida'] ?? null],
+                    'longitud'                 => [$new['lng_salida'] ?? null,     $old['lng_salida'] ?? null],
+                    'transporte_medio'         => [$new['medio'] ?? null,         $old['medio'] ?? null],
+                    'transporte_titulo'        => [$new['titulo'] ?? null,        $old['titulo'] ?? null],
+                    'transporte_lugar_salida'  => [$new['lugar_salida'] ?? null,  $old['lugar_salida'] ?? null],
+                    'transporte_lugar_llegada' => [$new['lugar_llegada'] ?? null, $old['lugar_llegada'] ?? null],
+                    'transporte_lat_salida'    => [$new['lat_salida'] ?? null,    $old['lat_salida'] ?? null],
+                    'transporte_lng_salida'    => [$new['lng_salida'] ?? null,    $old['lng_salida'] ?? null],
+                    'transporte_lat_llegada'   => [$new['lat_llegada'] ?? null,   $old['lat_llegada'] ?? null],
+                    'transporte_lng_llegada'   => [$new['lng_llegada'] ?? null,   $old['lng_llegada'] ?? null],
+                    'transporte_duracion'      => [$new['duracion'] ?? null,      $old['duracion'] ?? null],
+                    'transporte_distancia_km'  => [$new['distancia_km'] ?? null,  $old['distancia_km'] ?? null],
+                ];
+        }
+
+        return [];
+    }
+
+    /**
+     * Ejecuta la propagación sobre la tabla destino según el modo.
+     * $map: columnaDestino => [valorNuevo, valorAnterior].
+     */
+    private function ejecutarPropagacion(string $baseSql, string $prefix, array $map, string $matchWhere, array $matchParams, string $modo): int
+    {
+        if (empty($map)) {
+            return 0;
+        }
+
+        if ($modo === 'todos') {
+            $sets = [];
+            $params = [];
+            foreach ($map as $col => $vals) {
+                $sets[] = "{$prefix}.`{$col}` = ?";
+                $params[] = $vals[0];
+            }
+            $sql = $baseSql . " SET " . implode(', ', $sets) . " WHERE " . $matchWhere;
+            $params = array_merge($params, $matchParams);
+            $stmt = $this->db->query($sql, $params);
+            return $stmt->rowCount();
+        }
+
+        // 'no_editados': por campo, solo si está vacío o sigue igual al valor anterior de biblioteca.
+        $afectados = 0;
+        foreach ($map as $col => $vals) {
+            $sql = $baseSql
+                . " SET {$prefix}.`{$col}` = ?"
+                . " WHERE " . $matchWhere
+                . " AND ({$prefix}.`{$col}` IS NULL OR {$prefix}.`{$col}` = '' OR {$prefix}.`{$col}` <=> ?)";
+            $params = array_merge([$vals[0]], $matchParams, [$vals[1]]);
+            $stmt = $this->db->query($sql, $params);
+            $afectados = max($afectados, $stmt->rowCount());
+        }
+        return $afectados;
     }
 }
 
