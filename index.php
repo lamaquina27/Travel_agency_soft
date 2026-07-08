@@ -18,6 +18,21 @@ $path = $path ?: '/';
 
 // Limpiar path de múltiples slashes
 $path = preg_replace('#/+#', '/', $path);
+
+// =====================================================================
+// ANTI-CACHÉ DE PÁGINAS DINÁMICAS
+// Las páginas de la app se generan por usuario/sesión y llevan el JS en
+// línea, así que NO deben quedar cacheadas en el navegador: si el navegador
+// sirve una versión vieja, el software se ve lento o roto. Forzamos que
+// siempre pida la página fresca. (Los CSS/JS de /assets se sirven directo
+// por Apache con su propio Expires + versión ?v=, así que no se ven afectados.)
+// Se excluyen las páginas públicas para compartir, que SÍ conviene cachear.
+$rutasCacheables = ['/share', '/preview', '/itinerary'];
+if (!in_array($path, $rutasCacheables, true)) {
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+}
+
 if (App::isLoggedIn()) {
     $user = App::getUser();
     if ($user['role'] === 'operador') {

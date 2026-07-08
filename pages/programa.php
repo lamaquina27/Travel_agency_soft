@@ -130,14 +130,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
     <!-- CSS Framework y estilos -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="<?= APP_URL ?>/assets/css/dashboard.css" rel="stylesheet">
+    <link href="<?= App::asset('css/dashboard.css') ?>" rel="stylesheet">
 
     <script>
         const APP_URL = '<?= APP_URL ?>';
     </script>
 
-    <script src="<?= APP_URL ?>/assets/js/ubicacion-search-widget.js"></script>
-    <script src="<?= APP_URL ?>/assets/js/api-connections.js"></script>
+    <script src="<?= App::asset('js/ubicacion-search-widget.js') ?>"></script>
+    <script src="<?= App::asset('js/api-connections.js') ?>"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
@@ -7477,7 +7477,14 @@ $page_title = $is_editing ? 'Editar Programa' : 'Nuevo Programa';
                 } catch (error) {
                     console.error('❌ Error completo:', error);
                     alert('Error: ' + error.message);
-                    btn.disabled = false;  // ← AHORA SÍ EXISTE btn
+                } finally {
+                    // Siempre re-habilitar el botón, INCLUIDO el camino de éxito.
+                    // Antes solo se restauraba en validación y en catch, así que tras
+                    // guardar un día con éxito el botón quedaba en "Guardando..." y
+                    // deshabilitado. Como el modal se reutiliza, al abrirlo para crear
+                    // OTRO día desde cero ese mismo botón seguía bloqueado y había que
+                    // refrescar. El finally lo deja listo para el siguiente día.
+                    btn.disabled = false;
                     btn.innerHTML = originalHTML;
                 }
             }

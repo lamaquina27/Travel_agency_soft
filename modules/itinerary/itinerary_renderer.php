@@ -276,6 +276,29 @@ class ItineraryRenderer
                 .pricing-table td { border:1px solid #e5e7eb; padding:9px 10px; vertical-align:top; font-size:11px; line-height:1.45; }
                 .price-label { width:30%; background:#f8fafc; color:#111827; font-weight:700; }
                 .price-main { color:<?= $primary ?>; font-size:19px; font-weight:700; }
+
+                /* Condiciones (textos largos, hasta ~3000 car.). Se ven como filas
+                   de dos columnas (etiqueta | texto) igual que antes, PERO construidas
+                   con float en vez de <table>: dompdf no parte bien un <td> muy alto y
+                   lo recorta en el salto de página; en cambio el texto de un bloque con
+                   float sí fluye línea por línea entre páginas sin cortarse. La etiqueta
+                   (float) queda a la izquierda y el texto ocupa la columna derecha. */
+                .cond-list { margin-top:14px; }
+                .cond-block { border:1px solid #e5e7eb; margin-top:-1px; page-break-inside:auto; }
+                /* Etiqueta como barra de título arriba (ancho completo) y texto debajo.
+                   Sin floats: el texto siempre alinea igual, nunca se descuadra ni se
+                   corta, y pagina bien aunque la condición ocupe varias páginas. */
+                .cond-label {
+                    background:#f8fafc; color:#111827; font-weight:700;
+                    font-size:11px; line-height:1.4; padding:7px 10px;
+                    border-bottom:1px solid #e5e7eb;
+                }
+                .cond-text {
+                    padding:9px 10px; box-sizing:border-box;
+                    font-size:11px; line-height:1.45; color:#3f4755;
+                    page-break-inside:auto;
+                }
+                .cond-clear { clear:both; font-size:0; line-height:0; }
                 .footer { color:#7b8494; font-size:10px; text-align:right; margin-top:16px; border-top:1px solid #e5e7eb; padding-top:8px; }
             </style>
         </head>
@@ -433,18 +456,27 @@ class ItineraryRenderer
             <?php if ($showPriceTotal || $hasPriceText): ?>
                 <div class="price-section">
                     <h2 class="section-title"><?= $this->t('precio_condiciones') ?></h2>
+                    <?php if ($mostrarPrecio && !empty($precios['precio_total'])): $mon = htmlspecialchars($precios['moneda'] ?? ''); ?>
                     <table class="pricing-table">
-                        <?php if ($mostrarPrecio && !empty($precios['precio_total'])): $mon = htmlspecialchars($precios['moneda'] ?? ''); ?>
                             <?php if (abs($hotelDelta) > 0.001): // hubo cambio de hotel → mostrar el desglose ?>
                                 <tr><td class="price-label"><?= $this->t('precio_base') ?></td><td><?= $mon ?> <?= number_format((float)$precios['precio_total'], 0, ',', '.') ?></td></tr>
                                 <tr><td class="price-label"><?= $this->t('ajuste_hotel') ?></td><td><?= ($hotelDelta >= 0 ? '+ ' : '− ') . $mon ?> <?= number_format(abs($hotelDelta), 0, ',', '.') ?></td></tr>
                             <?php endif; ?>
                             <tr><td class="price-label"><?= $this->t('precio_total') ?></td><td><span class="price-main"><?= $mon ?> <?= number_format($precioTotalEfectivo, 0, ',', '.') ?></span></td></tr>
-                        <?php endif; ?>
-                        <?php foreach ([['precio_incluye','incluye'],['precio_no_incluye','no_incluye'],['condiciones_generales','condiciones_generales'],['info_pasaporte','pasaporte'],['info_seguros','seguros'],['visados_entrada','visados'],['requisitos_sanitarios','req_sanitarios'],['llegada_punto_encuentro','llegada'],['asistencia_emergencia','asistencia'],['info_hoteles_servicios','info_hoteles'],['informacion_practica','info_practica']] as $row): ?>
-                            <?php if (!empty($precios[$row[0]])): ?><tr><td class="price-label"><?= $this->t($row[1]) ?></td><td><?= nl2br(htmlspecialchars($precios[$row[0]])) ?></td></tr><?php endif; ?>
-                        <?php endforeach; ?>
                     </table>
+                    <?php endif; ?>
+                    <?php // Condiciones: filas de dos columnas con float (no <table>) para que dompdf pueda partir el texto largo entre páginas sin recortar. ?>
+                    <div class="cond-list">
+                        <?php foreach ([['precio_incluye','incluye'],['precio_no_incluye','no_incluye'],['condiciones_generales','condiciones_generales'],['info_pasaporte','pasaporte'],['info_seguros','seguros'],['visados_entrada','visados'],['requisitos_sanitarios','req_sanitarios'],['llegada_punto_encuentro','llegada'],['asistencia_emergencia','asistencia'],['info_hoteles_servicios','info_hoteles'],['informacion_practica','info_practica']] as $row): ?>
+                            <?php if (!empty($precios[$row[0]])): ?>
+                                <div class="cond-block">
+                                    <div class="cond-label"><?= $this->t($row[1]) ?></div>
+                                    <div class="cond-text"><?= nl2br(htmlspecialchars($precios[$row[0]])) ?></div>
+                                    <div class="cond-clear"></div>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             <?php endif; ?>
             <div class="footer"><?= htmlspecialchars($agencia['nombre'] ?? '') ?><?php if (!empty($agencia['telefono'])): ?> | <?= htmlspecialchars($agencia['telefono']) ?><?php endif; ?><?php if (!empty($agencia['email_contacto'])): ?> | <?= htmlspecialchars($agencia['email_contacto']) ?><?php endif; ?></div>

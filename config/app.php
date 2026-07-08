@@ -287,7 +287,18 @@ public static function getUser() {
     }
 
     public static function asset($path) {
-        return APP_URL . '/assets/' . ltrim($path, '/');
+        $rel = ltrim($path, '/');
+        $url = APP_URL . '/assets/' . $rel;
+
+        // Cache-busting: agrega ?v=<fecha de modificación> para que, al editar
+        // un CSS/JS, la URL cambie y todos los navegadores bajen la versión
+        // nueva UNA vez (y la vuelvan a cachear). Evita que los clientes queden
+        // atascados con archivos viejos por el Expires de 1 mes del .htaccess.
+        $file = BASE_PATH . '/assets/' . $rel;
+        if (is_file($file)) {
+            $url .= '?v=' . filemtime($file);
+        }
+        return $url;
     }
 
     public static function url($path) {

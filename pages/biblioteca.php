@@ -27,10 +27,10 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>Biblioteca - <?= htmlspecialchars($companyName) ?></title>
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/modern_image_upload.css">
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/biblioteca_carousel.css">
-    <script src="<?= APP_URL ?>/assets/js/modern_image_upload.js"></script>
-    <script src="<?= APP_URL ?>/assets/js/biblioteca_carousel.js"></script>
+    <link rel="stylesheet" href="<?= App::asset('css/modern_image_upload.css') ?>">
+    <link rel="stylesheet" href="<?= App::asset('css/biblioteca_carousel.css') ?>">
+    <script src="<?= App::asset('js/modern_image_upload.js') ?>"></script>
+    <script src="<?= App::asset('js/biblioteca_carousel.js') ?>"></script>
 
 
 
@@ -2341,7 +2341,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
             }
         }
     </style>
-    <script src="<?= APP_URL ?>/assets/js/ubicacion-search-widget.js"></script>
+    <script src="<?= App::asset('js/ubicacion-search-widget.js') ?>"></script>
 </head>
 
 <body>
@@ -6192,7 +6192,7 @@ $defaultLanguage = ConfigManager::getDefaultLanguage();
     </script>
 
     <!-- Script del sistema de autocompletado -->
-    <script src="<?= APP_URL ?>/assets/js/location-autocomplete.js"></script>
+    <script src="<?= App::asset('js/location-autocomplete.js') ?>"></script>
 
     <script>
         // =====================================
